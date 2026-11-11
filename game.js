@@ -345,8 +345,10 @@ const CHAT = {
 const chatLast = {};
 function chatter(key) {
   const a = CHAT[key]; if (!a) return ['Belle journée sur l\'île, n\'est-ce pas ? ☀️'];
-  let i; do { i = Math.floor(Math.random() * a.length); } while (a.length > 1 && i === chatLast[key]);
-  chatLast[key] = i; return a[i];
+  const choices = level === 'balade' ? a.filter(lines => !lines.some(line => /\bplumes?\b/i.test(line))) : a;
+  if (!choices.length) return ['Belle journée sur l\'île, n\'est-ce pas ? ☀️'];
+  let i; do { i = Math.floor(Math.random() * choices.length); } while (choices.length > 1 && i === chatLast[key]);
+  chatLast[key] = i; return choices[i];
 }
 const qState = {}; QUESTS.forEach(q => qState[q.id] = 'new');   // new | active | done
 const opened = {};                                              // coffres ouverts
@@ -356,9 +358,43 @@ let mountUnlocked = false;
 let introSeen = false, endingSeen = false, rideT = 0;
 
 const nOpened = () => QUESTS.filter(q => opened[q.id]).length;
-const unlocked = q => !q.final || QUESTS.filter(o => !o.final).every(o => qState[o.id] === 'done');
+const unlocked = q => !q.final || level === 'balade' || QUESTS.filter(o => !o.final).every(o => qState[o.id] === 'done');
 const hasAll = q => Object.entries(q.need).every(([k, n]) => inv[k] >= n);
 const needStr = q => Object.entries(q.need).map(([k, n]) => `${ICON[k]}${Math.min(inv[k], n)}/${n}`).join(' ');
+const FREE_QUEST_TEXT = {
+  rose: {
+    title: 'Noix de coco pour Miraaï',
+    start: ['Myah, ma chérie ! Je prépare un goûter pour la famille. 🥥', 'Peux-tu me rapporter 4 noix de coco ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !'],
+    remind: ['Il me faut encore des noix de coco 🥥 pour le goûter ! Regarde sous les cocotiers.'],
+    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites ! 🥥', 'Un petit coffre t’attend dans le buisson qui scintille ✨ devant la maison, à gauche de la porte.']
+  },
+  bleu: {
+    title: 'Papillons pour Nijan',
+    start: ['Myah ! Myah ! Je voudrais observer des papillons de près ! 🦋', 'Peux-tu attraper 3 papillons avec ton filet [filet] ? Avance doucement : ils se posent sur les fleurs.'],
+    remind: ['Il m’en faut encore, des papillons 🦋 ! Approche-toi doucement avec ton filet !'],
+    done: ['Waaaah ! Ils sont trop beaux ! Merci Myah, tu es la meilleure grande sœur !', 'Mon petit coffre est caché à l’étage du musée, en haut de l’échelle ✨ Va le chercher !']
+  },
+  soleil: {
+    title: 'Fleurs pour Lulia',
+    start: ['Bonjour Myah ! J’aimerais décorer le poste de soin avec de jolies fleurs. 🌼', 'Peux-tu en cueillir 5 avec ton panier [panier] ?'],
+    remind: ['Encore quelques fleurs 🌸, s’il te plaît ! Elles poussent dans les petits jardins.'],
+    done: ['Quel beau bouquet ! Merci pour ton aide ! 🌸', 'Un petit coffre t’attend dans le buisson qui scintille ✨ devant le poste de soin.']
+  },
+  toto: {
+    title: 'Poissons et crabes pour Zyno',
+    start: ['Ho ho, Myah ! Je prépare un repas de la plage et il me faut du poisson et des crabes ! 🐟🦀', 'Pêche 3 poissons avec ta canne [canne], depuis la plage, et attrape 2 crabes rouges avec ton panier [panier], sur le sable !'],
+    remind: ['Il me faut encore du poisson 🐟 et des crabes 🦀 pour le repas. Les poissons sont près de l’eau, les crabes sur le sable !'],
+    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon petit coffre est caché dans la cale de mon bateau, sous une couverture ✨']
+  },
+  plume: {
+    title: 'Fruits pour le musée',
+    start: ['Myah ! Je prépare un goûter au musée. 🎉', 'Peux-tu apporter 5 mangues 🥭 et 6 bananes 🍌 ? Les manguiers près du musée et de l’escalier de l’observatoire, et les bananiers du jardin, en sont pleins !', 'Un petit coffre se trouve dans l’observatoire : Yurii t’y attend !'],
+    remind: ['Pour le goûter, il me faut 5 mangues 🥭 et 6 bananes 🍌 !'],
+    done: ['Hourra ! Le goûter sera délicieux !', 'Le petit coffre est à l’intérieur de l’observatoire, derrière les plantes ✨']
+  }
+};
+const questText = (q, part) => level === 'balade' ? FREE_QUEST_TEXT[q.id][part] : q[part];
+const questTitle = q => level === 'balade' ? FREE_QUEST_TEXT[q.id].title : q.title;
 
 /* ================= collection du musée ================= */
 const COLL = [
@@ -870,6 +906,11 @@ const EXTRAS = [
 const YUR = { key: 'gardien', who: 'Yurii, l\'ornithologue', lines: ['Bonjour Myah ! Je suis Yurii, l\'ornithologue : je suis les oiseaux de l\'île depuis l\'observatoire. 🦜', 'Depuis que Gaïkin est parti, je cherche son ombre dans le ciel chaque soir. Prends la longue-vue : tu verras peut-être quelque chose ! 🔭'] };
 YUR.sprite = npcSprite('gardien'); Object.defineProperty(YUR, 'portrait', { get() { return npcPortrait(YUR.sprite); } });
 YUR.met = false;
+const FREE_EXTRA_LINES = {
+  maima: ['Bonjour ma petite Myah ! Je suis Maïmaï, la cheffe de l’île. 🌺', 'Je veille sur le village. Profite de cette île et de toutes ses activités !'],
+  gardien: ['Bonjour Myah ! Je suis Yurii, l’ornithologue. J’observe les oiseaux depuis la tour d’observation. 🦜', 'Prends la longue-vue : tu verras peut-être des oiseaux passer au-dessus de cette île ! 🔭']
+};
+const extraLines = e => level === 'balade' ? (FREE_EXTRA_LINES[e.key] || e.lines) : e.lines;
 // coffres : près de chaque PNJ, sur un point marchable
 (function placeChests() {
   const offs = [[36, 4], [-36, 4], [0, 30], [38, -10], [-38, -10], [0, -24], [52, 16], [-52, 16]];
@@ -1614,17 +1655,21 @@ function bagItemsHtml() {
 let questTab = 'todo';
 function renderHud() {
   const no = nOpened();
-  let h = bagItemsHtml() + `<div class="row pl">`;
-  QUESTS.forEach(q => { h += `<img src="${FICON[q.fe]}" class="${opened[q.id] ? '' : 'off'}" alt="">`; });
-  h += `<span>${no}/5</span></div>`;
+  const collected = COLL.filter(item => coll[item.id]).length;
+  let h = bagItemsHtml();
+  if (storyOn()) {
+    h += `<div class="row pl">`;
+    QUESTS.forEach(q => { h += `<img src="${FICON[q.fe]}" class="${opened[q.id] ? '' : 'off'}" alt="">`; });
+    h += `<span>${no}/5</span></div>`;
+  } else h += `<div class="row pl"><span>Collection du musée : ${collected}/${COLL.length}</span></div>`;
   h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button>';
   $('#inv').innerHTML = emoFix(h);
-  { const bn = $('#bagN'); bn.textContent = no + '/5'; bn.classList.toggle('show', no > 0); }
+  { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
   const seen = QUESTS.filter(q => qState[q.id] !== 'new');
   const line = q => {
     const st = qState[q.id], lock = !unlocked(q);
-    const txt = lock ? '🔒 ???' : q.title;
+    const txt = lock ? '🔒 ???' : questTitle(q);
     let cnt = '';
     if (st === 'done') cnt = opened[q.id] ? '✔' : '🎁 coffre !';
     else if (st === 'active') cnt = needStr(q);
@@ -1641,7 +1686,7 @@ function renderHud() {
   if (questTab === 'done') { if (!doneQ.length) t += '<div class="q"><span>Aucune quête accomplie pour le moment : ouvre le coffre d\'une mission pour la ranger ici ✨</span></div>'; doneQ.forEach(q => { t += line(q); }); }
   else { if (!seen.length) t += '<div class="q"><span>' + (storyOn() ? 'Va parler aux habitants de l\'île : chacun a besoin d\'un coup de main !' : 'Promène-toi à ton rythme : si un habitant a besoin d\'aide, tu peux l\'aider quand tu veux.') + '</span></div>'; todoQ.forEach(q => { t += line(q); }); }
   const sw = phase === 'quests' || phase === 'reveal';
-  if (!sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''} ${sw ? 'locked' : ''}"><span>${sw ? '🔒 ???' : '🦢 Rendre les plumes au Cygne'}</span><span class="cnt">${phase === 'returned' ? '✔' : (sw ? '' : '! lac')}</span></div>`;
+  if (storyOn() && !sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''}"><span>🦢 Rendre les plumes au Cygne</span><span class="cnt">${phase === 'returned' ? '✔' : '! lac'}</span></div>`;
   $('#quests').innerHTML = emoFix(t);
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
   const act = QUESTS.filter(q => qState[q.id] === 'active').length + QUESTS.filter(q => qState[q.id] === 'done' && !opened[q.id]).length;
@@ -1740,6 +1785,7 @@ function doAction() {
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
 
+  if (!handsFull() && doorNear()) { const h = doorNear(); h.askUntil = 0; askEnter(h); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
   // cibles proches : coffre, PNJ, cygne
   let target = null, bd = 1e9;
@@ -1757,7 +1803,7 @@ function doAction() {
   if (target && target.kind === 'extra' && (target.e.kid || target.e.chal)) return kidTalk(target.e);
   if (target && (target.kind === 'npc' || target.kind === 'extra') && miniDeliver(target)) return;
   if (target) {
-    if (target.kind === 'extra') { const e = target.e; faceTo(e.x); player.state = 'talk'; setAnim('idle'); const go = () => openDialog(e.who, e.met ? chatter(e.key) : (e.met = true, e.lines), () => { if (e.museum) openColl(); else player.state = 'free'; }, e.portrait); return e.museum ? go() : offerVeg(e.who, e.portrait, () => { player.state = 'free'; }, go, 'Discuter'); }
+    if (target.kind === 'extra') { const e = target.e; faceTo(e.x); player.state = 'talk'; setAnim('idle'); const go = () => openDialog(e.who, e.met ? chatter(e.key) : (e.met = true, extraLines(e)), () => { if (e.museum) openColl(); else player.state = 'free'; }, e.portrait); return e.museum ? go() : offerVeg(e.who, e.portrait, () => { player.state = 'free'; }, go, 'Discuter'); }
     if (target.kind === 'npc') { faceTo(target.q.x); return talkTo(target.q); }
     if (target.kind === 'chest') { faceTo(target.q.cx); return touchChest(target.q); }
     if (target.kind === 'swan') { faceTo(swanSpot()[0]); return talkSwan(); }
@@ -1808,7 +1854,23 @@ function fishPress() {
   }
   if (fs.phase === 'wait') say('Patience… attends que le poisson morde 🐟', 2);
 }
-function releaseFish(cool = 4) { if (fs.fish && fs.fish.state !== 'gone') { fs.fish.state = 'swim'; fs.fish.cool = cool; pickTarget(fs.fish); } fs.fish = null; }
+function updateFishingFight(dt) {
+  const D = DIFF[level], F = fs.fight; F.t += dt;
+  const held = actHeld(), hard = (D.canLose && !calm) ? (D.fall > 1.3 ? 1.35 : 1.15) : .85;
+  F.mt -= dt;
+  if (F.mt <= 0) { if (F.mode === 'rest') { F.mode = 'pull'; F.mt = (.9 + Math.random() * .7) / Math.sqrt(hard); sfx.bite(); } else { F.mode = 'rest'; F.mt = (1.5 + Math.random() * 1.1) / Math.sqrt(hard); } }
+  if (held) F.T += (F.mode === 'pull' ? 1.05 * hard : .2) * dt;
+  else F.T += ((F.mode === 'pull' ? .3 : .1) - F.T) * Math.min(1, 2.2 * dt);
+  F.T = Math.max(0, F.T); F.inZ = held && F.mode === 'rest';
+  F.prog += (F.inZ ? D.fill : held ? D.fill * .15 : -D.drain * .6) * dt; F.prog = Math.min(1, Math.max(0, F.prog));
+  if (F.T >= 1) {
+    if (D.canLose && !calm) { releaseFish(7); fs.phase = 'wait'; fs.t = 0; fs.fight = null; say('La ligne a cassé ! Relâche quand il tire 🐟', 2.6); sfx.no(); return true; }
+    F.T = .35; F.prog = Math.max(0, F.prog - .12); F.mode = 'rest'; F.mt = 1.6; say('Aïe, la ligne a failli casser ! Relâche quand il tire 🐟', 2.2); sfx.no();
+  }
+  if (F.prog >= 1) { fs.phase = 'reel'; fs.fight = null; player.fr = 15; sfx.cast(); }
+  return false;
+}
+function releaseFish(cool = 4) { if (fs.fish && fs.fish.state !== 'gone') { fs.fish.state = 'swim'; fs.fish.cool = cool; if (fs.fish.region !== 'kob') pickTarget(fs.fish); } fs.fish = null; }
 function endFishing() { releaseFish(); player.state = 'free'; fs.phase = ''; fs.fight = null; setAnim('idle'); }
 
 function collect(kind, x, y) { inv[kind]++; save(); renderHud(); flyers.push({ kind, x, y: y - 14, t: 0 }); }
@@ -1831,20 +1893,20 @@ function talkTo0(q) {
   if (st === 'new' && isEve()) return openDialog(q.who, ['Il se fait tard, Myah. Reviens demain matin, on en reparlera !'], freeO, q.portrait);   // pas de mission proposée la nuit tombée
   if (st === 'new') {
     const accept = () => { qState[q.id] = 'active'; if (q.tool) flashTool(q.tool); save(); renderHud(); if (hasAll(q)) setTimeout(() => talkTo0(q), 100); else free0(); };
-    if (!storyOn()) return openDialog(q.who, q.start, () => askQuest('Aider ' + String(q.who).split(',')[0].trim() + ' ?', accept, () => { free0(); say('D\'accord, reviens quand tu veux !', 2.6); }), q.portrait);   // Balade : jamais obligé, et dans l\'ordre qu\'on veut
+    if (!storyOn()) return openDialog(q.who, questText(q, 'start'), () => askQuest('Aider ' + String(q.who).split(',')[0].trim() + ' ?', accept, () => { free0(); say('D\'accord, reviens quand tu veux !', 2.6); }), q.portrait);   // Balade : jamais obligé, et dans l\'ordre qu\'on veut
     return openDialog(q.who, q.start, accept, q.portrait);
   }
   if (hasAll(q)) {
     handIn(q, () => giveAnim(q.need, () => {   // petit panneau d'inventaire : on choisit les objets et la quantité demandée
       Object.entries(q.need).forEach(([k, n]) => { inv[k] -= n; });
       qState[q.id] = 'done'; if (level !== 'balade') bonusStar[q.id] = true; save(); renderHud();
-      openDialog(q.who, q.done, () => {
+      openDialog(q.who, questText(q, 'done'), () => {
         free0(); sfx.unlock(); burst(q.cx, q.cy - 14, 22, ['#ffe27a', '#fff', '#ffc83d'], true);
         questGift(q);
         if (q.inside) say('Un coffre est caché ' + q.inside.where + ' ✨', 4); else floatText(q.cx, q.cy - 34, 'Un buisson scintille !', '#ffe27a'); renderHud();
       }, q.portrait);
     }), free0);
-  } else openDialog(q.who, q.remind.concat([needStr(q)]), free, q.portrait);
+  } else openDialog(q.who, questText(q, 'remind').concat([needStr(q)]), free, q.portrait);
 }
 
 
@@ -1984,6 +2046,15 @@ function bookShow(done) {
 
 function finishChest(q) {
   opened[q.id] = true; q.opening = false; q.chestOpen = 1; q.vanishAt = time + 2.4; save(); renderHud();
+  if (!storyOn()) {
+    const available = COLL.filter(item => !coll[item.id]);
+    if (available.length) {
+      const gift = available[Math.floor(Math.random() * available.length)];
+      coll[gift.id] = true; save(); renderHud();
+      openDialog('Un souvenir pour le musée', ['Un objet rare rejoint la collection du musée : ' + gift.name + ' !'], () => { player.state = 'free'; }, LP());
+    } else openDialog('Le coffre est ouvert !', ['Bravo Myah, merci pour ton aide !'], () => { player.state = 'free'; }, LP());
+    return;
+  }
   const n = nOpened(), nf = QUESTS.filter(o => !o.final && opened[o.id]).length, CL = [
     ['Une plume de Gaïkin ! 🪶 (1/4)', 'Elle brille doucement. Les habitants la gardaient en secret, pour que les pirates ne la volent pas.'],
     ['Deux plumes ! 🪶🪶 (2/4)', 'Quand une plume de Gaïkin touche l\'eau, elle la nettoie, comme un engrais naturel qui garde l\'eau pure. Sans elles, l\'eau du lac devient trouble.'],
@@ -2207,7 +2278,7 @@ function kidTalk0(e) {   // Kito gazouille ; Lila et Romi bavardent et proposent
   if (chal && chal.who === e.key) { const left = chal.c.n - chal.got; return openDialog(e.who, ['Courage ! Il te reste ' + left + ' ' + chal.c.nm + (calm ? '.' : ' et ' + fmtT(chal.t) + '.')], free, e.portrait); }
   const first = !e.met; e.met = true;
   const canOffer = !chal && !isEve() && Date.now() >= kidCd[e.key];   // pas de défi proposé la nuit tombée
-  openDialog(e.who, first ? e.lines : chatter(e.key), () => {
+  openDialog(e.who, first ? extraLines(e) : chatter(e.key), () => {
     if (!canOffer) { free(); return; }
     const L = CHAL_CATALOG[e.key].filter(c => c !== e.lastC), c = L[Math.floor(Math.random() * L.length)];
     askQuest(nm + ' te lance un défi : ' + c.ask + (calm ? '' : ' en 3 minutes') + '. Récompense : un objet rare ! Tu relèves le défi ?',
@@ -2954,6 +3025,7 @@ const KOB_BEACH_FISH = [
   { k: 4, x: 965, y: 686, ph: 4.1 },
   { k: 5, x: 1100, y: 650, ph: 5.3 },
 ];
+const kobBeachFish = KOB_BEACH_FISH.map(f => ({ ...f, bx: f.x, by: f.y, state: 'swim', cool: 0, t: 0, dir: 1 }));
 const nFish = () => Object.keys(kobD.fi).filter(k => kobD.fi[k] > 0).length, nFruit = () => KFRU.filter(f => kobD.fr[f.k]).length;
 const kobStar = msg => { kobD.st++; sfx.star(); say(msg, 5); save(); };
 const DEFI = {
@@ -2977,7 +3049,11 @@ function kobDefiTalk(n) {   // renvoie { lines, after } ou null
 function kobFruitNear() { if (SC !== SC_KOBHAK || !kobD.acc.fruit) return null; return KFRU.find(f => !kobD.fr[f.k] && dist(IN.x, IN.y, f.x, f.y) < 36); }
 const kobFishNear = () => SC === SC_KOBHAK && (kobQ >= 5 || level === 'balade') && dist(IN.x, IN.y, FISH_SPOT[0], FISH_SPOT[1]) < 40;
 function kobFruitAct() { const f = kobFruitNear(); if (!f) return false; if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les fruits ! 🧺', 3.2); return true; } kobD.fr[f.k] = true; sfx.pick(); player.dir4 = 'down'; say('Tu as trouvé une ' + f.n + ' ! (' + nFruit() + '/3)' + (nFruit() >= 3 ? ' Va voir Koki à la boutique !' : ''), 4); save(); return true; }
-function kobFishAct() { if (!kobFishNear()) return false; setTool('fish'); kobFishing(); return true; }
+function kobFishAct() {
+  if (player.state === 'fishing') { fishPress(); return true; }
+  if (!kobFishNear()) return false;
+  setTool('fish'); kobFishing(); return true;
+}
 const MGA = {ch_wood:[0,1634,127,128],ch_glow:[131,1634,125,128],ch_open:[260,1634,113,128],ch_grey:[377,1634,134,128],ch_greyo:[515,1634,107,128],ch_gold:[626,1634,126,128],ch_goldo:[756,1634,106,128],sd_drop:[866,1634,45,72],sd_coin:[915,1634,105,72],sd_star:[1024,1634,72,72],sd_rice:[1100,1634,33,72],sd_blue:[1137,1634,96,72],sd_moon:[1237,1634,63,72],pt_star:[1304,1634,127,128],pt_blue:[1435,1634,119,128],pt_moon:[1558,1634,127,128],pt_drop:[1689,1634,127,128],pt_rice:[1820,1634,119,128],pt_coin:[1943,1634,127,128],vase:[2074,1634,178,200],kraft:[2256,1634,155,256],bouq:[2415,1634,183,256],lp00:[2602,1634,132,144],lp01:[2738,1634,144,144],lp02:[2886,1634,144,144],lp03:[3034,1634,132,144],lp10:[3170,1634,136,144],lp11:[0,1894,140,144],lp12:[144,1894,140,144],lp13:[288,1894,136,144],card:[428,1894,190,132],ring:[622,1894,160,160],hb_foret:[786,1894,142,144],hb_plage:[932,1894,146,144],hb_roch:[1082,1894,146,144],hb_bush:[1232,1894,145,144],hb_eau:[1381,1894,142,144],hb_euca:[1527,1894,149,144],fd_ver:[1680,1894,109,110],fd_fruit:[1793,1894,107,110],fd_grain:[1904,1894,107,110],fd_feuil:[2015,1894,107,110],fd_ins:[2126,1894,108,110],fd_pois:[2238,1894,107,110]};
 const mgS = (k, h) => spr(SOI, SOW, SOH, MGA[k], h);
 const mgPlant = (k, h) => spr('assets/kob_plantes.png', 1601, 128, KOB_PM[k], h);
@@ -3263,26 +3339,107 @@ function kobDefiDraw() {
 }
 function kobBeachFishDraw() {
   if (SC !== SC_KOBHAK || !KDI.complete || !KDI.naturalWidth) return;
-  KOB_BEACH_FISH.forEach(f => {
-    const m = KD_M['fish' + f.k], dx = Math.sin(time * .65 + f.ph) * 13, dy = Math.sin(time * 1.8 + f.ph) * 2.5;
-    const h = 20, w = h * m[2] / m[3], x = f.x + dx, y = f.y + dy, dir = Math.cos(time * .65 + f.ph) >= 0 ? 1 : -1;
+  kobBeachFish.forEach(f => {
+    if (f.state === 'gone') return;
+    const m = KD_M['fish' + f.k], h = 20, w = h * m[2] / m[3], x = f.x, y = f.y, dir = f.dir;
     ctx.save(); ctx.globalAlpha = .82; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.ellipse(x, y + 6, w * .42, 3 + Math.sin(time * 2 + f.ph), 0, 0, TAU); ctx.stroke();
     ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
   });
 }
+function updateKobBeachFish(dt) {
+  if (SC !== SC_KOBHAK) return;
+  for (const f of kobBeachFish) {
+    if (f.state === 'gone') {
+      f.t -= dt;
+      if (f.t <= 0) { f.x = f.bx; f.y = f.by; f.state = 'swim'; f.cool = 0; }
+      continue;
+    }
+    if (f.cool > 0) f.cool -= dt;
+    if (f.state === 'swim') {
+      f.x = f.bx + Math.sin(time * .65 + f.ph) * 13;
+      f.y = f.by + Math.sin(time * 1.8 + f.ph) * 2.5;
+      f.dir = Math.cos(time * .65 + f.ph) >= 0 ? 1 : -1;
+      continue;
+    }
+    if (player.state !== 'fishing' || fs.fish !== f) { f.state = 'swim'; f.cool = 2; continue; }
+    const dx = fs.tx - f.x, dy = fs.ty - f.y, d = Math.hypot(dx, dy) || 1;
+    f.dir = dx >= 0 ? 1 : -1;
+    if (f.state === 'lured') {
+      const step = Math.min(d, Math.max(9, Math.min(DIFF[level].lureSpeed, d * 2.4)) * dt);
+      f.x += dx / d * step; f.y += dy / d * step;
+      if (d < 6) f.state = 'biting';
+    } else {
+      f.x += dx / d * Math.min(d, 5 * dt);
+      f.y += dy / d * Math.min(d, 5 * dt);
+    }
+  }
+}
+function kobFishTrophy(k) {
+  if (!KDI.complete || !KDI.naturalWidth) return null;
+  const m = KD_M['fish' + k], cv = document.createElement('canvas');
+  cv.width = m[2]; cv.height = m[3];
+  cv.getContext('2d').drawImage(KDI, m[0], m[1], m[2], m[3], 0, 0, m[2], m[3]);
+  return cv;
+}
+function drawKobFishingLine() {
+  if (player.state !== 'fishing' || !fs.phase) return;
+  const sx = IN.x + (player.face || 1) * 18, sy = IN.y - 36;
+  const dip = fs.phase === 'bite' || fs.phase === 'fight' ? Math.sin(time * 30) * 1.2 + 2 : 0;
+  if (fs.phase !== 'reel' || player.fr < 17) {
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo((sx + fs.tx) / 2, Math.min(sy, fs.ty) - 12, fs.tx, fs.ty + dip); ctx.stroke();
+    const t = (time * .9) % 1;
+    ctx.globalAlpha = .7 * (1 - t); ctx.strokeStyle = '#fff'; ctx.lineWidth = .8; ctx.beginPath(); ctx.ellipse(fs.tx, fs.ty + 1, 4 + t * 10, 2 + t * 4.5, 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(fs.tx, fs.ty + dip, 3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ee3b3b'; ctx.beginPath(); ctx.arc(fs.tx, fs.ty + dip - 1, 2.1, Math.PI, 0); ctx.fill();
+  }
+  if (fs.phase === 'bite') drawBubble('❗', IN.x, IN.y - 66);
+}
 function kobFishing() {
-  const body = $('#remBody'); let st = 0, tm = null, bite = 0; const T = x => { clearTimeout(tm); tm = setTimeout(x[0], x[1]); };
-  const fm = t => { const e = $('#fsM'); if (e) e.innerHTML = t; };
-  const draw = () => { body.innerHTML = '<div class="kvH">Pêche sur la plage</div><div class="kvStage fsSea"><div class="fsSchool">' + kdSpr('fish1', 42) + kdSpr('fish3', 42) + kdSpr('fish5', 42) + '</div><div id="fsB" class="fsFl"></div></div><p class="kvMsg" id="fsM">Appuie pour lancer la ligne !</p><div class="kvBtns"><button class="kvBtn" id="fsGo">🎣 Lancer</button><button class="kvBtn alt" id="fsEnd">Fini</button></div>'; $('#fsGo').onclick = go; $('#fsEnd').onclick = () => { clearTimeout(tm); $('#remOv').style.display = 'none'; }; };
-  const go = () => {
-    if (st === 0) { st = 1; sfx.cast && sfx.cast(); $('#fsB').className = 'fsFl on'; fm('Attends que ça morde…'); $('#fsGo').textContent = 'Tirer !'; T([() => { st = 2; bite = Date.now(); $('#fsB').className = 'fsFl on dip'; sfx.bite && sfx.bite(); fm('<b>Ça mord ! Tire vite !</b>'); T([() => { st = 0; $('#fsB').className = 'fsFl'; fm('Oh, il s\'est échappé… On réessaie !'); $('#fsGo').textContent = 'Lancer'; }, 1500]); }, 1500 + Math.random() * 3000]); }
-    else if (st === 1) { clearTimeout(tm); st = 0; $('#fsB').className = 'fsFl'; fm('Trop tôt ! Attends que le bouchon plonge.'); $('#fsGo').textContent = 'Lancer'; }
-    else if (st === 2) { clearTimeout(tm); st = 3; let r = Math.random() * KFISH.reduce((s, f) => s + f[1], 0), i = 0; for (; i < KFISH.length - 1; i++) { r -= KFISH[i][1]; if (r <= 0) break; } const nw = !kobD.fi[i]; kobD.fi[i] = (kobD.fi[i] | 0) + 1; sfx.fish && sfx.fish(); save();
-      body.innerHTML = '<div class="kvH">Tu as pêché un poisson !</div><div class="kvStage"><div class="rmBig happy">' + kdSpr('fish' + i, 110) + '</div></div><p class="kvMsg"><b>' + KFISH[i][0] + '</b>' + (nw ? ' — <b style="color:#2e9e6b">nouveau !</b>' : '') + '<br>Poissons différents : ' + nFish() + ' / 6</p><div class="kvBtns"><button class="kvBtn" id="fsAg">Pêcher encore</button><button class="kvBtn alt" id="fsEnd">Fini</button></div>';
-      $('#fsAg').onclick = () => { st = 0; draw(); }; $('#fsEnd').onclick = () => { $('#remOv').style.display = 'none'; if (nFish() >= 3 && !kobD.done.fish) say('Va montrer tes poissons à Okaï !', 5); }; }
-  };
-  draw(); $('#remOv').style.display = 'grid'; player.mvx = player.mvy = 0;
+  if (player.state === 'fishing' || !kobFishNear()) return;
+  const fish = kobBeachFish.reduce((best, f) => !best || dist(IN.x, IN.y, f.x, f.y) < dist(IN.x, IN.y, best.x, best.y) ? f : best, null);
+  const dx = fish.x - IN.x, dy = fish.y - IN.y, d = Math.hypot(dx, dy) || 1;
+  player.dir4 = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  player.face = dx >= 0 ? 1 : -1;
+  fs.tx = IN.x + dx / d * 76; fs.ty = IN.y + dy / d * 76;
+  fs.region = 'kob'; fs.phase = 'cast'; fs.t = 0; fs.caught = false; fs.fish = null; fs.fight = null;
+  player.state = 'fishing'; setAnim('fish'); player.fr = 0; sfx.cast();
+}
+function updateKobFishing(dt) {
+  const p = player, An = ANIM[p.anim];
+  if (fs.phase === 'cast') {
+    p.fr += dt * 13;
+    if (p.fr >= 9.99) { p.fr = 10; fs.phase = 'wait'; fs.t = 0; sfx.splash(); }
+  } else if (fs.phase === 'wait') {
+    fs.t += dt; p.fr = 10 + (Math.sin(time * 2.4) * .5 + .5) * 4;
+    if (!fs.fish) {
+      let best = null, bd = 190;
+      for (const f of kobBeachFish) if (f.state === 'swim' && f.cool <= 0) { const d = dist(f.x, f.y, fs.tx, fs.ty); if (d < bd) { bd = d; best = f; } }
+      if (best) { fs.fish = best; best.state = 'lured'; fs.t = 0; }
+      else if (fs.t > 3.4) { say('Pas de poisson par ici… essaie un autre endroit 🐟', 3.2); sfx.no(); endFishing(); }
+    } else if (fs.fish.state === 'biting') { fs.phase = 'bite'; fs.t = 0; sfx.bite(); }
+    else if (fs.fish.state === 'lured' && fs.t > 5) fs.fish.state = 'biting';
+  } else if (fs.phase === 'bite') {
+    fs.t += dt; p.fr = 11 + (Math.sin(time * 26) * .5 + .5) * 2.5;
+    if (fs.t > 3) { releaseFish(7); fs.phase = 'wait'; fs.t = 0; say('Oh, il s\'est échappé ! Réessaie 🐟', 2.2); }
+  } else if (fs.phase === 'fight') {
+    p.fr = 11 + (Math.sin(time * 26) * .5 + .5) * 2.5;
+    updateFishingFight(dt);
+  } else if (fs.phase === 'reel') {
+    p.fr += dt * 14;
+    if (!fs.caught && p.fr >= 18) {
+      fs.caught = true; const f = fs.fish;
+      if (f) {
+        f.state = 'gone'; f.t = 10;
+        const fresh = !kobD.fi[f.k]; kobD.fi[f.k] = (kobD.fi[f.k] | 0) + 1;
+        inv.fish++; save(); renderHud();
+        showTrophy(kobFishTrophy(f.k), KFISH[f.k][0], (fresh ? 'Nouveau poisson ! · ' : '') + 'Poissons différents : ' + nFish() + ' / 6');
+      }
+      sfx.fish(); fs.fish = null;
+    }
+    if (p.fr >= An.n - .01) endFishing();
+  }
 }
 let RACE = null;
 function kobRace() {
@@ -4400,6 +4557,11 @@ const HOUSES = [
   { id: 'obs', name: "L'Observatoire", lab: [770, 36], door: [760, 82], hl: [736, 72], exit: [760, 92], r: 9, scene: SC_OBS },
   { id: 'ukai', name: 'Maison Ukaï', lab: [560, 222], door: [530, 292], exit: [530, 304], r: 20, scene: SC_UKAI },
 ];
+const INDOOR_QUEST_LOCATIONS = [
+  { quest: 'rose', house: 'home' },
+  { quest: 'soleil', house: 'care' },
+  { quest: 'plume', house: 'museum' },
+];
 let HOUSE = HOUSES[0];
 function inPoly(poly, x, y) {
   let c = false;
@@ -4758,6 +4920,7 @@ function npcWander(n, dt) {   // petite promenade entre quelques points libres ;
 }
 function updateInterior(dt) {
   IN.t += dt; time += dt;
+  updateKobBeachFish(dt);
   dawnReset();
   (SC === SC_HOME || SC === SC_UKAI || SC === SC_MUS ? SC.npcs() : kobList().filter(n => !n.ko)).forEach(n => npcWander(n, dt));   // les habitants se promènent un peu chez eux
   { const c = IN.climb, tgD = (SC === SC_HOME || SC === SC_UKAI || SC === SC_MUS || SC === SC_MK2) ? (c ? Math.min(1, Math.max(0, c.u)) : (IN.floor === 1 ? 1 : 0)) * DK_UP : 0;
@@ -4774,6 +4937,14 @@ function updateInterior(dt) {
   let run = !!(keys.ShiftLeft || keys.ShiftRight);
   if (stick.active && stick.mag > 0.05) { ix = stick.x; iy = stick.y; const l = Math.hypot(ix, iy) || 1; ix /= l; iy /= l; mag = Math.max(stick.mag, .5); run = run || stick.mag > 0.97; }
   const moving = mag > .12, p = player;
+  if (SC === SC_KOBHAK && p.state === 'fishing') {
+    p.mvx = p.mvy = 0;
+    if (moving && fs.phase !== 'reel') endFishing();
+    else {
+      if (actQueued) { actQueued = false; fishPress(); }
+      updateKobFishing(dt); return;
+    }
+  }
   if (IN.lie) {   // Myah dort : plus de déplacement ; Action ou une direction la relève
     p.mvx = p.mvy = 0; p.state = 'free'; setAnim('idle'); IN.lie.t += dt;
     if (!IN.busy && IN.lie.t > .8 && (actQueued || moving)) getUp();
@@ -4860,7 +5031,9 @@ function updateInterior(dt) {
   if (SC === SC_CABIN && IN.floor === 0 && dist(IN.x, IN.y, 725, 682) < 46 && !(IN.askT && IN.t < IN.askT)) askLeave();   // une fois sur l'échelle de la trappe, on peut remonter sur le pont
   if (actQueued) {
     actQueued = false;
-    if (icNear()) icTouch(icNear());
+    if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 58) askLeave(true);
+    else if (SC === SC_KOBHAK && !handsFull() && nearPl()) askDisp(true, nearPl());
+    else if (icNear()) icTouch(icNear());
     else if (SC.npc && IN.floor === 0 && dist(IN.x, IN.y, SC.npc.x, SC.npc.y) < (SC.npc.r || 70)) { p.dir4 = 'up'; setAnim('idle'); const o = SC.npc.get(); if (o.kid || o.chal) kidTalk(o); else if (o === JUL && (!unlocked(o) || qState[o.id] === 'done' || (qState[o.id] === 'new' && o !== QUESTS.find(z => qState[z.id] !== 'done')))) { openDialog(o.who, o.met ? chatter(o.npc) : (o.met = true, ['Bienvenue au Musée Kaïkiti, Myah ! Je suis Yulia, la directrice. Je veille sur nos trésors. 🏛️', 'Voici le tableau de la collection : les objets en gris sont ceux qu\'il reste à trouver. 🌸🐟']), () => { player.state = 'free'; openColl(); }, o.portrait); } else if (o.id) talkTo(o); else openDialog(o.who, o.met ? chatter(o.key) : (o.met = true, o.lines), () => { if (o === YUR) openColl(); }, o.portrait); }
     else if (nearScope()) openScope(nearScope() - 1);
     else if (nearPaint()) askPaint(true);
@@ -5127,7 +5300,7 @@ function renderInterior(vw, vh) {
     if (time < towelUntil && SC === SC_HOME && !IN.puff && bathDraw(d4 === 'up' ? 'towel_back' : d4 === 'down' ? 'towel_front' : 'towel_backl', IN.x, IN.y - bwob, bh, d4 === 'right')) { ctx.restore(); return; }
     myFrame(o.sheet, o.name, IN.x, IN.y, o.flip, o.lift * IN_K * (SC === SC_MK4 ? 1.35 : 1), IN_K * (SC === SC_MK4 ? 1.35 : 1)); ctx.restore(); };
   const npcShown = SC.npc && !((SC === SC_HOME || SC === SC_MUS) && (IN.dk || 0) > .004);   // (déjà dessinée sous l'ombre quand on est à l'étage)   // à l'étage de la maison, on ne voit pas Miraaï en bas
-  const drawMyR = () => drawMy();
+  const drawMyR = () => { drawMy(); if (SC === SC_KOBHAK) drawKobFishingLine(); };
   const UK_TOP = [[532, 645], [665, 606], [712, 598], [795, 620]];   // bord du fond de la table (maison Ukaï) : derrière, Myah passe sous le plateau
   const UK_FRONT = [[[707, 579], [795, 614], [795, 630], [640, 698], [560, 656]], [[532, 647], [665, 594], [671, 600], [565, 656], [551, 667], [534, 656]]];   // plateau de la table + banc du fond
   const CH_BACK = [[[775,566],[803,551],[810,553],[812,560],[812,603],[805,603],[804,592],[782,601],[779,600]], [[768,568],[775,565],[779,570],[777,604],[777,650],[767,650],[769,600]], [[777,612],[808,604],[820,608],[802,634],[777,626]], [[959,553],[963,549],[968,552],[968,590],[966,600],[959,602]], [[966,556],[995,563],[995,603],[988,598],[966,589]], [[992,564],[1000,566],[1004,570],[1004,650],[994,650],[992,610]]];
@@ -5334,19 +5507,8 @@ function update(dt) {
         fs.t += dt; p.fr = 11 + (Math.sin(time * 26) * .5 + .5) * 2.5;
         if (fs.t > 3) { releaseFish(7); fs.phase = 'wait'; fs.t = 0; say('Oh, il s\'est échappé ! Réessaie 🐟', 2.2); }
       } else if (fs.phase === 'fight') {   // barre de pêche : garder le poisson 🐟 dans la zone verte en maintenant Action
-        const D = DIFF[level], F = fs.fight; F.t += dt; p.fr = 11 + (Math.sin(time * 26) * .5 + .5) * 2.5;
-        const held = actHeld(), hard = (D.canLose && !calm) ? (D.fall > 1.3 ? 1.35 : 1.15) : .85;   // plus le niveau est dur, plus le poisson tire fort
-        F.mt -= dt; if (F.mt <= 0) { if (F.mode === 'rest') { F.mode = 'pull'; F.mt = (.9 + Math.random() * .7) / Math.sqrt(hard); sfx.bite(); } else { F.mode = 'rest'; F.mt = (1.5 + Math.random() * 1.1) / Math.sqrt(hard); } }
-        // tension : monte vite si on tient pendant qu'il tire, doucement sinon ; elle redescend quand on relâche
-        if (held) F.T += (F.mode === 'pull' ? 1.05 * hard : .2) * dt; else F.T += ((F.mode === 'pull' ? .3 : .1) - F.T) * Math.min(1, 2.2 * dt);
-        F.T = Math.max(0, F.T);
-        F.inZ = held && F.mode === 'rest';
-        F.prog += (F.inZ ? D.fill : held ? D.fill * .15 : -D.drain * .6) * dt; F.prog = Math.min(1, Math.max(0, F.prog));
-        if (F.T >= 1) {   // la ligne a failli casser
-          if (D.canLose && !calm) { releaseFish(7); fs.phase = 'wait'; fs.t = 0; fs.fight = null; say('La ligne a cassé ! Relâche quand il tire 🐟', 2.6); sfx.no(); return; }
-          F.T = .35; F.prog = Math.max(0, F.prog - .12); F.mode = 'rest'; F.mt = 1.6; say('Aïe, la ligne a failli casser ! Relâche quand il tire 🐟', 2.2); sfx.no();
-        }
-        if (F.prog >= 1) { fs.phase = 'reel'; fs.fight = null; p.fr = 15; sfx.cast(); }
+        p.fr = 11 + (Math.sin(time * 26) * .5 + .5) * 2.5;
+        if (updateFishingFight(dt)) return;
       } else if (fs.phase === 'reel') {
         p.fr += dt * 14;
         if (!fs.caught && p.fr >= 18) {
@@ -5978,7 +6140,7 @@ function render() {
       ctx.save(); ctx.filter = 'saturate(.82) brightness(.78) contrast(1.06)'; sprDraw('bush' + idx, q.cx + shk, q.cy + 3, pop * q.bsc, false, .86); ctx.restore();   // teinte un peu plus sombre pour se fondre dans le décor
       if (q.opening) {   // la plume s'envole du coffre
         const t = q.chestOpen; ctx.save(); ctx.globalAlpha = Math.min(1, t * 3) * (1 - Math.max(0, t - .8) * 5);
-        drawBouquet(q.cx, q.cy - 10 - t * 30, 26 + t * 6, Math.sin(time * 9) * .08); ctx.restore();
+        if (storyOn()) drawBouquet(q.cx, q.cy - 10 - t * 30, 26 + t * 6, Math.sin(time * 9) * .08); ctx.restore();
       }
       if (ready && !q.found) {
         for (let i = 0; i < 6; i++) { const ph = time * 1.7 + i * 1.6, a = Math.max(0, Math.sin(ph)), x = q.cx + Math.cos(i * 2.3 + 1) * 16, y = q.cy - 8 - ((ph % 3.14) / 3.14) * 22;
@@ -5989,7 +6151,7 @@ function render() {
       shadow(q.x, q.y, q.h * .26);
       ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(q), q.x, q.y, time, false); ctx.restore();
       const st = qState[q.id]; if (!unlocked(q) || (st === 'done')) return;
-      if (st === 'new' && q !== QUESTS.find(o => qState[o.id] !== 'done')) return;   // '!' seulement pour la prochaine quête, dans l'ordre
+      if (st === 'new' && storyOn() && q !== QUESTS.find(o => qState[o.id] !== 'done')) return;   // '!' seulement pour la prochaine quête, dans l'ordre
       const ready = st === 'active' && hasAll(q);
       marker(q.x, q.y - q.h - 10, ready ? '✔' : (st === 'new' ? '!' : '…'), ready ? '#47b84a' : '#ffc83d');
     } });
@@ -6011,6 +6173,14 @@ function render() {
   else if (p.mount === 'float') items.push({ y: p.y, draw() { if (drawRide(p.x, p.y, 'float', p.alt)) return; drawLegendSpr(ctx, { x: p.x, y: p.y, s: SW_MOUNT, t: time, dir: p.face, mode: 'float', alt: p.alt, sparkle: .12, rider: drawRider }); } });
   /* le nom du lieu s'affiche seulement dans la pastille en haut de l'écran (#placeB) */
   items.sort((a, b) => a.y - b.y).forEach(o => o.draw());
+  INDOOR_QUEST_LOCATIONS.forEach(({ quest, house }) => {
+    const q = QUESTS.find(item => item.id === quest), h = HOUSES.find(item => item.id === house);
+    if (!q || !h || !h.lab) return;
+    const st = qState[q.id];
+    if (!unlocked(q) || st === 'done' || (st === 'new' && storyOn() && q !== QUESTS.find(item => qState[item.id] !== 'done'))) return;
+    const ready = st === 'active' && hasAll(q), x = h.lab[0], y = h.lab[1] - 16;
+    if (inV(x, y)) marker(x, y, ready ? '✔' : st === 'new' ? '!' : '…', ready ? '#47b84a' : '#ffc83d');
+  });
 
   // ligne de pêche
   if (p.state === 'fishing' && fs.phase) {
