@@ -3537,7 +3537,7 @@ function vetCured(v) {
 // --- mini-jeu des remèdes
 
 // --- le poste de soin (le bureau du dispensaire) : on y prépare les recettes de la vétérinaire
-const DESK = [330, 618];
+const DESK = [681, 621];
 const nearDesk = () => SC === SC_DISP && IN.floor === 0 && dist(IN.x, IN.y, DESK[0], DESK[1]) < 48;
 function deskDraw() {
   if (SC !== SC_DISP || IN.floor !== 0 || kobQ < 2) return; const by = DESK[1] - 70 - Math.abs(Math.sin(time * 4)) * 5;
