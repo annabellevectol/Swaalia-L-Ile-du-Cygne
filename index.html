@@ -44,7 +44,6 @@
   .tool{position:relative;width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0;transition:transform .15s}
   .tool .ico{position:absolute;inset:0;background-repeat:no-repeat}
   .tool .lbl{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;font-weight:700;background:rgba(122,75,36,.85);color:#fff;padding:1px 0}
-  .tool .key{position:absolute;left:5px;top:3px;font-size:11px;font-weight:700;opacity:.7}
   .tool.sel{transform:none;border-color:#4b2a7a;box-shadow:0 0 0 2px #4b2a7a,0 0 0 3px rgba(255,255,255,.6)}
   .tool.need{animation:pulse .6s infinite alternate}
   #tools.off{opacity:.35;pointer-events:none}
@@ -849,9 +848,9 @@
 <div id="fightBar"><div class="fbL">🐟 Maintiens <b>Action</b> pour garder le poisson dans la zone verte !</div><div class="fbT"><div id="fbZone">🐟</div><div id="fbHook"></div></div><div class="fbP"><div id="fbProg"></div></div></div>
 
 <div id="tools">
-  <button class="tool panel" data-tool="basket"><span class="ico"></span><span class="key">1</span><span class="lbl">Panier</span></button>
-  <button class="tool panel" data-tool="net"><span class="ico"></span><span class="key">2</span><span class="lbl">Filet</span></button>
-  <button class="tool panel" data-tool="fish"><span class="ico"></span><span class="key">3</span><span class="lbl">Canne</span></button>
+  <button class="tool panel" data-tool="basket"><span class="ico"></span><span class="lbl">Panier</span></button>
+  <button class="tool panel" data-tool="net"><span class="ico"></span><span class="lbl">Filet</span></button>
+  <button class="tool panel" data-tool="fish"><span class="ico"></span><span class="lbl">Canne</span></button>
 </div>
 
 <button id="kitB" class="panel" aria-label="Mallette"></button>
