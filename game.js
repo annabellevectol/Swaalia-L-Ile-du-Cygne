@@ -1798,6 +1798,7 @@ function doAction() {
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
 
+  if (storyOn() && qState.toto === 'done' && !handsFull() && boatTapNear()) { askBoatChoice(); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
   // cibles proches : coffre, PNJ, cygne
   let target = null, bd = 1e9;
@@ -4922,12 +4923,14 @@ const DOOR_R = h => Math.max(h.r, 20) + 45;
 const doorNear = () => IN.on || !started ? null : HOUSES.find(h => h.id !== 'boat' && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));
 const doorAt = () => IN.on || !started ? null : HOUSES.find(h => h.id !== 'boat' && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < h.r);
 const doorHalo = h => h.id === 'boat' ? BOAT_HALO : h.hl ? h.hl : [h.door[0], h.door[1] - 4];
-const boatTapNear = () => !IN.on && kobhakOpen() && dist(player.x, player.y, BOAT_SPOT[0], BOAT_SPOT[1]) < 70;
+const boatTapNear = () => !IN.on && (!storyOn() || qState.toto === 'done') && dist(player.x, player.y, BOAT_SPOT[0], BOAT_SPOT[1]) < 70;
 function bedBtns(y, n, a) { $('#bedYes').textContent = y || 'Oui'; $('#bedNo').textContent = n || 'Non'; const b = $('#bedAlt'); b.style.display = a ? '' : 'none'; b.textContent = a || ''; }
 function askBoatChoice() { actQueued = false; actBlock = time + 5;   // toucher le bateau : y entrer, ou partir pour l'île aux Koalas
-  if (IN.on || bedPickOpen() || IN.busy || !kobhakOpen()) return;
+  if (IN.on || bedPickOpen() || IN.busy || (storyOn() && qState.toto !== 'done')) return;
   bedAsk = 'boat'; player.mvx = player.mvy = 0; $('#bedPickT').textContent = 'Le bateau'; $('#bedPickP').textContent = 'Que veux-tu faire ?';
-  bedBtns('Voyager vers l\'île aux Koalas', 'Plus tard', 'Entrer dans le bateau'); $('#bedPick').style.display = 'grid';
+  const canVoyage = kobhakOpen();
+  bedBtns(canVoyage ? 'Voyager vers l\'île aux Koalas' : 'Entrer dans le bateau', 'Plus tard', canVoyage ? 'Entrer dans le bateau' : null);
+  $('#bedPick').style.display = 'grid';
 }
 cv.addEventListener('pointerdown', e => {   // toucher le bateau (même si Zyno est juste à côté sur le ponton)
   if (IN.on || !started || player.state !== 'free' || cine || dlg.open || bedPickOpen() || handsFull()) return;
@@ -6476,7 +6479,7 @@ press($('#bedYes'), () => {
   if (bedAsk === 'crab') { $('#bedPick').style.display = 'none'; bedBtns(); inv.crab = (inv.crab || 0) + 1; renderHud(); say((crabChoiceNew ? '✨ Nouveau dans ta collection ! ' : '') + 'Crabe gardé dans ton sac 🦀', 3.2); crabChoiceNew = false; save(); return; }
   if (bedAsk === 'swanwait') { $('#bedPick').style.display = 'none'; swanWaitHere(); return; }
   if (bedAsk === 'swan') { $('#bedPick').style.display = 'none'; summon(); return; }
-  if (bedAsk === 'boat') { $('#bedPick').style.display = 'none'; bedBtns(); kobTest(); return; }
+  if (bedAsk === 'boat') { $('#bedPick').style.display = 'none'; bedBtns(); if (kobhakOpen()) kobTest(); else enterHouse(HOUSES.find(h => h.id === 'boat')); return; }
   if (bedAsk === 'kobbed') { $('#bedPick').style.display = 'none'; goToBedKob(); return; }
   if (bedAsk === 'walkman') { $('#bedPick').style.display = 'none'; if (wmNear()) wmStart(); return; }
   if (bedAsk === 'quest') { $('#bedPick').style.display = 'none'; const a = askQ; askQ = null; a && a.yes(); return; }
