@@ -5,6 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<!-- v764 -->
 <title>Swaalia – L'Île du Cygne</title>
 <link rel="icon" href="data:,">
 <style>
@@ -58,6 +59,13 @@
   .rbtn.swan.on{display:grid}
   .rbtn:active{transform:scale(.93)}
 
+  #trophy{position:fixed;z-index:60;transform:translate(-50%,-100%) scale(.85);opacity:0;transition:opacity .25s,transform .25s;background:#fffdf5;border:3px solid #7a4b24;border-radius:18px;padding:10px 14px 8px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:min(260px,80vw);pointer-events:auto;font-family:inherit;color:#4a2c12}
+  #trophy.on{opacity:1;transform:translate(-50%,-100%) scale(1)}
+  #trophy::after{content:'';position:absolute;left:50%;bottom:-12px;margin-left:-9px;border:9px solid transparent;border-top:12px solid #7a4b24;border-bottom:0}
+  #trophy canvas{position:relative!important;inset:auto!important;display:block!important;margin:2px auto 4px!important;max-width:none!important;pointer-events:none!important;filter:none!important}
+  #trophy .tn{font-weight:800;font-size:16px;line-height:1.2}
+  #trophy .td{font-size:13px;margin-top:3px;line-height:1.25;opacity:.85}
+  #trophy .tx{position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;border:3px solid #7a4b24;background:#fff;color:#7a4b24;font-size:17px;font-weight:900;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.3)}
   #hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(10px,env(safe-area-inset-bottom)) + clamp(84px,12vw,110px));padding:6px 14px;font-weight:700;font-size:clamp(13px,1.6vw + 6px,18px);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:94vw;border-radius:22px;background:#fffdf5;color:#4a2c12;padding:7px 16px 8px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
   #hint::before{content:'';position:absolute;left:50%;bottom:-13px;margin-left:-9px;border:9px solid transparent;border-top:13px solid #7a4b24;border-bottom:0}
   #hint::after{content:'';position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top:9px solid #fffdf5;border-bottom:0}
@@ -123,6 +131,11 @@
   #dialog .who{font-weight:800;color:#a8335f;margin-bottom:2px;font-size:clamp(14px,1.4vw + 8px,18px)}
   #dialog .txt{font-size:clamp(15px,1.5vw + 8px,20px);line-height:1.35;min-height:2.7em}
   #dialog .next{text-align:right;font-size:13px;font-weight:700;color:#8a4b1f;animation:blink 1s infinite}
+  body.bigtext #dialog .txt{font-size:clamp(18px,1.8vw + 9px,24px)} body.bigtext #dialog .who{font-size:clamp(16px,1.6vw + 9px,21px)} body.bigtext #dialog .next{font-size:15px}
+  body.bigtext #quests,body.bigtext #quests.hudp{font-size:clamp(14px,1.6vw + 8px,18px)} body.bigtext .card p{font-size:clamp(16px,2vw + 7px,22px)} body.bigtext #hint{font-size:clamp(15px,1.7vw + 7px,21px)} body.bigtext #inv{font-size:1.1em}
+  body.bigtext2 #dialog .txt{font-size:clamp(21px,2vw + 10px,28px)} body.bigtext2 #dialog .who{font-size:clamp(18px,1.8vw + 10px,24px)} body.bigtext2 #dialog .next{font-size:17px}
+  body.bigtext2 #quests,body.bigtext2 #quests.hudp{font-size:clamp(16px,1.8vw + 9px,21px)} body.bigtext2 .card p{font-size:clamp(18px,2.2vw + 8px,25px)} body.bigtext2 #hint{font-size:clamp(17px,1.9vw + 8px,24px)} body.bigtext2 #inv{font-size:1.2em}
+  body.calm #cook .tm{display:none}
   @keyframes blink{50%{opacity:.3}}
 
   .overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(7,90,140,.55);backdrop-filter:blur(3px);z-index:10}
@@ -142,14 +155,111 @@
   #veil.on{opacity:1}
   #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .5s ease;z-index:60}
   #fade.on{opacity:1}
-  body.inside #tools,body.inside #quests,body.inside #inv,body.inside #hudB,body.inside #bSwan,body.inside #bJump,body.inside #hint{display:none !important}
+  body.inside #tools,body.inside #bSwan,body.inside #bJump,body.inside #hint{display:none !important}
+  body.inside.kobo #tools{display:flex !important;left:calc(50% + 46px)}
+  body.inside.kobo #kitB{left:calc(50% - 150px)}
   #tipsB{position:fixed;right:max(10px,env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 136px);width:42px;height:42px;font-size:20px;display:grid;place-items:center;cursor:pointer;padding:0}
+
+
+  #wmOv{display:none;position:fixed;left:0;right:0;top:0;justify-content:center;align-items:start;z-index:13;pointer-events:none;padding:max(6px,env(safe-area-inset-top)) 8px 0}
+  #wmCard{pointer-events:auto;width:min(92vw,580px);background:linear-gradient(#fff6de,#f3dcaa);border:3px solid #c99a4a;border-radius:20px;padding:8px 10px 10px;color:#5a3a1a;font-family:"Trebuchet MS",system-ui,sans-serif;box-shadow:0 6px 22px rgba(0,0,0,.4);touch-action:manipulation}
+  #wmOv .wmH{font-weight:800;font-size:13px;text-align:center;margin-bottom:3px}
+  #wmList{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+  .wmT{display:flex;align-items:center;gap:6px;text-align:left;border:2px solid #d7b57a;background:#fff;border-radius:12px;padding:4px 6px;font:700 11px/1.12 "Trebuchet MS",system-ui,sans-serif;color:#5a3a1a;cursor:pointer}
+  .wmT b{min-width:18px;height:18px;border-radius:50%;background:#e9d2a0;display:grid;place-items:center;font-size:10px}.wmT.on{background:#d8f0e6;border-color:#3e9b82}.wmT.on b{background:#3e9b82;color:#fff}
+  #wmOv .wmB{display:flex;gap:6px;justify-content:center;margin-top:5px}#wmOv .wmB .kvBtn{padding:5px 11px;font-size:12px}#wmOv .wmI{width:52px;height:40px;padding:0;display:grid;place-items:center}#wmOv .wmI svg{display:block}
+  #mgOv{display:none;position:fixed;inset:0;place-items:center;background:rgba(7,40,60,.6);backdrop-filter:blur(3px);z-index:13}
+  #mgCard{position:relative;width:min(94vw,540px);max-height:94vh;overflow:auto;background:linear-gradient(#fff6de,#f3dcaa);border:3px solid #c99a4a;border-radius:22px;padding:12px 12px 14px;color:#5a3a1a;font-family:"Trebuchet MS",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  #mgX{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:2.5px solid #fff;background:#e95e96;color:#fff;font:900 17px/1 system-ui;cursor:pointer;z-index:2}
+  #mgOv .kvH{margin:0 40px 6px}#mgOv .kvMsg{margin:6px 4px;min-height:0}
+  .mgWin{display:grid;place-items:center;height:70px}
+  .mgBars{display:inline-block;width:14px;height:16px;border-left:5px solid #fff;border-right:5px solid #fff;box-sizing:border-box;vertical-align:middle}
+  #mgPz{display:none;position:absolute;inset:0;border-radius:19px;background:rgba(255,246,222,.97);flex-direction:column;align-items:center;justify-content:center;gap:9px;z-index:3}#mgPz.on{display:flex}#mgPz b{font:900 24px "Trebuchet MS",sans-serif;color:#7a4a12}
+  #mgPz .kvBtn.alt{font-size:16px;padding:8px 20px}
+  .mgFace.v1{border-color:#f08a24;box-shadow:inset 0 0 0 2px #f6b36a}.mgFace.v2{border-color:#8a4fd6;box-shadow:inset 0 0 0 2px #b89be8}
+  .mgGrid{display:grid;gap:7px;justify-content:center}
+  .mgCd{width:92px;height:64px;border:0;padding:0;background:none;cursor:pointer;display:grid;place-items:center}.mgCd:active{transform:scale(.95)}
+  .mgFace{width:92px;height:64px;box-sizing:border-box;display:grid;place-items:center;background:#fffaf0;border:3px solid #e6c888;border-radius:12px}.mgFace.ok{border-color:#2e9e6b;background:#e9f8ee}
+  .mgRow{display:flex;gap:10px;align-items:center;justify-content:center}.mgAn{flex-direction:column;gap:2px;min-width:104px;text-align:center;font-size:13px}
+  .mgOpts{display:flex;gap:8px;justify-content:center}.mgOpt{display:flex;flex-direction:column;align-items:center;gap:2px;border:3px solid #e6c888;border-radius:16px;background:#fffaf0;color:#5a3a1a;font:700 12px "Trebuchet MS",sans-serif;padding:5px;width:88px;cursor:pointer}
+  .mgOpt.ok{border-color:#2e9e6b;background:#e3f6e8}.mgOpt.off:not(.ok){opacity:.45}
+  .mgDots{display:flex;gap:7px;justify-content:center;margin-top:8px}.mgDots b{width:12px;height:12px;border-radius:50%;background:#e6c888}.mgDots b.on{background:#2e9e6b}
+  .mgLamps{display:flex;gap:8px;justify-content:center;margin-top:6px}.mgLamp{position:relative;width:82px;height:84px;border:0;background:none;padding:0;cursor:pointer}
+  .mgLamp .of,.mgLamp .on{position:absolute;inset:0;display:grid;place-items:center}.mgLamp .on{opacity:0;transition:opacity .12s}.mgLamp.lit .on{opacity:1}.mgLamp.lit{transform:scale(1.08)}
+  .mgLamp.lit .of .mgRing{filter:drop-shadow(0 0 10px #ffe066) brightness(1.3)}
+  .mgRing{position:relative;width:70px;height:70px}.mgRing .mgIc{position:absolute;inset:0;display:grid;place-items:center}
+  .mgSeed{height:64px;display:grid;place-items:center}.mgPots{display:flex;gap:12px;justify-content:center}.mgPot{border:0;background:none;padding:0;cursor:pointer}
+  .mgPot.pop{animation:mgPop .25s}@keyframes mgPop{50%{transform:scale(1.12)}}
+  .mgShake{animation:mgSh .35s}@keyframes mgSh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .mgBq{display:flex;gap:10px;align-items:center;justify-content:center}.mgSlip{background:#fffdf4;border:2px dashed #c99a4a;border-radius:10px;padding:6px 8px;font-size:13px;min-width:92px}
+  .mgSl{display:flex;align-items:center;gap:4px}.mgSl.ok span{color:#2e9e6b;font-weight:900}
+  .mgVase{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:96px;height:130px}.mgBou{display:flex;justify-content:center;min-height:44px;margin-bottom:-14px;position:relative;z-index:1}
+  .mgPl{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.mgPb{display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid #e6c888;border-radius:12px;background:#fffaf0;color:#5a3a1a;font:700 10px "Trebuchet MS",sans-serif;padding:3px 4px;cursor:pointer;width:62px}.mgPb:active{transform:scale(.95)}
+  #vetOv,#remOv{display:none;position:fixed;inset:0;place-items:center;background:rgba(7,40,60,.6);backdrop-filter:blur(3px);z-index:13}
+  #vetCard,#remCard{position:relative;width:min(94vw,500px);max-height:94vh;overflow:auto;background:linear-gradient(#fff6de,#f3dcaa);border:3px solid #c99a4a;border-radius:22px;padding:14px 14px 16px;color:#5a3a1a;font-family:"Trebuchet MS",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  #vetX,#remX{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:2.5px solid #fff;background:#e95e96;color:#fff;font:900 17px/1 system-ui;cursor:pointer;z-index:2}
+  .kvH{font:900 21px "Trebuchet MS",sans-serif;text-align:center;margin:2px 40px 10px;color:#7a4a12}
+  .sp{display:inline-block;flex:none;vertical-align:bottom}
+  .kvRow{display:flex;gap:12px;align-items:center}
+  .kvPic{display:grid;place-items:center;min-width:110px;overflow:hidden;background:radial-gradient(#fffaf0,#f1dcae);border-radius:18px;padding:8px;border:2px solid #e6c888}
+  .kvTxt{font-size:15px;line-height:1.35}.kvTxt p{margin:0 0 6px}
+  .kvBox{margin-top:10px;padding:9px 12px;border-radius:14px;font-size:15px;line-height:1.35}
+  .kvBox.bad{background:#ffe3e3;border:2px solid #f0a8a8}.kvBox.ok{background:#e3f6e8;border:2px solid #8fd1a4}
+  .kvBtns{display:flex;justify-content:center;gap:10px;margin-top:12px}
+  .kvBtn{border:3px solid #fff;border-radius:99px;background:#2e9e6b;color:#fff;font:900 18px "Trebuchet MS",sans-serif;padding:10px 24px;cursor:pointer;box-shadow:0 3px 0 rgba(0,70,40,.35)}
+  .kvBtn.alt{background:#c99a4a;font-size:14px;padding:7px 16px}
+  .kvScene{display:flex;justify-content:space-around;align-items:flex-end;min-height:150px}
+  .kvMsg{text-align:center;font-size:16px;line-height:1.35;margin:10px 4px;min-height:44px}
+  .kvTools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .kvTool{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100px;border:3px solid #e6c888;border-radius:16px;background:#fffaf0;color:#5a3a1a;font:700 14px "Trebuchet MS",sans-serif;cursor:pointer;padding:6px}
+  .kvTool:active{transform:scale(.96)}.kvTool.lock{opacity:.55;filter:grayscale(.5)}.kvTool.off{opacity:.35;pointer-events:none;filter:grayscale(.6)}
+  .shake{animation:kvSh .5s}@keyframes kvSh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+  #kvMy{width:130px;display:flex;justify-content:center;align-items:flex-end;position:relative;z-index:2}
+  .kvTap{cursor:pointer;animation:kvTapA .9s ease-in-out infinite alternate}@keyframes kvTapA{to{transform:scale(1.07);filter:drop-shadow(0 0 8px #ffd46b)}}
+  .kvGauge{position:relative;height:12px;margin:10px auto 4px;width:70%;border-radius:8px;background:linear-gradient(90deg,#7fb6ff,#8be08b 45%,#ffd36b 65%,#ff7a6b);border:2px solid #e6c888}.kvGauge i{position:absolute;top:-6px;width:6px;height:22px;border-radius:4px;background:#5a3a1a;transform:translateX(-50%)}
+  #kitB{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0;place-items:center;z-index:6}
+  #kitB .ico{position:absolute;left:0;right:0;top:3px;display:grid;place-items:center}
+  #kitB .lbl{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;font-weight:700;background:rgba(122,75,36,.85);color:#fff;padding:1px 0}
+  #kitB.sel{box-shadow:0 0 0 2px #4b2a7a,0 0 0 3px rgba(255,255,255,.6)}
+  .kvTool.sel,.kvTool.kvPre{border-color:#4b2a7a;box-shadow:0 0 0 2px #4b2a7a}
+  .kvTools.kit{grid-template-columns:repeat(4,1fr);gap:6px}.kvTools.kit .kvTool{height:78px;font-size:12px;padding:3px}
+  .happy{animation:kvHap .9s ease-in-out infinite alternate}@keyframes kvHap{to{transform:translateY(-8px) scale(1.04)}}
+  .kvStage{display:grid;place-items:center;height:200px}.rmBig.tap{cursor:pointer}
+  .wob{animation:kvWob .35s}@keyframes kvWob{30%{transform:scale(1.08) rotate(-4deg)}60%{transform:scale(.96) rotate(3deg)}}
+  .rmRows{display:grid;gap:4px;margin:4px 6px}.rmRow{display:grid;grid-template-columns:40px 78px 1fr 62px 16px;align-items:center;gap:4px;font:700 11px system-ui;color:#6b4a1c}.rmRow.good{opacity:.65}
+  .rmG{position:relative;height:16px;border-radius:99px;background:#e9d6a6;border:2px solid #c99a4a;overflow:visible}.rmG i{display:block;height:100%;background:#e0a02e;border-radius:99px;width:0}.rmG b{position:absolute;top:-4px;bottom:-4px;width:4px;background:#d9312b;border-radius:2px;margin-left:-2px}
+  .rmBtn{border:3px solid #c99a4a;background:#ffe9a8;border-radius:12px;font:800 13px system-ui;color:#6b4a1c;padding:7px 4px;touch-action:none;user-select:none}.rmBtn.dn{background:#ffd25e;transform:scale(.95)}.rmOk{color:#2e9e6b;font-size:16px}
+  .rmTh{display:flex;align-items:center;gap:6px;margin:2px 14px}.rmT{position:relative;flex:1;height:16px;border-radius:99px;background:linear-gradient(90deg,#9ec7ee 0,#9ec7ee 38%,#6fcf8f 42%,#6fcf8f 72%,#f08a5d 85%,#e04b3a 100%);border:2px solid #c99a4a}.rmT b{position:absolute;top:-5px;width:6px;height:24px;margin-left:-3px;background:#6b4a1c;border-radius:3px;left:5%}
+  .fsSea{background:linear-gradient(#bfe9f2,#4fb9cf);border-radius:16px;border:3px solid #e6c888;position:relative;overflow:hidden}.fsFl{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#fff 0 35%,#e0443a 36%);border:2px solid #7a2b24;transition:transform .25s,opacity .25s;opacity:.35;transform:translateY(8px)}.fsFl.on{opacity:1;animation:fsb 1.6s ease-in-out infinite}.fsFl.dip{animation:fsd .25s ease-in-out infinite}@keyframes fsb{50%{transform:translateY(12px)}}@keyframes fsd{50%{transform:translateY(24px)}}
+  .kvBar{height:14px;border-radius:99px;background:#e9d6a6;border:2px solid #c99a4a;overflow:hidden;margin:6px 20px}.kvBar i{display:block;height:100%;background:#2e9e6b;width:0;transition:width .25s}
+  .kvPlants{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+  .kvPl{height:70px;border:3px solid #e6c888;border-radius:14px;background:#fffaf0;cursor:pointer;display:grid;place-items:center;padding:2px;transition:transform .35s,opacity .35s}
+  .kvPl.gone{transform:translateY(-120px) scale(.3);opacity:0;pointer-events:none}
+  #kobBk{display:none;position:fixed;inset:0;place-items:center;background:rgba(7,40,60,.62);backdrop-filter:blur(3px);z-index:13}
+  #kobPgW{position:relative;width:min(96vw,calc(88vh*1.41));aspect-ratio:830/588;container-type:inline-size;background:url(assets/carnet_page.png) center/100% 100% no-repeat;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
+  #kobPg{position:absolute;inset:0}
+  .kbE{position:absolute;width:40%;height:27%;display:flex;align-items:center;gap:2.2cqw}
+  .kbM{position:relative;flex:none;width:14.5cqw;height:14.5cqw;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff8e4,#f1dcae);border:.7cqw solid #b98a4b;box-shadow:inset 0 0 0 .5cqw #e6c888,0 .5cqw 0 rgba(90,50,10,.25)}
+  .kbM i{position:absolute;left:50%;top:50%;transform-origin:center;background-repeat:no-repeat}
+  .kbE:not(.got) .kbM i{filter:brightness(0);opacity:.22}
+  .kbM b{position:absolute;inset:0;display:grid;place-items:center;font:900 6cqw "Trebuchet MS",sans-serif;color:#b98a4b}
+  .kbS{position:absolute;right:-3cqw;bottom:-3cqw;width:7cqw;transform:rotate(-12deg)}
+  .kbN{position:absolute;left:-3cqw;top:-3cqw;width:6.5cqw;animation:kbPop 1s ease-in-out infinite alternate}
+  @keyframes kbPop{to{transform:scale(1.15) rotate(8deg)}}
+  .kbT{color:#5a3a1a;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive}
+  .kbT h4{margin:0 0 .6cqw;font-size:3.3cqw;line-height:1.1}
+  .kbT p{margin:0;font-size:2.5cqw;line-height:1.25;opacity:.85}
+  #kobSt{position:absolute;left:7%;bottom:3.4%;font:900 2.6cqw "Trebuchet MS",sans-serif;color:#6b4a1c;background:#ffe9a8;border-radius:99px;padding:.3cqw 2.4cqw;border:.4cqw solid #c99a4a;white-space:nowrap}#kobC{position:absolute;left:50%;bottom:3.4%;transform:translateX(-50%);font:900 3cqw "Trebuchet MS",sans-serif;color:#fff;background:#2e9e6b;border-radius:99px;padding:.3cqw 3cqw;border:.4cqw solid #fff}
+  #kobX{position:absolute;right:1%;top:1%;width:9cqw;max-width:46px;height:9cqw;max-height:46px;border-radius:50%;border:2.5px solid #fff;background:#e95e96;color:#fff;font:900 20px/1 system-ui;cursor:pointer;z-index:2}
   #tips{display:none;position:fixed;inset:0;place-items:center;background:rgba(7,40,60,.6);backdrop-filter:blur(3px);z-index:12}
   #tipsBody{width:min(560px,94vw);max-height:88vh;display:flex;flex-direction:column;background:#fff8e8;border:3px solid #7a4b24;border-radius:18px;box-shadow:0 5px 0 rgba(0,0,0,.25);overflow:hidden}
   #tipsBody .ch{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e8d3a8;border-bottom:3px solid #7a4b24;font-size:clamp(16px,3.6vw,20px)}
   #tipsBody .ch b{flex:1;color:#6b3a14}
   #tipsBody .ch button{font:inherit;font-weight:800;background:#c94f6d;color:#fff;border:2px solid #8a2c45;border-radius:10px;padding:2px 10px;cursor:pointer}
   #tipsBody .cb{overflow-y:auto;padding:4px 14px 14px;color:#3b2a14;font-size:clamp(14px,3.4vw,16px);line-height:1.35;-webkit-overflow-scrolling:touch}
+  #tipsTabs{display:flex;gap:6px;padding:8px 14px 0;background:#f3e3bd;border-bottom:3px solid #7a4b24}
+  #tipsTabs button{flex:1;font:inherit;font-weight:800;font-size:clamp(13px,3.2vw,16px);padding:7px 6px;border:2px solid #b98a4a;border-bottom:none;border-radius:12px 12px 0 0;background:#e9d2a0;color:#7a4b24;cursor:pointer}
+  #tipsTabs button.sel{background:#fff8e8;color:#6b3a14;position:relative;top:3px;padding-bottom:10px}
   #tipsBody .hico[class*='a-']{height:2.1em;margin:2px 10px 2px 0}
   #tipsBody p{display:flow-root}
   #tipsBody h3{margin:12px 0 6px;color:#6b3a14}#tipsBody p{margin:6px 0}
@@ -200,6 +310,20 @@
   #setTabs{display:flex;gap:6px;margin:10px 0 4px}
   #setTabs .stab{flex:1;font:800 clamp(13px,2.2vw,16px) "Trebuchet MS",sans-serif;padding:9px 4px;border-radius:14px;border:2px solid #fff9;background:rgba(255,255,255,.35);color:#0d5560;cursor:pointer}
   #setTabs .stab.on{background:#fff;color:#c7447a;border-color:#fff;box-shadow:0 3px 0 rgba(0,70,90,.25)}
+  #settings .setKid .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  #settings .tile.go.wide{margin:0;min-height:72px;padding:6px 3px;line-height:1.1;font-size:clamp(12px,2vw,15px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;border-radius:20px;overflow:hidden}
+  #settings .tile .ti{font-size:28px;line-height:1.1}
+  #settings .tile .tl{display:block}
+  #settings .setKid .setSl{display:flex;align-items:center;gap:10px;margin-top:8px}
+  #settings .setKid .setSl label{font-size:24px;margin:0;width:34px;flex:none;display:block}
+  #settings .setKid .setSl input{flex:1}
+  #settings .setKid .setSl b{display:none}
+  #settings .card{max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #settings h1{margin:4px 0 2px}
+  #setPar{margin-top:12px}
+  #setPar>summary{cursor:pointer;font-weight:800;color:#0c4a52;font-size:15px;padding:6px 2px;list-style:none}
+  #setPar>summary::-webkit-details-marker{display:none}
+  #settings #setPar .go.wide{font-size:14px;padding:7px 12px;margin-top:6px;box-shadow:none}
   #setFoot{display:flex;gap:8px;margin-top:14px}
   #setFoot .go{flex:1;margin:0;font-size:clamp(14px,2.3vw,17px);padding:9px 8px}
   #settings .setPane .go.wide{margin-top:8px}
@@ -219,7 +343,7 @@
   #bAct .acti{height:clamp(30px,5vw,42px);width:auto;max-width:70%;object-fit:contain;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));pointer-events:none}
   #bAct .actl{font-size:clamp(13px,2vw,17px)}
   #bJump{display:none !important}
-  body.mounted:not(.inside) #bJump{display:grid !important}
+  body.mounted:not(.inside) #bJump.show{display:grid !important}
 
   #wardrobe{z-index:12}
   #wardrobe canvas{position:static;inset:auto;display:block}
@@ -307,6 +431,40 @@
   #miniMenu .go{margin:0;width:100%;box-sizing:border-box;font-size:clamp(13px,2.2vw,17px);padding:12px 6px;background:#e4d6fa;border:2px solid #c9a35a;border-radius:999px;box-shadow:none;color:#4b2a7a;text-shadow:none;white-space:nowrap}
   #miniMenu .go:active{background:#d6c2f7}
   #miniMenu .go.alt{grid-column:1/-1;background:#fffaf0;font-size:clamp(14px,2vw,17px);padding:9px 8px}
+  #tetris{position:fixed;inset:0;z-index:58;display:none;flex-direction:column;align-items:center;background:linear-gradient(rgba(35,18,6,.30),rgba(35,18,6,.42)),url(assets/tetris/bg.jpg) center/cover #5a3a1c;font-family:"Trebuchet MS",sans-serif;color:#fff3d6;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}
+  #tetris *{-webkit-tap-highlight-color:transparent}
+  #tTop{display:flex;align-items:center;gap:8px;height:54px;width:100%;box-sizing:border-box;padding:0 10px;flex:0 0 auto}
+  #tBan{flex:1;height:44px;display:flex;align-items:center;justify-content:center;background-repeat:no-repeat}
+  #tBan b{font-family:"Pacifico","Segoe Script",cursive;font-weight:400;font-size:22px;color:#fff3d6;text-shadow:0 2px 0 #4a2c12,0 3px 6px rgba(0,0,0,.4)}
+  .tRound{width:46px;height:46px;padding:0;border:0;background-color:transparent;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+  .tRound svg{width:22px;height:22px;fill:#fff3d6;stroke:#4a2c12;stroke-width:1.2;paint-order:stroke;filter:drop-shadow(0 1px 0 rgba(0,0,0,.4))}
+  .tRound:active,#tPad button:active{transform:scale(.94)}
+  #tMain{display:flex;gap:10px;align-items:flex-start;justify-content:center;flex:0 0 auto;margin:0 auto}
+  #tBoardW{position:relative;flex:0 0 auto;filter:drop-shadow(0 6px 10px rgba(60,35,10,.35))}
+  #tBoardW img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #tBoardW .tTint{position:absolute;left:6.9%;top:3.85%;width:86.2%;height:92.1%;background:#ebc690;mix-blend-mode:multiply;pointer-events:none;border-radius:3px}
+  #tBoardW canvas{position:absolute;left:6.9%;top:3.85%;width:86.2%;height:92.1%}
+  #tSide{display:flex;flex-direction:column;align-items:center;gap:5px;flex:0 0 auto}
+  .tLab{font-weight:800;font-size:13px;color:#fff3d6;text-shadow:0 1px 0 #4a2c12}
+  .tSq,.tMet{position:relative;background-repeat:no-repeat}
+  .tSq canvas{position:absolute;left:19%;top:19%;width:62%;height:62%}
+  .tMet{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#4a2c12;text-align:center}
+  .tMet span{font-size:11px;font-weight:800;line-height:1;color:#5a3a12}
+  .tMet b{font-size:20px;line-height:1.1;font-weight:900}
+  #tPad{display:flex;gap:8px;justify-content:space-between;align-items:center;padding-top:8px;flex:0 0 auto}
+  #tPad button{padding:0;border:0;background-color:transparent;background-repeat:no-repeat;cursor:pointer;touch-action:none}
+  #tMsg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(40,25,10,.45);z-index:5}
+  #tMsg .tp{width:min(66vw,250px);aspect-ratio:221/86;background-repeat:no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff3d6;text-shadow:0 2px 0 #4a2c12;text-align:center;padding:0 14px;box-sizing:border-box}
+  #tMsg .tp h2{margin:0;font-family:"Pacifico","Segoe Script",cursive;font-weight:400;font-size:22px}
+  #tMsg .tp p{margin:0;font-weight:800;font-size:13px}
+  #tMBtns{display:flex;gap:10px;margin-top:8px}
+  #tMenu{display:none;flex-direction:column;align-items:center;gap:6px;margin-top:8px}
+  #tMsg #tMenu .tgo{margin:0;width:min(58vw,200px);font-size:clamp(11px,3.4vw,14px);white-space:nowrap;padding:0 14px;box-sizing:border-box;overflow:hidden}
+  #tAgain,#tBack{display:none!important}
+  #tPad button{filter:drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000) drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+  #tMsg .tgo{width:min(36vw,140px);aspect-ratio:221/86;background-repeat:no-repeat;border:0;background-color:transparent;font:800 15px "Trebuchet MS",sans-serif;color:#fff3d6;text-shadow:0 2px 0 #4a2c12;cursor:pointer}
+  #tMsg .tgo:active{transform:scale(.96)}
+  #miniMenu .go.wide{grid-column:1/-1}
   #paint{position:fixed;inset:0;z-index:58;display:none;background:linear-gradient(180deg,#fff4d9,#f6d9a8);overflow-y:auto;touch-action:none;font-family:"Trebuchet MS",sans-serif}
   .pTop{position:sticky;top:0;display:flex;align-items:center;justify-content:center;height:50px;background:#c98a3a;color:#fff;font-size:20px;text-shadow:0 2px 0 #7a4c14;z-index:3}
   #zX{top:10px;left:12px;background:#e8a33a;border:2px solid #7a4c14}
@@ -342,7 +500,68 @@
   #pCv{position:relative !important;inset:auto !important;display:block;height:auto !important;width:100%;max-width:720px;aspect-ratio:4/3;background:#fff;border:4px solid #8a5a22;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.25);touch-action:none;cursor:crosshair}
   .pTools{display:flex;flex-direction:column;gap:8px;align-items:center;width:100%}
   #pWrap{position:relative;width:100%;max-width:720px}
+  #paint,#wardrobe .card,#memory,#puzzle,#rythme{scrollbar-width:none}#paint::-webkit-scrollbar,#wardrobe .card::-webkit-scrollbar,#memory::-webkit-scrollbar,#puzzle::-webkit-scrollbar,#rythme::-webkit-scrollbar{display:none}
+
+  /* défilement au doigt : le "touch-action:none" global bloquait le glissement vertical dans les écrans longs */
+  #wmCard,#wmCard *,#paint *,#wardrobe .card,#wardrobe .card *,#memory,#memory *,#puzzle,#puzzle *,#rythme,#rythme *,#tipsBody .cb,#tipsBody .cb *,#collBody .cb,#collBody .cb *,#slots,#slots *,#title .hero,#title .hero *,#cook .cb,#cook .cb *,#garden .gbar,#garden .gbar *,.wdHelpBody,.wdHelpBody *,#settings .card,#settings .card *,#vetCard,#vetCard *,#remCard,#remCard *,#mgCard,#mgCard *{touch-action:pan-y}
+  #paint canvas,#wardrobe canvas,#puzzle canvas,#pCv,#pWheel,#wdWheel,#wdPrev,#heCv,input[type=range],.zp{touch-action:none !important}
+  #guide{position:fixed;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;pointer-events:none;z-index:20;display:none;opacity:.92;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+  #quests .q.guide{background:#fff3c4;border-color:#e0b43a;font-weight:800}
+  @media (max-width:700px) and (max-aspect-ratio:1/1){
+    #paint #pMix{display:grid;grid-template-columns:auto auto;justify-content:center;grid-template-areas:"w c" "s s";align-items:center;justify-items:center;gap:6px 10px;padding:8px 12px}
+    #paint #pMixR{display:contents}
+    #paint #pWheel{grid-area:w;width:min(150px,40vw) !important;height:min(150px,40vw) !important;justify-self:center}
+    #paint #pCur{grid-area:c;transform:none;margin:0 0 0 14px;width:min(84px,22vw);height:min(84px,22vw);justify-self:center}
+    #paint #pMixR label{grid-area:s;width:100%;justify-content:center}
+    #paint #pMixR label input{flex:1;min-width:0}
+  }
+  #pUR{display:flex;flex-wrap:nowrap;gap:10px;justify-content:center}#pUR .pb{flex:0 0 auto}
+  #puzzle,#memory,#rythme{touch-action:pan-y !important}
+  #pTR{display:flex;flex-wrap:nowrap;gap:4px;justify-content:center}#pTR .pb{flex:0 1 auto;min-width:0;padding-left:6px;padding-right:6px}
+  @media (max-width:700px){#pTR .pb{width:calc((100vw - 56px)/8);height:calc((100vw - 56px)/8*1.1);min-width:0;font-size:15px !important;line-height:1;padding:0;display:grid;place-items:center;overflow:hidden}#pTR .pb .emi,#pTR .pb img{width:24px !important;height:24px !important;max-width:24px}#pTR .pb svg{width:22px;height:22px}}
+  @media (max-width:700px){#pTR #pS1{font-size:9px !important}#pTR #pS2{font-size:16px !important}#pTR #pS3{font-size:24px !important}#pTR .pb{text-align:center;justify-items:center;align-items:center}}
+  @media (max-width:700px){#paint #pTR .pb,#paint #pUR .pb{padding:0 !important;margin:0 !important;display:flex !important;align-items:center;justify-content:center;text-align:center;line-height:1;text-indent:0}#paint #pTR .pb>*,#paint #pUR .pb>*{margin:0}#paint #pTR{gap:5px;width:100%}}
+  @media (max-width:700px){#paint #pUR .pb{width:64px;height:48px;font-size:22px}#paint #pUR{gap:12px}}
+  .pb.zm{background:#c8f0d0 !important;border-color:#2e8b57 !important}
+  #pWrap.zmOn{outline:3px solid #2e8b57;outline-offset:-3px}
+  #pWrap.zmOn,#pWrap.zmOn *{touch-action:none !important}
+  #pZH{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);background:rgba(255,250,240,.92);border:2px solid #2e8b57;color:#2a5a3a;padding:4px 10px;border-radius:12px;font-weight:800;font-size:12px;line-height:1.2;pointer-events:none;display:none;z-index:3;text-align:center;width:max-content;max-width:88%}
+  #pWrap.zmOn #pZH{display:block}
+  .vsb{position:fixed;width:12px;border-radius:8px;background:rgba(75,42,122,.16);z-index:9990;touch-action:none;display:none}
+  .vsb i{display:block;width:100%;border-radius:8px;background:#7a4fc2;border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .pPipeF{position:absolute;right:8px;top:8px;width:46px;height:46px;border-radius:50%;border:3px solid #c9a35a;background:#fffaf0;color:#4b2a7a;display:grid;place-items:center;padding:0;cursor:pointer;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+  .pPipeF.on{background:#e4d6fa;border-color:#4b2a7a}.pPipeF svg{width:26px;height:26px}
+  #paint .pb svg{vertical-align:-4px}
+
   #pOv{position:absolute;left:4px;top:4px;width:calc(100% - 8px);height:calc(100% - 8px);border-radius:8px;pointer-events:none;display:none}
+  #paint{touch-action:pan-y}
+  #pCv{touch-action:none}
+  .pSide{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%}
+  #paint{--ph:calc(100vh - 50px - 84px)}
+  #pWrap{width:min(100%,calc(var(--ph) * 4 / 3))}
+  @media (min-aspect-ratio:5/4){   /* écran large (PC, téléphone couché) : le dessin à gauche, tous les boutons à droite, sans avoir à faire défiler */
+    #paint{overflow:hidden}
+    #paint .pBody{max-width:none;height:calc(100vh - 50px);display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,350px);grid-template-rows:auto minmax(0,1fr);gap:4px 14px;padding:6px 14px;align-items:start;align-content:start}
+    #pTabs{grid-column:1/-1;margin:2px 0}
+    #pWrap{grid-column:1;grid-row:2;justify-self:center}
+    .pSide{grid-column:2;grid-row:2;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px}
+    #paint.pPick{overflow-y:auto}
+    #paint.pPick .pBody{display:flex;height:auto;min-height:calc(100vh - 50px)}
+    #paint.pPick .pSide{max-height:none;overflow:visible}
+    #pModels{max-height:150px}
+  }
+  @media (min-aspect-ratio:5/4) and (max-height:720px){   /* écran large et bas : on compacte les outils pour tout voir d'un coup d'œil */
+    #paint{--ph:calc(100vh - 50px - 56px)}
+    #pTabs{margin:0 !important}
+    #pTabs button{padding:5px 14px !important}
+    #paint .pBody{padding-top:2px}
+    #paint #pWheel{width:96px !important;height:96px !important}
+    #paint #pCur{transform:scale(.7);margin:-6px 0 -8px}
+    #paint .pSide{gap:6px}
+    #paint .pTools{gap:5px}
+    #paint .pTools .pb{padding:5px 10px;font-size:22px}
+    #paint #pS1,#paint #pS2,#paint #pS3{padding:5px 0 !important}
+  }
   #pTabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0 4px}
   #pTabs button{font:inherit;font-weight:800;font-size:clamp(14px,2.4vw,18px);padding:9px 18px;border-radius:999px;border:2px solid #c9a35a;background:#fffaf0;color:#4b2a7a;cursor:pointer}
   #pTabs button.on{background:#e4d6fa}
@@ -370,8 +589,23 @@
 
   #memory{position:fixed;inset:0;z-index:58;display:none;background:linear-gradient(180deg,#ffe9c9,#f4c98f);overflow-y:auto;font-family:"Trebuchet MS",sans-serif;color:#5a3a12}
     #mInfo{text-align:center;font-weight:800;font-size:16px;margin:10px 0 4px}
+
   #mGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:min(96vw,860px);margin:6px auto 12px;padding:0 8px}
   @media (max-aspect-ratio:1/1){#mGrid{grid-template-columns:repeat(3,1fr);max-width:min(96vw,460px)}}
+  /* ===== téléphone en portrait (iPhone SE…) : tout doit tenir sans déborder ===== */
+  @media (max-width:600px) and (max-aspect-ratio:1/1){
+    .pTop b{font-size:16px;max-width:calc(100% - 110px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #paint .pTop b{max-width:calc(100% - 215px)}
+    #mGrid{grid-template-columns:repeat(4,1fr);gap:6px;max-width:96vw;padding:0 6px;margin:4px auto 8px}
+    #rMsg{margin:54px 10px 2px;font-size:17px;min-height:24px}
+    #rInfo{font-size:13px;margin-bottom:2px}
+    #rStage{display:grid;grid-template-columns:1fr 1fr;align-items:end;justify-items:center;gap:4px 8px;padding:2px 8px 10px}
+    #rChefW{grid-column:1;grid-row:1}#rMyah{grid-column:2;grid-row:1}#rGrid{grid-column:1/-1;grid-row:2;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;max-width:340px}
+    #rChef{height:min(21vh,150px)}#rMyah{width:min(19vh,130px)}
+    .rPad{height:min(12.5vh,84px);min-height:60px;border-radius:16px}
+    #wdPrev{width:min(230px,56vw,27vh);height:min(230px,56vw,27vh)}#wdWheel{width:min(140px,38vw,19vh);height:min(140px,38vw,19vh)}
+  }
+
   .mc{position:relative;aspect-ratio:1/1;perspective:700px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .mc>div{position:absolute;inset:0;transition:transform .45s;transform-style:preserve-3d}
   .mc.up>div{transform:rotateY(180deg)}
@@ -389,6 +623,7 @@
   #zGhost{position:absolute;left:0;top:0;width:100%;height:auto;opacity:.22;pointer-events:none;filter:grayscale(.3)}
   #zBoard.done #zGhost{opacity:1}
   #zBoard.noguide:not(.done) #zGhost{opacity:0}
+  #zPick{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:4px 8px}#zPick button{font:inherit;font-weight:800;font-size:15px;padding:7px 14px;border-radius:999px;border:2px solid #c9a35a;background:#fffaf0;color:#5a3a12;cursor:pointer}#zPick button.on{background:#ffe9b0;border-color:#8a5a22}
   #zLevel{display:flex;gap:8px;justify-content:center;margin:4px 0 6px}
   #zLevel button{font:inherit;font-weight:800;font-size:15px;padding:7px 16px;border-radius:999px;border:2px solid #c9a35a;background:#fffaf0;color:#4b2a7a;cursor:pointer}
   #zLevel button.on{background:#e4d6fa}
@@ -413,7 +648,14 @@
   #hangEd .hr{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
   #hangEd .hr button{font:inherit;font-weight:800;font-size:18px;color:#4b2a7a;background:#fffaf0;border:2px solid #c9a35a;border-radius:12px;padding:3px;min-width:44px;height:50px;cursor:pointer}
   #hangEd .hr button img{height:34px;width:auto;max-width:64px;object-fit:contain}#hangEd .hr button.cur{background:#e4d6fa;border-color:#4b2a7a}
-  #hangEd .hb{position:sticky;top:0;z-index:5;background:#f6ecdb;padding:6px 0;margin-top:0}#hangEd .hb button{height:auto;padding:8px 18px;border-radius:999px;font-size:15px}#hangEd .hb .ok{background:#e4d6fa;border-color:#4b2a7a}
+  #hangEd canvas{position:static!important;inset:auto!important;height:auto!important}
+  #hangEd .hc{position:relative;max-height:96vh;max-height:96dvh;overflow:auto}
+  #hangEd #teCv{width:min(100%,calc(40vh * 1.75))!important;margin:0 auto}
+  #hangEd .xclose{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:2.5px solid #fff;background:#e95e96;color:#fff;font:900 18px/1 system-ui;cursor:pointer;z-index:6;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  #hangEd .hb{padding-right:48px!important}
+  #hangEd .tecnt{font-weight:800;color:#8a4b1f;font-size:13px;margin-bottom:4px}
+  #hangEd #teTh button{position:relative}#hangEd #teTh .tk{position:absolute;right:-5px;top:-5px;width:18px;height:18px;border-radius:50%;background:#2e9e6b;color:#fff;font:900 12px/18px system-ui;font-style:normal}
+  #hangEd #teCv{width:100%;border-radius:14px;border:3px solid #c9a35a;touch-action:none;background:#000;display:block}#hangEd #teTh button.sel{box-shadow:0 0 0 3px #e0a000}#hangEd .hb{position:sticky;top:0;z-index:5;background:#f6ecdb;padding:6px 0;margin-top:0}#hangEd .hb button{height:auto;padding:8px 18px;border-radius:999px;font-size:15px}#hangEd .hb .ok{background:#e4d6fa;border-color:#4b2a7a}
   #pHang{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(30,20,50,.55)}
   #pHang .hc{background:linear-gradient(180deg,#f6ecdb,#ecdcc0);border:3px solid #c9a35a;border-radius:22px;padding:14px 16px;max-width:min(92vw,520px);text-align:center}
   #pHang h2{margin:0 0 10px;font-family:"Pacifico","Segoe Script",cursive;font-weight:400;color:#4b2a7a;font-size:22px}
@@ -433,7 +675,7 @@
   #lvBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   #lvBtns button{font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;background:#fffaf0;border:2px solid #c9a35a;border-radius:16px;cursor:pointer;color:#4b2a7a;font-weight:800;font-size:15px}
   #lvBtns button img{height:48px;width:72px;max-width:100%;object-fit:contain;object-position:center;overflow:visible}
-  #lvBtns button[data-v=balade] img{height:40px;width:48px}
+  #lvBtns button[data-v=balade] img,#lvBtns button[data-v=defi] img{height:50px;width:auto;max-width:72px}
   #lvBtns button small{font-size:11px;font-weight:700;color:#5b2d91;opacity:.85}
   #lvBtns button.sel{background:#e4d6fa;border-color:#4b2a7a;box-shadow:0 0 0 2px #e4d6fa}
   #levelPick .lv{display:flex !important;align-items:center;gap:12px;text-align:left}
@@ -452,6 +694,12 @@
   .sl-go{flex:none;font-size:22px;color:#c7447a;font-weight:800}
   .sl-d{flex:none;background:none;border:0;font-size:18px;cursor:pointer;padding:4px;opacity:.7}
   .sl-d:hover{opacity:1}
+  .slot{touch-action:pan-y;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+  .sl-wrap{position:relative;border-radius:16px;overflow:hidden;flex:none}
+  .sl-back{position:absolute;right:0;top:0;bottom:0;width:104px;border:0;background:#e0556f;color:#fff;font-weight:800;font-size:15px;cursor:pointer;border-radius:0 16px 16px 0}
+  .sl-wrap .slot{position:relative;z-index:1}.sl-wrap .slot.sw{transform:translateX(-104px)}
+  @media (pointer:coarse),(max-width:700px){#slots .sl-d{display:none}}
+
     .hero-swan{height:clamp(84px,16vh,120px);width:auto;opacity:.8;animation:swslow 9s ease-in-out infinite;filter:drop-shadow(0 4px 8px rgba(0,60,80,.25))}
   @keyframes swslow{50%{transform:translateY(-3px)}}
   #title .hero h1{font-family:"Pacifico","Segoe Script","Brush Script MT",cursive;font-weight:400;font-style:italic;font-size:clamp(44px,9vw,72px);letter-spacing:0;line-height:1.15;margin:.05em 0 0;text-shadow:0 3px 0 #1b8a94,0 6px 14px rgba(0,60,80,.35)}
@@ -524,11 +772,12 @@
   #scL{left:14px;top:50%;transform:translateY(-50%)}#scR{right:14px;top:50%;transform:translateY(-50%)}
   #placeB{z-index:30 !important;position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-14px);z-index:6;padding:7px 20px;border-radius:999px;background:rgba(246,236,219,.94);border:2.5px solid #c9a35a;box-shadow:0 3px 0 rgba(120,90,40,.3);font:400 clamp(15px,2.6vw,21px) "Pacifico","Segoe Script",cursive;color:#4b2a7a;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;white-space:nowrap}
   #placeB.show{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:600px) and (max-aspect-ratio:1/1){#placeB{top:calc(max(10px,env(safe-area-inset-top)) + 58px);padding:5px 14px;font-size:15px;max-width:90vw;white-space:nowrap}}
   #mapView{z-index:12}
   #mapCard{position:relative;max-width:96vw;width:auto;padding:14px 16px 12px;background:linear-gradient(180deg,#f6ecdb,#ecdcc0);border:3px solid #c9a35a;border-radius:24px;box-shadow:inset 0 0 0 5px #f6ecdb,inset 0 0 0 7px #dcbf80,0 10px 30px rgba(40,25,70,.4);color:#4a3b2a}
   #mapCard h1{margin:0 0 8px;font-family:"Pacifico","Segoe Script",cursive;font-weight:400;color:#4b2a7a;font-size:clamp(20px,4vw,30px);text-shadow:0 2px 0 #f1d9a0}
   #mapX{top:10px;right:12px}
-  #mapBox{position:relative;width:min(92vw,calc((100vh - 150px) * 1.791));aspect-ratio:917/512;border-radius:14px;overflow:hidden;border:3px solid #c9a35a;margin:0 auto}
+  #mapBox{position:relative;width:min(calc(96vw - 44px),calc((100vh - 150px) * 1.791));aspect-ratio:917/512;border-radius:14px;overflow:hidden;border:3px solid #c9a35a;margin:0 auto}
   #mapImg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
   .mapPin{position:absolute;transform:translate(-50%,-50%);width:20px;height:20px;padding:0;border-radius:50%;background:rgba(246,236,219,.85);border:3px solid #8a5fc7;cursor:pointer;box-shadow:0 2px 0 rgba(120,90,40,.3);font-size:0}
   .mapPin::after{content:attr(data-n);display:none;position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);padding:3px 10px;border-radius:999px;background:rgba(246,236,219,.72);border:2px solid #c9a35a;color:#4b2a7a;font:800 clamp(11px,1.8vw,14px) "Trebuchet MS",sans-serif;white-space:nowrap;line-height:1.2}
@@ -550,16 +799,19 @@
 <div id="veil"></div>
 <div id="fade"></div>
 
-<div id="placeB"></div><div id="hudB"><button id="bagB" class="hudb" aria-label="Sac à dos"><img class="hudIco" src="assets/ico_sac.png" alt=""><i id="bagN"></i></button><button id="scrB" class="hudb" aria-label="Quêtes">📜<i id="scrN"></i></button><button id="tipsB" class="hudb" aria-label="Astuces">💡</button><button id="memB" class="hudb" aria-label="Jeu de memory">🃏</button></div>
+<div id="kobBk"><div id="kobPgW"><div id="kobPg"></div><div id="kobC"></div><div id="kobSt"></div><button id="kobX" aria-label="Fermer">✕</button></div></div><div id="vetOv"><div id="vetCard"><button id="vetX" aria-label="Fermer">✕</button><div id="vetBody"></div></div></div><div id="remOv"><div id="remCard"><button id="remX" aria-label="Fermer">✕</button><div id="remBody"></div></div></div><div id="wmOv"><div id="wmCard"><div class="wmH">Walkman</div><div id="wmList"></div><div class="wmB"><button id="wmPrev" class="kvBtn alt wmI" aria-label="Précédente"><svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" aria-hidden="true"><rect x="5" y="5" width="3" height="14"/><path d="M19 5v14L9 12z"/></svg></button><button id="wmPP" class="kvBtn wmI" aria-label="Lecture / pause"></button><button id="wmUp" class="kvBtn alt wmI" aria-label="Arrêter"><svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button><button id="wmNext" class="kvBtn alt wmI" aria-label="Suivante"><svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" aria-hidden="true"><rect x="16" y="5" width="3" height="14"/><path d="M5 5v14l10-7z"/></svg></button></div><div id="wmCf" style="display:none"><div class="wmH" style="font-size:15px;margin:8px 0 2px">Veux-tu arrêter ?</div><div class="wmB"><button id="wmCfY" class="kvBtn">Oui</button><button id="wmCfN" class="kvBtn alt">Non</button></div></div></div></div><div id="mgOv"><div id="mgCard"><button id="mgX" aria-label="Menu"><i class="mgBars"></i></button><div id="mgBody"></div><div id="mgPz"><b>Pause</b><button class="kvBtn" id="mgCont">Continuer</button><button class="kvBtn alt" id="mgRe">Recommencer</button><button class="kvBtn alt" id="mgQuit">Quitter</button></div></div></div><div id="placeB"></div><div id="hudB"><button id="bagB" class="hudb" aria-label="Sac à dos"><img class="hudIco" src="assets/ico_sac.png" alt=""><i id="bagN"></i></button><button id="scrB" class="hudb" aria-label="Quêtes">📜<i id="scrN"></i></button><button id="tipsB" class="hudb" aria-label="Astuces">💡</button><button id="memB" class="hudb" aria-label="Jeu de memory">🃏</button><button id="kobB" class="hudb" aria-label="Carnet de plantes" style="display:none"><img src="assets/carnet.png" alt="" style="width:30px;height:auto"><i id="kobN"></i></button></div>
 <div id="mapView" class="overlay"><div class="card" id="mapCard"><button id="mapX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><h1>La carte de l'île</h1><div id="mapBox"><img id="mapImg" src="assets/map.jpg" alt="Carte de l'île"><div id="mapPins"></div><div id="mapMe"><span>Myah</span></div></div><div id="mapInfo">Touche un lieu pour le découvrir</div></div></div>
 <div id="inv" class="hudp"></div>
 <div id="quests" class="hudp"></div>
 <button id="setB" class="panel" aria-label="Paramètres">⚙️</button>
 <button id="mute" class="panel" aria-label="Son">🔊</button>
 
-<div id="tips"><div id="tipsBody"><div class="ch"><b>💡 Astuces</b><button id="tipsX" aria-label="Fermer">✕</button></div><div class="cb">
+<div id="tips"><div id="tipsBody"><div class="ch"><b>💡 Astuces</b><button id="tipsX" aria-label="Fermer">✕</button></div><div id="tipsTabs" style="display:none"><button type="button" data-tab="cygne" class="sel">Île du Cygne</button><button type="button" data-tab="kob">Île aux Koalas</button></div><div class="cb" id="tipCy">
 <h3>Les actions</h3>
-<p>💬 Une <b>bulle blanche</b> apparaît quand tu peux parler ou agir. Un <b>halo doré</b> brille autour de ce que tu peux cueillir, attraper, pêcher ou fouiller, quand tu as le bon outil en main. Dans les maisons, une <b>auréole dorée</b> marque ce que tu peux toucher : la malle, le petit coffre, la douche, le lavabo, le canapé…</p>
+<p>✨ Un <b>halo doré</b> brille autour de ce que tu peux cueillir, attraper, pêcher ou fouiller, quand tu as le bon outil en main. Dans les maisons, une <b>auréole dorée</b> marque ce que tu peux toucher : la malle, le petit coffre, la douche, le lavabo, le canapé…</p>
+<h3>Entrer et sortir</h3>
+<p>🚪 Pour <b>entrer</b> dans une maison, dans le bateau ou dans une boutique, <b>touche la partie scintillante</b> (le petit rond doré) posée sur la porte. Rien ne s'ouvre tout seul : la question « Veux-tu entrer ? » n'apparaît que si tu touches. Pour <b>sortir</b> ou <b>rentrer à l'île du Cygne</b>, touche de la même façon le rond doré devant la porte ou au bout du ponton.</p>
+<p>⛵ Sur le bateau de l'île du Cygne, touche le rond doré pour <b>entrer</b> ou <b>partir pour l'île aux Koalas</b>. Pour parler à quelqu'un, <b>touche-le</b> quand Myah est tout près.</p>
 <p>🎮 À l'étage de ta maison, le <b>petit coffre</b> près du lit superposé ouvre les <b>mini-jeux</b> : Dessiner 🎨, Memory 🃏, Puzzle 🧩 et Rythme avec Kykah 🥁. Tu peux le toucher depuis n'importe où à l'étage.</p>
 <h3>Les outils</h3>
 <p><span class="tico" data-t="basket"></span> <b>Panier</b> : fruits 🥥🥭🍌 et fleurs 🌸</p>
@@ -568,14 +820,30 @@
 <p><img class="hico" alt="" src="assets/ico_sac.png"> <b>Sac à dos</b> : ce que tu as ramassé</p>
 <h3>Les commandes</h3>
 <p>📱 <b>Téléphone et tablette</b> : glisse le doigt n'importe où pour marcher (plus loin : courir) et <b>tape l'écran</b> pour agir. 🎣 À la pêche, tiens le bouton <b>🎣</b> quand le poisson mord. 🦢 appelle le Cygne ; une fois dessus, <b>tape l'écran</b> pour voler ou flotter. 🛟 en haut à droite te remet sur un chemin libre si Myah est coincée.</p>
-<p>⌨️ <b>Clavier</b> : flèches / ZQSD marcher · Maj courir · Espace, Entrée ou E : action · X sauter ou voler/flotter · C cygne · 1 2 3 prendre ou ranger un outil · 0 tout ranger</p>
+<p>⌨️ <b>Clavier</b> : flèches / ZQSD marcher · Maj courir · Espace, Entrée ou E : action · X sauter ou voler/flotter · C cygne · 1 2 3 prendre ou ranger un outil · 0 tout ranger · Espace ou Entrée : valider une question (Oui), sortir d'un endroit, et jouer en cuisine (couper, remuer, chauffer) · Échap : Non / fermer</p>
 <h3>Bon à savoir</h3>
 <p>🏛️ Parle à <b>Yulia</b> au musée pour voir la collection.</p>
 <p>💾 La partie se sauvegarde toute seule. Dans ⚙️ <b>Paramètres</b>, tu peux régler le son, sauvegarder ou quitter le jeu : Myah sera retrouvée là où tu l'as laissée.</p>
 <p>🪶 Chaque mission finie débloque un <b>coffre</b> avec une plume.</p>
 <p>⭐ Chaque mission te donne jusqu'à <b>3 étoiles</b> dans ton carnet 📜 : mission réussie, coffre ouvert, et un bonus si tu joues en Aventure ou en Défi.</p>
 <p>🎚️ Dans ⚙️ <b>Paramètres</b>, tu peux changer le niveau : Balade, Aventure ou Défi. 🎣 À la pêche, maintiens <b>Action</b> pour garder le poisson dans la zone verte !</p>
-<p>🦢 Rends les plumes à <b>Gaïkin</b>, le Cygne légendaire, pour voler avec lui !</p>
+<p>🦢 Rends les plumes à <b>Gaïkin</b>, le grand Cygne, pour sauver le lac et voler avec lui !</p>
+</div><div class="cb" id="tipKo" style="display:none">
+<h3>Entrer et sortir</h3>
+<p>🚪 Pour entrer chez Okaï, à la boutique, au phare, dans la maison dans l'arbre ou chez Tomba, <b>touche le petit rond doré</b> sur la porte. Pour rentrer à l'île du Cygne, touche celui du <b>ponton</b>.</p>
+<h3>Soigner les animaux</h3>
+<p>🌿 Cueille les plantes de l'île avec ton <b>panier</b> : elles sont notées dans ton <b>carnet de plantes</b> 📖. Le <b>dispensaire</b> est la maison d'<b>Okaï</b>, le koala au pilon : il te montre comment préparer les remèdes.</p>
+<p>❗ Quand un animal est malade, un <b>point d'exclamation rouge</b> apparaît au-dessus de lui. Prends ta <b>mallette</b> 🧰 pour le soigner. Tu as aussi ton <b>filet</b>, ta <b>canne</b> et ton <b>panier</b> pour attraper des insectes, pêcher et ramasser des ingrédients.</p>
+<h3>Les endroits à découvrir</h3>
+<p>👗 <b>Le dressing</b> : dans la <b>boutique souvenir</b>, le <b>portant à vêtements</b> (à droite de la porte) te laisse changer de tenue, comme dans ta valise.</p>
+<p>🎧 <b>Le walkman</b> : au <b>phare</b>, dans l'observatoire, un walkman est posé par terre. Touche-le : Myah s'assoit et écoute les musiques d'Annabelle. Choisis le morceau dans le petit menu, puis appuie sur <b>Se lever</b>.</p>
+<p>🛏️ <b>Dormir</b> : en haut de la <b>maison dans l'arbre</b>, le lit superposé te permet de dormir. Le temps passe jusqu'au matin.</p>
+<h3>Les mini-jeux</h3>
+<p>✨ Quand les premiers koalas vont mieux, des <b>coffres</b> et des objets brillent dans les maisons. Touche leur halo pour jouer.</p>
+<p>🃏 <b>Memory</b> : le petit coffre de la cabane de pierre · 🐨 <b>Qui vit où ? Qui mange quoi ?</b> : le coffre gris au bout du comptoir de la boutique · 🏮 <b>Les lanternes du phare</b> : le coffre doré, le soir seulement · 🔑 <b>Le coffre aux symboles</b> : sur la table, à l'étage de la maison dans l'arbre · 💐 <b>Le bouquet</b> : le vase chez le jardinier · 🌱 <b>Les graines</b> : les pots par terre, près de l'établi.</p>
+<h3>Le jour et la nuit</h3>
+<p>🦋 Le jour, des <b>papillons</b> volent sur l'île, et le soir des <b>lucioles</b> s'allument (leurs couleurs sont différentes de celles de l'île du Cygne).</p>
+<p>🌙 Le soir, le <b>cabinet médical</b>, la maison du <b>jardinier</b> et la <b>boutique</b> ferment. Okaï rentre chez lui, à gauche du dispensaire, et le petit garçon de la plage monte dans la maison dans l'arbre avec sa maman la docteure.</p>
 </div></div></div>
 <div id="hint" class="panel"></div>
 <div id="fightBar"><div class="fbL">🐟 Maintiens <b>Action</b> pour garder le poisson dans la zone verte !</div><div class="fbT"><div id="fbZone">🐟</div><div id="fbHook"></div></div><div class="fbP"><div id="fbProg"></div></div></div>
@@ -586,9 +854,10 @@
   <button class="tool panel" data-tool="fish"><span class="ico"></span><span class="key">3</span><span class="lbl">Canne</span></button>
 </div>
 
+<button id="kitB" class="panel" aria-label="Mallette"></button>
 <div id="btns">
   <button id="bSwan" class="rbtn swan panel">🦢<small>Cygne</small></button>
-  <button id="bJump" class="rbtn panel">⤴<small>Saut</small></button>
+  <button id="bJump" class="rbtn panel"><small id="bJumpL" style="font-size:12px;line-height:1.1;margin:0">Se poser<br>sur l'eau</small></button>
   <button id="bAct" class="rbtn big panel"><b class="actl">Action</b></button>
 </div>
 
@@ -607,14 +876,14 @@
     <details id="howto">
       <summary>Comment jouer ?</summary>
       <div class="help">
-        <b>Ton but</b> : retrouver les plumes du mystérieux <b>Gaïkin</b>, le Cygne légendaire. Selon la légende, quand tu auras rassemblé cinq plumes, il reviendra sur l'île. Chaque mission terminée ouvre un coffre qui cache une plume.<br>
+        <b>Ton but</b> : sauver le lac de l'île ! Gaïkin, le grand Cygne, s'est enfui à cause des pirates, et ses plumes (qui nettoient l'eau) sont gardées par les habitants. Gagne leur confiance en les aidant : chaque mission terminée ouvre un coffre qui cache une plume. Rends-les toutes à Gaïkin pour qu'il revienne.<br>
         <b>Panier</b> : fruits et fleurs<br>
         <b>Filet</b> à insectes : papillons<br>
         <b>Canne</b> : poissons (étang et mer)<br>
-        <span id="helpKeys"><b>Flèches directionnelles</b> (ou ZQSD) : marcher · <b>Maj</b> : courir · <b>Espace</b>, <b>Entrée</b> ou <b>E</b> : action (parler, cueillir, attraper, pêcher) · <b>1 2 3</b> : prendre ou ranger un outil · <b>C</b> : appeler le Cygne · <b>X</b> : voler ou flotter avec lui</span>
+        <span id="helpKeys"><b>Flèches directionnelles</b> (ou ZQSD) : marcher · <b>Maj</b> : courir · <b>Espace</b>, <b>Entrée</b> ou <b>E</b> : action (parler, cueillir, attraper, pêcher) · <b>1 2 3</b> : prendre ou ranger un outil · <b>C</b> : appeler le Cygne · <b>X</b> : voler ou flotter avec lui · <b>Espace</b> ou <b>Entrée</b> : répondre Oui, entrer ou sortir d'un endroit, jouer en cuisine · <b>Échap</b> : Non ou fermer</span>
         <b>Mini-jeux</b> : à l'étage de la maison, touche le petit coffre près du lit superposé : Dessiner, Memory, Puzzle et Rythme avec Kykah.<br>
-        <b>Outils</b> : prends l'objet en main (<b>1 2 3</b> ou les boutons), puis appuie sur le bouton <b>Action</b>, dont l'icône change selon l'objet : cueillir avec le panier, attraper avec le filet, pêcher avec la canne. Les petits messages d'aide ne s'affichent qu'une seule fois.<br>
-        <b>Dans la maison</b> : quand tu es tout près, <b>clique</b> (ordinateur) ou <b>touche</b> (tablette, téléphone) la malle pour changer de tenue, la douche, les toilettes, le lavabo, le canapé ou une chaise. Retouche pour arrêter l'eau ou te lever.<br>
+        <b>Outils</b> : prends l'objet en main (<b>1 2 3</b> ou les boutons), puis appuie sur le bouton <b>Action</b>, dont l'icône change selon l'objet : cueillir avec le panier, attraper avec le filet, pêcher avec la canne. Les petits messages d'aide (« Touche ici pour… ») ne s'affichent qu'une seule fois, la première fois : si tu as oublié, tout est expliqué ici, dans Astuces.<br>
+        <b>Dans la maison</b> : quand tu es tout près, <b>clique</b> (ordinateur) ou <b>touche</b> (tablette, téléphone) la malle pour changer de tenue, la douche, les toilettes, le lavabo, le canapé ou une chaise. Retouche pour arrêter l'eau ou te lever. Près de la table basse du salon, tu peux y poser jusqu'à 3 trésors rares.<br>
         <b>Échelles</b> : tiens ↑ pour monter et ↓ pour descendre. En haut du lit superposé, on te demande si tu veux dormir ; réponds « Non » pour rester là et redescendre avec ↓.<br>
         <b>Profil</b> : en lançant une « Nouvelle partie », tu peux choisir un prénom ou un surnom (facultatif).<br>
         <b>Son et paramètres</b> : les deux ronds en haut à droite de l'accueil coupent le son et ouvrent les paramètres, avant même de lancer la partie.<br>
@@ -623,7 +892,8 @@
         <b>Sauvegarde</b> : automatique ou manuelle, au choix dans ⚙️ Paramètres. En manuel, appuie sur « Sauvegarder maintenant ».<br>
         <b>Code de secours</b> : « Copier mon code de secours » garde tes parties dans un texte à ranger dans une note ; « Récupérer avec un code » les remet si elles disparaissent.<br>
         <b>Passer l'écran d'accueil</b> : dans ⚙️ Paramètres, active « Écran d'accueil : passé » pour reprendre directement ta dernière partie. Tu peux le désactiver au même endroit.<br>
-        <b>Dessin</b> : à l'étage de la maison, devant le coffre près du lit superposé, réponds « oui » à « Tu veux dessiner ? ». Garde tes dessins et accroche-en un au-dessus du grand lit.<br>
+        <b>Dessin</b> : à l'étage de la maison, devant le coffre près du lit superposé, réponds « oui » à « Tu veux dessiner ? ». Garde tes dessins, puis accroche-les (ou tes trésors rares) dans les cadres des murs : touche le mur quand tu es devant.<br>
+        <b>Défis de Lila, Romi et Kahn</b> : les enfants de l'île et ton papa Kahn (près de l'étal de poisson) proposent un défi chronométré (3 minutes), par exemple attraper 5 papillons ou pêcher 2 poissons. Quand c'est réussi, rapporte-leur : ils te donnent un trésor rare, à retrouver dans la collection du musée. En mode Balade, il n'y a pas de chrono. Le bébé Kito, lui, dit juste « Mymy » ou « Coucou » !<br>
         <b>Petites trouvailles</b> : près de l'eau, Action lance un galet (ricochets) ; la nuit, attrape les lucioles et fais un vœu quand une étoile filante passe.<br>
         <b>Facteur de l'île</b> : quand un ✉️ apparaît sur la boîte aux lettres près de la maison de Myah, appuie sur Action pour prendre le courrier, puis porte-le à la bonne personne. Les lanternes près des maisons s'allument la nuit, la cloche sonne près de la plage, les animaux se caressent, et les coquillages se ramassent sur le sable.<br>
         <b>Observatoire</b> : devant une longue vue, appuie sur Action pour regarder au loin, et fais glisser pour explorer.
@@ -648,9 +918,9 @@
 <div id="newConf" class="overlay">
   <div class="card panel">
     <div style="font-size:34px">🗑</div>
-    <h1>Effacer cette partie ?</h1>
+    <h1>Es-tu sûr de vouloir supprimer cette partie ?</h1>
     <p id="newTxt">Cette sauvegarde sera effacée.</p>
-    <button id="newYes" class="go">Oui, effacer</button>
+    <button id="newYes" class="go">Oui, supprimer</button>
     <button id="newNo" class="go alt">Non, la garder</button>
   </div>
 </div>
@@ -668,17 +938,19 @@
 <div id="paint">
   <div class="pTop"><button id="pX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><button id="pBack" class="wdRound" title="Retour" aria-label="Retour">←</button><button id="pDl" class="wdRound" title="Télécharger" aria-label="Télécharger">📥</button><button id="pSave" class="wdRound" title="Enregistrer" aria-label="Enregistrer">💾</button><button id="pHome" class="wdRound" title="Mini-jeux" aria-label="Mini-jeux">🏠</button><b>🎨 Peinture libre</b></div>
   <div class="pBody">
-    <div id="pTabs"><button id="pTabFree" class="on">✏️ Dessin libre</button><button id="pTabCol">🖍️ Coloriage</button><button id="pAgain" style="display:none">↩ Autres coloriages</button></div>
+    <div id="pTabs"><button id="pTabFree" class="on">Dessin libre</button><button id="pTabCol">Coloriage</button><button id="pAgain" style="display:none">↩ Autres coloriages</button></div>
     <div id="pWrap"><canvas id="pCv" width="720" height="540"></canvas><img id="pOv" alt=""></div>
+    <div class="pSide">
     <div class="pTools">
       <img id="pPal" src="assets/color/palette.png" alt="">
       <div class="pRow" id="pModels"></div>
       <div id="pMix"><canvas id="pWheel" width="150" height="150" aria-label="Roue des couleurs"></canvas><div id="pMixR"><div id="pCur"></div><label>Foncé <input type="range" id="pLight" min="12" max="92" value="50" aria-label="Clair ou foncé"> Clair</label><small>Touche la roue pour choisir ta couleur</small></div></div>
       <div id="pCols"></div>
-      <div class="pRow"><button id="pBrush" title="pinceau" aria-label="pinceau" class="pb on">🖌️<small>pinceau</small></button><button id="pFill" title="remplir" aria-label="remplir" class="pb">🪣<small>remplir</small></button></div>
-      <div class="pRow"><button id="pS1" title="fin" aria-label="fin" class="pb">●<small>fin</small></button><button id="pS2" title="moyen" aria-label="moyen" class="pb on">●<small>moyen</small></button><button id="pS3" title="gros" aria-label="gros" class="pb">●<small>gros</small></button><button id="pEr" title="gomme" aria-label="gomme" class="pb">🧽<small>gomme</small></button><button id="pUndo" title="annuler" aria-label="annuler la dernière action" class="pb">↩️<small>annuler</small></button><button id="pRedo" title="rétablir" aria-label="rétablir l'action annulée" class="pb">↪️<small>rétablir</small></button><button id="pClr" title="effacer" aria-label="effacer" class="pb">🗑<small>effacer</small></button></div>
+      <div class="pRow" id="pTR"><button id="pBrush" title="pinceau" aria-label="pinceau" class="pb on">🖌️<small>pinceau</small></button><button id="pFill" title="remplir" aria-label="remplir" class="pb">🪣<small>remplir</small></button><button id="pS1" title="fin" aria-label="fin" class="pb">●<small>fin</small></button><button id="pS2" title="moyen" aria-label="moyen" class="pb on">●<small>moyen</small></button><button id="pS3" title="gros" aria-label="gros" class="pb">●<small>gros</small></button><button id="pEr" title="gomme" aria-label="gomme" class="pb">🧽<small>gomme</small></button></div>
+      <div class="pRow" id="pUR"><button id="pClr" title="effacer" aria-label="effacer" class="pb">🗑<small>effacer</small></button><button id="pUndo" title="annuler" aria-label="annuler la dernière action" class="pb">↩️<small>annuler</small></button><button id="pRedo" title="rétablir" aria-label="rétablir l'action annulée" class="pb">↪️<small>rétablir</small></button></div>
     </div>
     <div class="pGal"><div class="pGalT">Mes dessins <small>(touche un dessin pour choisir son cadre)</small></div><div id="pGal"></div></div>
+    </div>
   </div>
 </div>
 <div id="miniMenu" class="overlay">
@@ -689,10 +961,25 @@
     <button id="mmMem" class="go">🃏 Memory</button>
     <button id="mmPuz" class="go">🧩 Puzzle</button>
     <button id="mmRyt" class="go">🥁 Rythme avec Kykah</button>
+    <button id="mmTet" class="go wide">Blocs cosy</button>
     <button id="mmX" class="go alt">Plus tard</button>
   </div>
 </div>
-<div id="puzzle"><div class="pTop"><button id="zX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><b>🧩 Puzzle de la carte</b></div><div id="zInfo"></div><div id="zLevel"><button id="zG1" class="on">🌫️ Avec guide</button><button id="zG0">⭐ Sans guide</button></div><div id="zBoard"><img id="zGhost" src="assets/puzzle/carte.webp" alt=""><div id="zTray"></div></div><div id="zWin"><div class="big" id="zWinT"></div><button id="zAgain" class="pb big" style="margin:10px auto">🔄 Rejouer</button></div></div>
+<div id="tetris">
+  <div id="tTop"><div id="tBan"><b>Blocs cosy</b></div><button id="tPause" class="tRound" aria-label="Pause"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg></button><button id="tAgain" class="tRound" aria-label="Recommencer"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 7.6 5.5h-2.4A5.6 5.6 0 1 1 12 6.4c1.3 0 2.5.5 3.5 1.3L13 10h7V3l-2.7 2.7A8 8 0 0 0 12 4z"/></svg></button><button id="tBack" class="tRound" aria-label="Retour aux mini-jeux"><svg viewBox="0 0 24 24"><path d="M3 12l7-7v4.2h11v5.6H10V19z"/></svg></button></div>
+  <div id="tMain">
+    <div id="tBoardW"><img src="assets/tetris/board.png" alt="" draggable="false"><div class="tTint"></div><canvas id="tCv" width="448" height="840"></canvas><canvas id="tFx" width="448" height="840"></canvas></div>
+    <div id="tSide">
+      <div class="tLab">Suivante</div><div class="tSq" id="tNextB"><canvas id="tNext" width="120" height="120"></canvas></div>
+      <div class="tLab">Réserve</div><div class="tSq" id="tHoldB"><canvas id="tHold" width="120" height="120"></canvas></div>
+      <div class="tMet" id="tScoreB"><span>Score</span><b id="tScore">0</b></div>
+      <div class="tMet" id="tLvlB"><span>Niveau</span><b id="tLvl">1</b></div>
+    </div>
+  </div>
+  <div id="tPad"><button id="tL" aria-label="Gauche"></button><button id="tRot" aria-label="Tourner"></button><button id="tD" aria-label="Descendre"></button><button id="tR" aria-label="Droite"></button></div>
+  <div id="tMsg"><div class="tp" id="tPanel"><h2 id="tMT"></h2><p id="tMS"></p></div><div id="tMenu"><button class="tgo" id="tmCont">Continuer</button><button class="tgo" id="tmAgain">Recommencer</button><button class="tgo" id="tmList">Menu mini-jeux</button><button class="tgo" id="tmQuit">Quitter la partie</button></div><div id="tMBtns"><button class="tgo" id="tGo"></button><button class="tgo" id="tQuit"></button></div></div>
+</div>
+<div id="puzzle"><div class="pTop"><button id="zX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><b id="zTitle">🧩 Puzzle</b></div><div id="zInfo"></div><div id="zPick"><button class="on">🗺️ La carte</button><button>🦢 Le cygne de glace</button><button>🐦 Le colibri</button></div><div id="zLevel"><button id="zG1" class="on">🌫️ Avec guide</button><button id="zG0">⭐ Sans guide</button></div><div id="zBoard"><img id="zGhost" src="assets/puzzle/carte.webp" alt=""><div id="zTray"></div></div><div id="zWin"><div class="big" id="zWinT"></div><button id="zAgain" class="pb big" style="margin:10px auto">🔄 Rejouer</button></div></div>
 <div id="rythme"><div class="pTop"><button id="rX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><b>🥁 Rythme avec Kykah</b></div><div id="rMsg"></div><div id="rInfo"></div><div id="rStage"><div id="rChefW"><img id="rChef" src="assets/rythme/chef.png" alt=""><img id="rGlow" src="assets/rythme/glow.png" alt=""></div><div id="rGrid"></div><div id="rMyah"></div></div><button id="rBtn" class="pb big">▶ Commencer</button></div>
 <div id="memory"><div class="pTop mTop"><button id="mX" class="wdRound" title="Fermer" aria-label="Fermer">✕</button><b>🃏 Memory de l'île</b></div><div id="mInfo"></div><div id="mGrid"></div><div id="mWin"><div class="big" id="mWinT"></div><button id="mAgain" class="pb big" style="margin:10px auto">🔄 Rejouer</button></div></div>
 <div id="scope"><canvas id="scopeCv"></canvas><button id="scopeX" class="wdRound" title="Fermer" aria-label="Fermer la longue vue">✕</button><button class="scArr" id="scU" data-d="u" aria-label="Haut">▲</button><button class="scArr" id="scD" data-d="d" aria-label="Bas">▼</button><button class="scArr" id="scL" data-d="l" aria-label="Gauche">◀</button><button class="scArr" id="scR" data-d="r" aria-label="Droite">▶</button><div id="scopeHint">Glisse pour regarder autour</div></div>
@@ -701,6 +988,7 @@
     <h1 id="bedPickT">Dormir</h1>
     <p id="bedPickP">Veux-tu aller dormir ?</p>
     <button id="bedYes" class="go">Oui</button>
+    <button id="bedAlt" class="go alt" style="display:none"></button>
     <button id="bedNo" class="go alt">Non</button>
   </div>
 </div>
@@ -712,7 +1000,7 @@
       <div class="wdLeft">
         <div class="wdPrevRow"><button id="wdUndo" class="wdArr" disabled title="Revenir en arrière" aria-label="Revenir en arrière"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M27 16H6M15 6L5 16l10 10"/></svg></button><canvas id="wdPrev" width="300" height="300"></canvas><button id="wdRedo" class="wdArr" disabled title="Revenir au présent" aria-label="Revenir au présent"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16h21M17 6l10 10-10 10"/></svg></button></div>
         <div class="wdTabs">
-          <button data-part="hair">Cheveux</button><button data-part="glasses">Lunettes</button><button data-part="shirt">T-shirt</button><button data-part="overall">Salopette</button><button data-part="shoes">Chaussures</button><button data-part="bag">Sac</button><button data-part="stickers">Stickers</button><button data-part="saved">Mes tenues</button>
+          <button data-part="hair">Cheveux</button><button data-part="glasses">Lunettes</button><button data-part="overall">Salopette</button><button data-part="shoes">Chaussures</button><button data-part="bag">Sac</button><button data-part="stickers">Stickers</button><button data-part="saved">Mes tenues</button>
         </div>
       </div>
       <div class="wdRight">
@@ -755,28 +1043,37 @@
 </div>
 
 <div id="settings" class="overlay">
-  <div class="card panel">
-    <h1>⚙️ Paramètres</h1>
-    <div id="setTabs"><button class="stab on" data-t="son">🔊 Son</button><button class="stab" data-t="aff">🖥️ Affichage</button><button class="stab" data-t="part">💾 Partie</button></div>
-    <div class="setPane" data-t="son">
-      <button id="setSound" class="go alt wide">🔊 Son : activé</button>
-      <div class="setSl"><label for="setVol">🔉 Bruitages <b id="setVolV">5%</b></label><input id="setVol" type="range" min="0" max="100" step="5" value="5"></div>
-      <div class="setSl"><label for="setMus">🎵 Musique <b id="setMusV">20%</b></label><input id="setMus" type="range" min="0" max="100" step="5" value="20"></div>
+  <div class="card panel" style="position:relative">
+    <button id="setX" aria-label="Fermer" style="all:unset;cursor:pointer;position:absolute;top:10px;right:12px;width:36px;height:36px;border-radius:50%;border:3px solid #a8691a;background:#fff;color:#7a4b24;font:900 18px/30px sans-serif;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.35);touch-action:manipulation">✕</button>
+    <h1>⚙️ Réglages</h1>
+    <div class="setKid">
+      <div class="setSl"><label for="setVol">🔉 <b id="setVolV"></b></label><input id="setVol" type="range" min="0" max="100" step="5" value="5"></div>
+      <div class="setSl"><label for="setMus">🎵 <b id="setMusV"></b></label><input id="setMus" type="range" min="0" max="100" step="5" value="20"></div>
+      <div class="setSl"><label for="setBri">☀️ <b id="setBriV"></b></label><input id="setBri" type="range" min="50" max="150" step="5" value="100"></div>
+      <div class="tiles">
+        <button id="setSound" class="go alt wide tile"><span class="ti">🔊</span><span class="tl">Son</span></button>
+        <button id="setNight" class="go wide tile"><span class="ti">🌙</span><span class="tl">Aller à la nuit</span></button>
+        <button id="setDay" class="go alt wide tile"><span class="ti">🌗</span><span class="tl">Jour et nuit</span></button>
+        <button id="setCalm" class="go alt wide tile"><span class="ti">🐢</span><span class="tl">Calme</span></button>
+        <button id="setLevel" class="go alt wide tile"><span class="ti"><img src="assets/ui/lv_aventure.png" alt="" style="height:34px;width:auto"></span><span class="tl">Niveau</span></button>
+        <button id="setTxt" class="go alt wide tile"><span class="ti">🔤</span><span class="tl">Texte</span></button>
+        <button id="setSave" class="go alt wide tile"><span class="ti">💾</span><span class="tl">Sauvegarder</span></button>
+        <button id="setStory" class="go alt wide tile"><span class="ti">📖</span><span class="tl">Histoire</span></button>
+      </div>
     </div>
-    <div class="setPane" data-t="aff" style="display:none">
-      <div class="setSl"><label for="setBri">☀️ Luminosité <b id="setBriV">100%</b></label><input id="setBri" type="range" min="50" max="150" step="5" value="100"></div>
-      <button id="setDay" class="go alt wide">🌗 Jour et nuit : activé</button>
-      <button id="setNight" class="go wide">🌙 Aller à la nuit (test)</button>
+    <details id="setPar">
+      <summary>👨‍👩‍👧 Pour les parents ▾</summary>
+      <button id="setSleep" class="go alt wide">Dormir la nuit : le matin arrive vite</button>
       <button id="setSkip" class="go alt wide">🏠 Écran d'accueil : affiché</button>
-    </div>
-    <div class="setPane" data-t="part" style="display:none">
-      <button id="setLevel" class="go alt wide">🎚️ Niveau</button>
       <button id="setAuto" class="go alt wide">💾 Sauvegarde : automatique</button>
-      <button id="setSave" class="go alt wide">💾 Sauvegarder maintenant</button>
       <button id="setCopy" class="go alt wide">📋 Copier mon code de secours</button>
       <button id="setPaste" class="go alt wide">📥 Récupérer avec un code</button>
-    </div>
-    <div id="setFoot"><button id="setQuit" class="go">🚪 Quitter</button><button id="setClose" class="go alt">Retour au jeu</button></div>
+      <button id="setFile" class="go alt wide">📁 Enregistrer un fichier de sauvegarde</button>
+      <button id="setKob" class="go alt wide">Tester l'île Kobhak (accès direct)</button>
+      <button id="setVet" class="go alt wide">Test Kobhak : animaux normaux</button>
+      <button id="setLoad" class="go alt wide">📂 Récupérer depuis un fichier</button><input type="file" id="setPick" accept=".txt,text/plain" style="display:none">
+    </details>
+    <div id="setFoot"><button id="setQuit" class="go">🚪 Quitter</button><button id="setClose" class="go alt">▶ Jouer</button></div>
     <div id="setMsg" class="auto"></div>
   </div>
 </div>
@@ -794,21 +1091,20 @@
 
 <div id="win" class="overlay">
   <div class="card panel">
-    <div id="stars">🪶🪶🪶🪶🪶</div>
+    <div id="stars">🪶🪶🪶🪶</div>
     <h1>Bravo Myah !</h1>
-    <p>Le Cygne légendaire a retrouvé toutes ses plumes.<br>Appelle-le avec le bouton 🦢 : vole au-dessus de l'île ou flotte sur le lac et l'océan !</p>
+    <p>Gaïkin a retrouvé ses quatre plumes et l'eau du lac redevient claire !<br>Appelle-le avec le bouton 🦢 : vole au-dessus de l'île ou flotte sur le lac et l'océan !</p>
     <button id="keep" class="go">Explorer avec le Cygne</button>
     <button id="again" class="go alt">Rejouer</button>
   </div>
 </div>
 
+<script src="packs.js"></script>
 <script src="data.js"></script>
 <script src="grass.js"></script>
 <script src="npcs.js"></script>
 <script src="myah.js"></script>
 <script src="mymask.js"></script>
-<script src="bushes.js"></script>
-<script src="trees.js"></script>
 <script src="sprites.js"></script>
 <script src="art.js"></script>
 <script src="game.js"></script>
