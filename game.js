@@ -2945,17 +2945,25 @@ const KD_A = .86;   // légère transparence des éléments posés sur la carte 
 let kobD = { acc: {}, done: {}, fr: {}, fi: {}, st: 0, rw: 0 };   // acc : défi accepté, fr : fruits cueillis, fi : poissons pêchés (nombre), st : étoiles, rw : victoires à la course
 const KFISH = [['Poisson-feuille', 3], ['Poisson-clown de Kobhak', 3], ['Fil d\'argent', 3], ['Poisson-koala', 2], ['Bleu-étoile', 3], ['Poisson doré', .8]];
 const KFRU = [{ k: 'baie', n: 'baie-miel', x: 812, y: 447 }, { k: 'lune', n: 'poire-lune', x: 905, y: 525 }, { k: 'rose', n: 'grappe rose', x: 470, y: 545 }];
-const FISH_SPOT = [250, 622], RA = [400, 600], RB = [690, 598];
+const FISH_SPOT = [470, 638], RA = [400, 600], RB = [690, 598];
+const KOB_BEACH_FISH = [
+  { k: 0, x: 375, y: 712, ph: .2 },
+  { k: 1, x: 510, y: 735, ph: 1.4 },
+  { k: 2, x: 660, y: 725, ph: 2.5 },
+  { k: 3, x: 815, y: 710, ph: 3.2 },
+  { k: 4, x: 965, y: 686, ph: 4.1 },
+  { k: 5, x: 1100, y: 650, ph: 5.3 },
+];
 const nFish = () => Object.keys(kobD.fi).filter(k => kobD.fi[k] > 0).length, nFruit = () => KFRU.filter(f => kobD.fr[f.k]).length;
 const kobStar = msg => { kobD.st++; sfx.star(); say(msg, 5); save(); };
 const DEFI = {
-  okai: { id: 'fish', ic: 'ic_fish', n: 'Pêche au ponton', ask: ['Dis-moi, Myah, aimerais-tu pêcher ? Les poissons de Kobhak sont drôles et de toutes les couleurs.', 'Au bout du ponton, tu peux lancer ta ligne. Si tu en attrapes 3 différents, je te donne une étoile !'], remind: () => ['Alors, ces poissons ? Au bout du ponton, tu peux lancer ta ligne. Tu en as ' + nFish() + ' sur 3 différents.'], ok: () => nFish() >= 3 && !kobD.done.fish, win: ['Quels beaux poissons ! Tu es une vraie pêcheuse, Myah.', 'Voilà ton étoile ! Et si tu les attrapes tous les 6, reviens me le dire.'], onWin: () => { kobD.done.fish = true; kobStar('Étoile de pêche !'); }, ok2: () => nFish() >= 6 && !kobD.done.fish6, win2: ['Les SIX poissons de Kobhak, même le doré ! Incroyable, Myah !'], onWin2: () => { kobD.done.fish6 = true; kobStar('Étoile : tous les poissons de Kobhak !'); } },
+  okai: { id: 'fish', ic: 'ic_fish', n: 'Pêche sur la plage', ask: ['Dis-moi, Myah, aimerais-tu pêcher ? Les poissons de Kobhak sont drôles et de toutes les couleurs.', 'Sur la plage, près des poissons, tu peux lancer ta ligne. Si tu en attrapes 3 différents, je te donne une étoile !'], remind: () => ['Alors, ces poissons ? Approche-toi du bord de la plage pour lancer ta ligne. Tu en as ' + nFish() + ' sur 3 différents.'], ok: () => nFish() >= 3 && !kobD.done.fish, win: ['Quels beaux poissons ! Tu es une vraie pêcheuse, Myah.', 'Voilà ton étoile ! Et si tu les attrapes tous les 6, reviens me le dire.'], onWin: () => { kobD.done.fish = true; kobStar('Étoile de pêche !'); }, ok2: () => nFish() >= 6 && !kobD.done.fish6, win2: ['Les SIX poissons de Kobhak, même le doré ! Incroyable, Myah !'], onWin2: () => { kobD.done.fish6 = true; kobStar('Étoile : tous les poissons de Kobhak !'); } },
   koki: { id: 'fruit', ic: 'ic_fruit', n: 'Fruits de Kobhak', ask: ['Bonjour Myah ! Je prépare un grand panier de fruits pour ma boutique.', 'Il me manque trois fruits que l\'on ne trouve que sur Kobhak : la baie-miel, la poire-lune et la grappe rose. Tu veux bien m\'aider ?'], remind: () => ['Il me faut encore ' + (3 - nFruit()) + ' fruit' + (3 - nFruit() > 1 ? 's' : '') + ' : la baie-miel (orange), la poire-lune (bleu pâle) et la grappe rose. Cherche-les sur l\'île !'], ok: () => nFruit() >= 3 && !kobD.done.fruit, win: ['Oh, quels beaux fruits ! Merci Myah, ma boutique va être magnifique.', 'Voilà ton étoile !'], onWin: () => { kobD.done.fruit = true; kobStar('Étoile des fruits de Kobhak !'); } },
   tobi: { id: 'race', ic: 'ic_race', n: 'Course avec Tobi', ask: ['Myah ! On fait la course ? De la plage jusqu\'au drapeau, sur le sable !', 'Tu me rejoins sur la ligne de départ et on y va. Si tu perds, ce n\'est pas grave, on recommence !'], remind: () => ['Tu veux refaire une course ?'], ok: () => false },
 };
 function kobAsk(k) {
   const D = DEFI[k]; $('#remBody').innerHTML = '<div class="kvH">' + D.n + '</div><div class="kvStage">' + kdSpr(D.ic, 120) + '</div><p class="kvMsg">' + (k === 'tobi' ? 'Tu veux faire la course avec Tobi ?' : 'Tu veux relever ce défi ?') + '</p><div class="kvBtns"><button class="kvBtn" id="dfY">Oui, avec plaisir !</button><button class="kvBtn alt" id="dfN">Plus tard</button></div>';
-  $('#dfY').onclick = () => { $('#remOv').style.display = 'none'; kobD.acc[D.id] = true; save(); if (k === 'tobi') kobRace(); else say(k === 'okai' ? 'Va au bout du ponton pour pêcher !' : 'Cherche les trois fruits sur l\'île !', 5); };
+  $('#dfY').onclick = () => { $('#remOv').style.display = 'none'; kobD.acc[D.id] = true; save(); if (k === 'tobi') kobRace(); else say(k === 'okai' ? 'Approche-toi du bord de la plage pour pêcher !' : 'Cherche les trois fruits sur l\'île !', 5); };
   $('#dfN').onclick = () => { $('#remOv').style.display = 'none'; };
   $('#remOv').style.display = 'grid'; player.mvx = player.mvy = 0;
 }
@@ -3253,10 +3261,20 @@ function kobDefiDraw() {
   if ((kobQ >= 5 || level === 'balade') && kobD.acc.fish) bub(FISH_SPOT[0], FISH_SPOT[1], 'ic_fish', 26);
   if (RACE) { bub(RB[0], RB[1], 'ic_race', 30); ctx.save(); ctx.globalAlpha = .5; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(RA[0] - 6, RA[1] - 22); ctx.lineTo(RA[0] - 6, RA[1] + 34); ctx.stroke(); ctx.beginPath(); ctx.moveTo(RB[0], RB[1] - 22); ctx.lineTo(RB[0], RB[1] + 34); ctx.stroke(); ctx.restore(); }
 }
+function kobBeachFishDraw() {
+  if (SC !== SC_KOBHAK || !KDI.complete || !KDI.naturalWidth) return;
+  KOB_BEACH_FISH.forEach(f => {
+    const m = KD_M['fish' + f.k], dx = Math.sin(time * .65 + f.ph) * 13, dy = Math.sin(time * 1.8 + f.ph) * 2.5;
+    const h = 20, w = h * m[2] / m[3], x = f.x + dx, y = f.y + dy, dir = Math.cos(time * .65 + f.ph) >= 0 ? 1 : -1;
+    ctx.save(); ctx.globalAlpha = .82; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.ellipse(x, y + 6, w * .42, 3 + Math.sin(time * 2 + f.ph), 0, 0, TAU); ctx.stroke();
+    ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
+  });
+}
 function kobFishing() {
   const body = $('#remBody'); let st = 0, tm = null, bite = 0; const T = x => { clearTimeout(tm); tm = setTimeout(x[0], x[1]); };
   const fm = t => { const e = $('#fsM'); if (e) e.innerHTML = t; };
-  const draw = () => { body.innerHTML = '<div class="kvH">Pêche au ponton</div><div class="kvStage fsSea"><div id="fsB" class="fsFl"></div></div><p class="kvMsg" id="fsM">Appuie pour lancer la ligne !</p><div class="kvBtns"><button class="kvBtn" id="fsGo">🎣 Lancer</button><button class="kvBtn alt" id="fsEnd">Fini</button></div>'; $('#fsGo').onclick = go; $('#fsEnd').onclick = () => { clearTimeout(tm); $('#remOv').style.display = 'none'; }; };
+  const draw = () => { body.innerHTML = '<div class="kvH">Pêche sur la plage</div><div class="kvStage fsSea"><div class="fsSchool">' + kdSpr('fish1', 42) + kdSpr('fish3', 42) + kdSpr('fish5', 42) + '</div><div id="fsB" class="fsFl"></div></div><p class="kvMsg" id="fsM">Appuie pour lancer la ligne !</p><div class="kvBtns"><button class="kvBtn" id="fsGo">🎣 Lancer</button><button class="kvBtn alt" id="fsEnd">Fini</button></div>'; $('#fsGo').onclick = go; $('#fsEnd').onclick = () => { clearTimeout(tm); $('#remOv').style.display = 'none'; }; };
   const go = () => {
     if (st === 0) { st = 1; sfx.cast && sfx.cast(); $('#fsB').className = 'fsFl on'; fm('Attends que ça morde…'); $('#fsGo').textContent = 'Tirer !'; T([() => { st = 2; bite = Date.now(); $('#fsB').className = 'fsFl on dip'; sfx.bite && sfx.bite(); fm('<b>Ça mord ! Tire vite !</b>'); T([() => { st = 0; $('#fsB').className = 'fsFl'; fm('Oh, il s\'est échappé… On réessaie !'); $('#fsGo').textContent = 'Lancer'; }, 1500]); }, 1500 + Math.random() * 3000]); }
     else if (st === 1) { clearTimeout(tm); st = 0; $('#fsB').className = 'fsFl'; fm('Trop tôt ! Attends que le bouchon plonge.'); $('#fsGo').textContent = 'Lancer'; }
@@ -5149,7 +5167,7 @@ function renderInterior(vw, vh) {
   };
   if (ichest && IN.y >= ichest.inside.y) drawIC();
   if (SC === SC_UKAI && IN.floor === 0) { const ct = MI.animals.find(a => a.id === 'chat'); const im = MIM.an_chat; if (ct && isEve() && im && im.complete && im.naturalWidth) { const h = 36, w = h * im.naturalWidth / im.naturalHeight, cx = 466, cy = 542; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy, w * .45, 3, 0, 0, TAU); ctx.fill(); ctx.translate(cx, cy); ctx.rotate(1.3); ctx.scale(1, 1 + Math.sin(time * 1.6) * .03); ctx.drawImage(im, -w / 2, -h + 4, w, h); ctx.restore(); ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(60,40,20,.8)'; ctx.lineWidth = .8; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; const zz = (time * .7) % 1; ctx.globalAlpha = 1 - zz; ctx.strokeText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.fillText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.restore(); } }
-  kobDrawPlants(); vetDraw(); deskDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
+  kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
   { const NL = (kobScene() ? (IN.floor === 0 || SC === SC_KOBHAK ? kobList() : []) : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
     const OC = SC.occ && SC.occ.length && SC.img.complete ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
