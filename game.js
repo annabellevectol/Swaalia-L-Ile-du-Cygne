@@ -775,6 +775,7 @@ function miniAction() {   // renvoie true si l'action a été utilisée
     if (bi && !fishNow) { const c = COLL.find(o => o.id === bi.id), isNew = !coll[bi.id]; coll[bi.id] = true; if (bi.kind === 'shell') { inv.shell++; renderHud(); } MI.items = MI.items.filter(o => o !== bi); faceTo(bi.x); burst(bi.x, bi.y - 8, 12, ['#fff', '#ffe9a0', '#cfeaff'], true); blip(760, .1, 'sine', .08); blip(1140, .14, 'sine', .07, .08); say((isNew ? '✨ Nouveau ! ' : 'Déjà dans ta collection : ') + (c ? c.name : 'trouvaille'), 3.2); if (c) showTrophy(trophyImgColl(c.id), c.name, isNew ? 'Nouveau dans ta collection !' : c.desc); save(); return true; }
     if (crabAction()) return true;
     let an = null, bd3 = 34; for (const a of MI.animals) { if (a.hidden) continue; const d = dist(a.x, a.y - a.h / 2, p.x, p.y - 12); if (d < bd3 && !(fishNow && d > 20)) { bd3 = d; an = a; } }
+    if (an && an.id === 'singe' && handsFull()) an = null;   // mains occupées : l'action sert à cueillir, pas à parler à Jukii
     if (an && an.id === 'chat' && treatTotal() > 0 && giveTreat(an)) return true;   // Sukah accepte les friandises
     if (an && an.id === 'singe' && an.asleep) { say(ANIMAL_TXT.singeDort[Math.floor(Math.random() * 2)], 3); return true; }   // Jukii dort : on ne le réveille pas
     if (an && an.id === 'singe' && inv.banana > 0 && !document.getElementById('offer')) { offerMonkey(an); return true; }   // le singe accepte les bananes
