@@ -5246,7 +5246,7 @@ function renderInterior(vw, vh) {
     for (let i = 0; i < 5; i++) { const u = (T * .45 + i * .21) % 1, x = 200 + i * 7 + Math.sin(T * 2 + i * 2) * 4, y = 556 - u * 34; ctx.globalAlpha = (1 - u) * .8; ctx.fillStyle = '#ffc860'; ctx.beginPath(); ctx.arc(x, y, 1.1 + (1 - u) * .5, 0, TAU); ctx.fill(); }
     ctx.restore();
   }
-  if (SC.npc && SC === SC_HOME && (IN.dk || 0) > .004) drawYur(SC_HOME.npcs()[0]);   // en haut, Miraaï reste à sa place, assombrie avec le reste du bas
+  if (SC.npc && SC === SC_HOME && (IN.dk || 0) > .004) SC_HOME.npcs().forEach(drawYur);   // les habitants restent visibles en bas, assombris quand Myah est à l'étage
   if (SC === SC_HOME && (IN.dk || 0) > .004) { ctx.save(); ctx.globalAlpha = Math.min(1, IN.dk); ctx.fillStyle = '#050403'; ctx.beginPath(); DARK_LOW.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fill(); ctx.restore(); }
   if (SC === SC_UKAI) {   // maison Ukaï : en haut le bas s'assombrit, en bas le haut est tout noir
     const fillP = (P, al, eo) => { ctx.save(); ctx.globalAlpha = Math.min(1, al); ctx.fillStyle = '#050403'; ctx.beginPath(); if (eo) { ctx.rect(-300, -500, IN_W + 600, IN_H + 1000); } P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); eo ? ctx.fill('evenodd') : ctx.fill(); ctx.restore(); };
@@ -5370,7 +5370,7 @@ function renderInterior(vw, vh) {
   if (ichest && IN.y >= ichest.inside.y) drawIC();
   if (SC === SC_UKAI && IN.floor === 0) { const ct = MI.animals.find(a => a.id === 'chat'); const im = MIM.an_chat; if (ct && isEve() && im && im.complete && im.naturalWidth) { const h = 36, w = h * im.naturalWidth / im.naturalHeight, cx = 466, cy = 542; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy, w * .45, 3, 0, 0, TAU); ctx.fill(); ctx.translate(cx, cy); ctx.rotate(1.3); ctx.scale(1, 1 + Math.sin(time * 1.6) * .03); ctx.drawImage(im, -w / 2, -h + 4, w, h); ctx.restore(); ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(60,40,20,.8)'; ctx.lineWidth = .8; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; const zz = (time * .7) % 1; ctx.globalAlpha = 1 - zz; ctx.strokeText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.fillText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.restore(); } }
   kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
-  { const NL = (kobScene() ? (IN.floor === 0 || SC === SC_KOBHAK ? kobList() : []) : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
+  { const NL = (kobScene() ? kobList() : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
     const OC = SC.occ && SC.occ.length && SC.img.complete ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
     const redraw = o => { o.done = true; const q = o.q; ctx.save(); ctx.beginPath(); q.poly.forEach((a, i) => i ? ctx.lineTo(a[0], a[1]) : ctx.moveTo(a[0], a[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); };   // quelqu'un passe derrière : on redessine le décor par-dessus
