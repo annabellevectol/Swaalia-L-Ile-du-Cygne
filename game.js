@@ -2718,7 +2718,7 @@ const SC_BOAT = Object.assign({}, SC_CARE, {   // le pont du bateau amarré au p
     [[605, 700], [720, 682], [742, 742], [655, 772], [610, 760]],
     [[360, 680], [425, 678], [428, 745], [365, 750]],                                   // bitte d'amarrage
   ],
-  exit: [470, 800], ladder: [[-999, -999], [-999, -999]], holes: [], sky: [0, 0, 1, 1, 0, 0, 1, 1],
+  exit: [470, 748], ladder: [[-999, -999], [-999, -999]], holes: [], sky: [0, 0, 1, 1, 0, 0, 1, 1],
 });
 const imgCabin = new Image(); imgCabin.src = 'assets/cabine.jpg';
 const SC_CABIN = Object.assign({}, SC_CARE, {   // la cabine du bateau
@@ -5124,7 +5124,6 @@ function updateInterior(dt) {
   const exitRadius = 28, exitDist = IN.floor === 0 ? dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) : Infinity;
   if (exitDist > exitRadius + 22) IN.exitArmed = true;
   if (!handsFull() && IN.exitArmed && exitDist < exitRadius && !(SC === SC_KOBHAK && IN.exitOk && IN.t < IN.exitOk)) { leavePlace(); return; }
-  if (SC === SC_CABIN && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, 725, 682) < 30) { leavePlace(); return; }
   if (actQueued) {
     actQueued = false;
     if (!handsFull() && IN.floor === 0 && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < exitRadius) leavePlace();
@@ -5165,6 +5164,10 @@ function updateInterior(dt) {
 function tapSpots() {
   if (!started || !IN.on || dlg.open || wmOpen() || IN.busy || IN.lie || IN.climb || IN.bunk || IN.puff || bedPickOpen() || wardOpen()) return [];
   const L = [], z = IN.zs || 1;
+  if (SC === SC_BOAT && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105)
+    L.push({ id: 'boat_exit', x: IN_EXIT[0], y: IN_EXIT[1], go: () => { actQueued = false; if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105) leavePlace(); } });
+  if (SC === SC_CABIN && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 70)
+    L.push({ id: 'cabin_exit', x: IN_EXIT[0], y: IN_EXIT[1], go: () => { actQueued = false; if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 70) leavePlace(); } });
   if (SC === SC_HOME && IN.floor === 1) { if (nearTrunk() || dist(IN.x, IN.y, TRUNK_SPOT[0], TRUNK_SPOT[1]) < 150 / z) L.push({ id: 'trunk', x: 632, y: 203, go: () => { tutDone('trunk'); actQueued = false; askTrunk(true); } });
     L.push({ id: 'paint', x: 955, y: 222, go: () => { actQueued = false; askPaint(true); } });
     return L; }
@@ -5330,7 +5333,6 @@ function renderInterior(vw, vh) {
   }
   // repères : seuil de sortie et échelle
   if (IN.floor === 0) doorPointHalo(IN_EXIT[0], IN_EXIT[1]);
-  if (SC === SC_CABIN && IN.floor === 0) doorPointHalo(725, 682);
   const drawLie = () => {   // Myah endormie : l'illustration du lit (dessin fourni) remplace le lit vide
     const B = IN.lie.kob ? { head: KOB_BED.head } : BEDS[IN.lie.bed];
     if (imgSleep.complete && imgSleep.naturalWidth) { const W = SLP.w, H = W * imgSleep.naturalHeight / imgSleep.naturalWidth, br = 1 + .012 * Math.sin(IN.t * 1.6); const kb = IN.lie.kob ? -1 : 1; ctx.save(); ctx.translate(B.head[0] + SLP.dx * kb, B.head[1] + SLP.dy + (IN.lie.bed === 'top' ? 20 : 4)); ctx.rotate(SLP.rot * kb); ctx.scale(kb, br); ctx.drawImage(imgSleep, -W * .16, -H * .5, W, H); ctx.restore(); }   // Myah endormie sur le lit du décor, drap un peu transparent
