@@ -1948,6 +1948,7 @@ function talkTo0(q) {
         free0(); sfx.unlock(); burst(q.cx, q.cy - 14, 22, ['#ffe27a', '#fff', '#ffc83d'], true);
         questGift(q);
         if (q.inside) say('Un coffre est caché ' + q.inside.where + ' ✨', 4); else floatText(q.cx, q.cy - 34, 'Un buisson scintille !', '#ffe27a'); renderHud();
+        if (q.id === 'rose') mamaOptions(q);
       }, q.portrait);
     }), free0);
   } else openDialog(q.who, questText(q, 'remind').concat([needStr(q)]), free, q.portrait);
@@ -3972,9 +3973,11 @@ function tblEdOpen(which) {
   TE.iv = setInterval(() => { TE.t += .06; draw(); }, 60); draw();
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && TE) { e.preventDefault(); $('#teNo').click(); } });
-const nearHang = () => SC === SC_HOME && IN.on ? HANG_SLOTS.find(s => s.floor === IN.floor && Math.abs(IN.x - (s.z[0] + s.z[2]) / 2) < 70 && !(s.id === 'sdb' && IN.shower)) : null;
+const wallDecorUnlocked = () => !storyOn() || qState.rose === 'done';
+const nearHang = () => wallDecorUnlocked() && SC === SC_HOME && IN.on ? HANG_SLOTS.find(s => s.floor === IN.floor && Math.abs(IN.x - (s.z[0] + s.z[2]) / 2) < 70 && !(s.id === 'sdb' && IN.shower)) : null;
 const HE = { z: null, sel: -1, shape: 'portrait', x: 0, y: 0, sc: 1, rot: 0, cache: {} };
 function hangEdOpen(z) {
+  if (!wallDecorUnlocked()) { say('Termine d’abord la quête de Miraaï pour décorer les murs.', 3); return; }
   tutDone('hang');
   if (!hangList().length) { say('Fais d\'abord un dessin (mini-jeux) ou gagne un trésor rare pour l\'accrocher ici !', 4); return; }
   let box = document.getElementById('hangEd'); if (!box) { box = document.createElement('div'); box.id = 'hangEd'; document.body.appendChild(box); }
@@ -5179,7 +5182,7 @@ function tapSpots() {
   if (SC === SC_OBS) SCOPE_SPOTS.forEach((s, i) => { if (dist(IN.x, IN.y, s[0], s[1]) < 120) L.push({ id: 'scope' + i, x: SCOPE_HL[i][0], y: SCOPE_HL[i][1], go: () => { actQueued = false; openScope(i); } }); });
   if (nearTbl()) L.push({ id: 'tbl', x: TBL_C[0], y: TBL_C[1] - 70, go: () => { tutDone('tbl'); actQueued = false; tblEdOpen(1); } });
   if (nearTbl2()) L.push({ id: 'tbl2', x: DT_H[0], y: DT_H[1], go: () => { tutDone('tbl'); actQueued = false; tblEdOpen(2); } });
-  if (SC === SC_HOME) HANG_SLOTS.forEach(s => { if (s.floor === IN.floor && Math.abs(IN.x - (s.z[0] + s.z[2]) / 2) < 70) L.push({ id: 'hang_' + s.id, x: (s.z[0] + s.z[2]) / 2, y: (s.z[1] + s.z[3]) / 2, go: () => { tutDone('hang'); actQueued = false; hangEdOpen(s); } }); });
+  if (wallDecorUnlocked() && SC === SC_HOME) HANG_SLOTS.forEach(s => { if (s.floor === IN.floor && Math.abs(IN.x - (s.z[0] + s.z[2]) / 2) < 70) L.push({ id: 'hang_' + s.id, x: (s.z[0] + s.z[2]) / 2, y: (s.z[1] + s.z[3]) / 2, go: () => { tutDone('hang'); actQueued = false; hangEdOpen(s); } }); });
   if (SC === SC_HOME && dist(IN.x, IN.y, COOK_SPOT[0], COOK_SPOT[1]) < 120) L.push({ id: 'cook', x: COOK_HL[0], y: COOK_HL[1], go: () => { actQueued = false; openCook(); } });
   const ns = nearSeat();
   SEATS.forEach(t => { if (t.off || (t.sc || SC_HOME) !== SC) return; if (ns === t || dist(IN.x, IN.y, t.ap[0], t.ap[1]) < 120) L.push({ id: t.id, x: t.hl ? t.hl[0] : t.pos[0], y: t.hl ? t.hl[1] : t.pos[1] - 85, go: () => { tutDone(t.id === 'wc' ? 'wc' : 'seat'); sitDown(t); } }); });
