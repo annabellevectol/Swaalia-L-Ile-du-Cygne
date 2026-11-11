@@ -1696,7 +1696,7 @@ const LEVELS = ['balade', 'aventure', 'defi'];
 const LEVEL_NAME = { balade: '🌿 Balade', aventure: '⛵ Aventure', defi: '🔥 Défi' };
 const DIFF = {
   balade: {
-    need: { coconut: 3, butterfly: 2, flower: 3, fish: 2, mango: 3, banana: 4 },   // quantités demandées par les missions
+    need: { coconut: 3, butterfly: 2, flower: 3, fish: 2, crab: 2, mango: 3, banana: 4 },   // quantités demandées par les missions
     treeWait: 12,            // secondes avant que les arbres refassent des fruits
     bflySpeed: .7,           // vitesse des papillons (1 = normal)
     netR: 62,                // rayon d'attrape du filet
@@ -1705,12 +1705,12 @@ const DIFF = {
     zone: .52, zoneSpeed: .20, fill: .34, drain: .03, start: .45, canLose: false, rise: 1.5, fall: 1.1,   // barre de pêche
   },
   aventure: {   // = les valeurs d'origine du jeu
-    need: { coconut: 4, butterfly: 3, flower: 5, fish: 2, mango: 5, banana: 6 },
+    need: { coconut: 4, butterfly: 3, flower: 5, fish: 2, crab: 2, mango: 5, banana: 6 },
     treeWait: 30, bflySpeed: 1, netR: 46, lureSpeed: 42, halo: true,
     zone: .42, zoneSpeed: .34, fill: .28, drain: .09, start: .30, canLose: true, rise: 1.6, fall: 1.2,
   },
   defi: {
-    need: { coconut: 6, butterfly: 5, flower: 8, fish: 3, mango: 8, banana: 10 },
+    need: { coconut: 6, butterfly: 5, flower: 8, fish: 3, crab: 2, mango: 8, banana: 10 },
     treeWait: 45, bflySpeed: 1.4, netR: 36, lureSpeed: 30, halo: false,
     zone: .32, zoneSpeed: .55, fill: .24, drain: .15, start: .25, canLose: true, rise: 1.8, fall: 1.4,
   },
