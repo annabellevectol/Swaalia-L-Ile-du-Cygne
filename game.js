@@ -4899,6 +4899,16 @@ function boatHalo(px, py) {   // même petit halo pulsant avec un rond au milieu
   ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(255,255,255,' + (.35 + .25 * p) + ')'; ctx.beginPath(); ctx.arc(x, y, (9 + 3.5 * p) * 1.9 * K, 0, TAU); ctx.stroke();
   ctx.globalAlpha = .85; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#e0a63a'; ctx.lineWidth = .9; ctx.beginPath(); ctx.arc(x, y, 3.6 * 1.5 * K, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore();
 }
+function doorPointHalo(x, y) {
+  const p = .5 + .5 * Math.sin(time * 3.2), r = 9 + 2 * p;
+  ctx.save();
+  const g = ctx.createRadialGradient(x, y, 1, x, y, r * 1.8);
+  g.addColorStop(0, 'rgba(255,235,160,.28)'); g.addColorStop(1, 'rgba(255,214,120,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,' + (.48 + .2 * p) + ')'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(x, y, r * .68, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#ffe29a'; ctx.globalAlpha = .65 + .2 * p; ctx.beginPath(); ctx.arc(x, y, 2, 0, TAU); ctx.fill();
+  ctx.restore();
+}
 function askBoat() {   // Zyno propose de monter sur le bateau
   if (IN.on) return;
   const h = HOUSES.find(o => o.id === 'boat'); if (!h || bedPickOpen() || IN.busy) return;
@@ -5273,10 +5283,8 @@ function renderInterior(vw, vh) {
     // plus d'ombre : toute la maison perchée reste visible
   }
   // repères : seuil de sortie et échelle
-  const pulse = .6 + .4 * Math.sin(IN.t * 4);
-  if (false) {
-    ctx.save(); ctx.globalAlpha = .55 * pulse; ctx.fillStyle = '#ffe9a6'; ctx.beginPath(); ctx.ellipse(IN_EXIT[0], IN_EXIT[1] + 8, 52, 17, 0, 0, TAU); ctx.fill(); ctx.restore();
-  }
+  if (IN.floor === 0) doorPointHalo(IN_EXIT[0], IN_EXIT[1]);
+  if (SC === SC_CABIN && IN.floor === 0) doorPointHalo(725, 682);
   const drawLie = () => {   // Myah endormie : l'illustration du lit (dessin fourni) remplace le lit vide
     const B = IN.lie.kob ? { head: KOB_BED.head } : BEDS[IN.lie.bed];
     if (imgSleep.complete && imgSleep.naturalWidth) { const W = SLP.w, H = W * imgSleep.naturalHeight / imgSleep.naturalWidth, br = 1 + .012 * Math.sin(IN.t * 1.6); const kb = IN.lie.kob ? -1 : 1; ctx.save(); ctx.translate(B.head[0] + SLP.dx * kb, B.head[1] + SLP.dy + (IN.lie.bed === 'top' ? 20 : 4)); ctx.rotate(SLP.rot * kb); ctx.scale(kb, br); ctx.drawImage(imgSleep, -W * .16, -H * .5, W, H); ctx.restore(); }   // Myah endormie sur le lit du décor, drap un peu transparent
@@ -6151,6 +6159,9 @@ function render() {
     if (ex > vx && ey > vy) { if (!one(dst.A.n, 1)) one('map', 1); if (dst.B !== dst.A && dst.u > .002) one(dst.B.n, dst.u); } }
   const vL = cam.x - 70, vR = cam.x + vw / cam.z + 70, vT = cam.y - 120, vB = cam.y + vh / cam.z + 70, inV = (x, y) => x > vL && x < vR && y > vT && y < vB;
 
+  if (started && SC !== SC_KOBHAK) HOUSES.forEach(h => {
+    if (h.scene && !closedNow(h)) { const p = doorHalo(h); doorPointHalo(p[0], p[1]); }
+  });
   if (hz && !IN.on) { if (hz.boat || hz.door) boatHalo(hz.x, hz.y); else drawHalo(hz); }
   if (swanLake() && player.mount && !IN.on) { boatHalo(SW_LAKE[0], SW_LAKE[1]); if (dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16) boatHalo(SW_LAKE[0], SW_LAKE[1]); }   // zone d'atterrissage : petit halo lumineux du lac
   const tint = dst.tint, useL = false;   // plus de teinte jour / nuit sur les personnages dehors : mêmes couleurs que dans les maisons (avant : tint[3] > .012)
