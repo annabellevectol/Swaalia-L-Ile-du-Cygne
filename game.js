@@ -1798,8 +1798,6 @@ function doAction() {
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
 
-  if (!handsFull() && doorAt()) { enterHouse(doorAt()); return; }
-  if (!handsFull() && doorNear()) { const h = doorNear(); h.askUntil = 0; askEnter(h); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
   // cibles proches : coffre, PNJ, cygne
   let target = null, bd = 1e9;
@@ -1823,6 +1821,8 @@ function doAction() {
     if (target.kind === 'swan') { faceTo(swanSpot()[0]); return talkSwan(); }
   }
 
+  if (!handsFull() && doorAt()) { enterHouse(doorAt()); return; }
+  if (!handsFull() && doorNear()) { const h = doorNear(); h.askUntil = 0; askEnter(h); return; }
   if (gardenNear()) { faceTo(GX); return openGarden(); }
   if (miniAction()) return;
   if (tool === 'none') {
@@ -1892,9 +1892,40 @@ function collect(kind, x, y) { inv[kind]++; save(); renderHud(); flyers.push({ k
 // après avoir parlé à un habitant, 20 s sans nouveau message si on a un outil en main (récolter près de lui)
 const talkCool = o => tool !== 'none' && time - (o.lastTalk === undefined ? -99 : o.lastTalk) < 20;
 function talkTo(q) {   // si Myah a des cadeaux : un petit menu à onglets (quête / offrir)
+  if (q.id === 'rose' && (!storyOn() || qState.rose === 'done')) return mamaOptions(q);
   const lab = qState[q.id] === 'done' ? 'Discuter' : 'Faire la quête';
   if (giftTotal()) { player.state = 'talk'; setAnim('idle'); return offerVeg(q.who, q.portrait, () => { player.state = 'free'; }, () => talkTo0(q), lab); }
   return talkTo0(q);
+}
+function mamaOptions(q) {
+  clearInput(); player.state = 'talk'; setAnim('idle');
+  let box = document.getElementById('mamaOptions'); if (box) box.remove();
+  box = document.createElement('div'); box.id = 'mamaOptions';
+  box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+  box.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif';
+  const close = () => { box.remove(); player.state = 'free'; actBlock = time + .6; };
+  const showMenu = () => {
+    box.innerHTML = '<div style="box-sizing:border-box;width:min(92vw,380px);padding:18px;border-radius:18px;background:#fff8e6;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.45)"><div style="margin-bottom:12px;font-size:18px;font-weight:bold;color:#5a3b1c">Miraaï, ta maman</div><p style="margin:0 0 12px;color:#5a3b1c">Que veux-tu faire ?</p><button type="button" data-choice="talk" style="display:block;width:100%;margin:8px 0;padding:12px;border:0;border-radius:12px;background:#ffd36a;color:#5a3b1c;font:700 16px &quot;Trebuchet MS&quot;,system-ui,sans-serif">Discuter</button><button type="button" data-choice="decorate" style="display:block;width:100%;margin:8px 0;padding:12px;border:0;border-radius:12px;background:#e6d9fc;color:#4b2a7a;font:700 16px &quot;Trebuchet MS&quot;,system-ui,sans-serif">Décorer le mur</button><button type="button" data-choice="close" style="margin-top:4px;padding:10px 16px;border:0;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font:600 14px &quot;Trebuchet MS&quot;,system-ui,sans-serif">Plus tard</button></div>';
+    box.querySelector('[data-choice="talk"]').addEventListener('click', () => {
+      box.remove();
+      if (giftTotal()) offerVeg(q.who, q.portrait, () => { player.state = 'free'; }, () => talkTo0(q), 'Discuter');
+      else talkTo0(q);
+    });
+    box.querySelector('[data-choice="decorate"]').addEventListener('click', showWallChoices);
+    box.querySelector('[data-choice="close"]').addEventListener('click', close);
+  };
+  const showWallChoices = () => {
+    box.innerHTML = '<div style="box-sizing:border-box;width:min(92vw,380px);max-height:90vh;overflow:auto;padding:18px;border-radius:18px;background:#fff8e6;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.45)"><div style="margin-bottom:12px;font-size:18px;font-weight:bold;color:#5a3b1c">Où veux-tu accrocher un dessin ?</div>' +
+      HANG_SLOTS.map(s => '<button type="button" data-wall="' + s.id + '" style="display:block;width:100%;margin:8px 0;padding:12px;border:0;border-radius:12px;background:#e6d9fc;color:#4b2a7a;font:600 15px &quot;Trebuchet MS&quot;,system-ui,sans-serif">' + s.name + ' · ' + (s.floor ? 'à l’étage' : 'au rez-de-chaussée') + '</button>').join('') +
+      '<button type="button" data-back style="margin-top:4px;padding:10px 16px;border:0;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font:600 14px &quot;Trebuchet MS&quot;,system-ui,sans-serif">Retour</button></div>';
+    box.querySelectorAll('[data-wall]').forEach(button => button.addEventListener('click', () => {
+      const slot = HANG_SLOTS.find(s => s.id === button.dataset.wall);
+      if (!slot) return;
+      close(); hangEdOpen(slot);
+    }));
+    box.querySelector('[data-back]').addEventListener('click', showMenu);
+  };
+  document.body.appendChild(box); showMenu();
 }
 function talkTo0(q) {
   player.state = 'talk'; setAnim('idle');
@@ -1930,8 +1961,8 @@ function fireGame(done) {
   ['ff', 'ch_dark', 'ch_lit', 'sy', 'spark', 'grass', 'star'].forEach(fireImg);
   const W = 800, H = 500, lvl = Math.min(4, nOpened()), LEN = 3 + (lvl >= 2 ? 1 : 0) + (lvl >= 4 ? 1 : 0);
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#060b1a;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none';
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.style.cssText = 'width:min(100vw,160vh);height:auto;max-height:100vh;touch-action:none';
+  wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;box-sizing:border-box;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:#060b1a;display:grid;place-items:center;touch-action:none;user-select:none';
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.style.cssText = 'position:relative;left:auto;top:auto;display:block;width:min(100vw,160vh,800px);width:min(100vw,160dvh,800px);height:auto;max-width:100%;max-height:calc(100dvh - 24px);aspect-ratio:8/5;touch-action:none';
   wrap.appendChild(cv); document.body.appendChild(wrap);
   const g = cv.getContext('2d'), dk = document.createElement('canvas'); dk.width = W; dk.height = H; const dg = dk.getContext('2d');
   const bs = 'position:absolute;top:14px;display:none;font:700 18px sans-serif;padding:8px 16px;border-radius:20px;border:2px solid #ffe9a8;background:#14264a;color:#ffe9a8';
@@ -2608,8 +2639,8 @@ const SC_CARE = {   // le poste de soin : petite maison au toit de chaume, à c�
     [[0, 0], [1, 0], [1, 1]],   // pas d'étage accessible
   ],
   blocks: [
-    [[165, 830], [290, 830], [295, 935], [165, 935]],                                    // chaise gauche
-    [[300, 900], [430, 880], [435, 1000], [300, 1000]],                                  // chaise et caisses
+    [[165, 830], [270, 830], [275, 935], [165, 935]],                                    // chaise gauche
+    [[325, 900], [430, 880], [435, 1000], [325, 1000]],                                  // chaise et caisses
     [[360, 830], [450, 795], [505, 830], [505, 885], [430, 910], [360, 880]],            // table basse
     [[465, 690], [545, 620], [780, 690], [780, 860], [710, 880], [610, 860], [500, 780]], // lit et paravents
     [[740, 720], [830, 700], [830, 790], [745, 800]],                                    // table de chevet
@@ -4613,6 +4644,7 @@ const CLOSED_AT_NIGHT = { museum: 'Le musée Kaïkiti est fermé. Reviens demain
 const closedNow = h => isEve() && !!CLOSED_AT_NIGHT[h.id];
 function enterHouse(h) {
   if (handsFull()) { say('Range ton objet pour entrer.', 2.5); return; }
+  if (denyHouseDuringQuest(h)) return;
   if (closedNow(h)) { h.askUntil = time + 8; say(CLOSED_AT_NIGHT[h.id], 3.4); IN.cool = 4; return; }
   if (!h.scene) { say('C\'est fermé. Reviens demain matin !', 3); IN.cool = 4; return; }
   swapScene(() => {
@@ -4620,6 +4652,13 @@ function enterHouse(h) {
     IN.prevTool = tool; setTool('none'); player.state = 'free'; player.dir4 = 'up'; setAnim('idle');
     IN.on = true; IN.floor = 0; IN.camY = null; IN.dk = null; IN.exitArmed = false; IN.x = IN_EXIT[0]; IN.y = IN_EXIT[1] - (SC === SC_HOME ? 2 : 30); document.body.classList.add('inside'); sfx.hop && sfx.hop();
   });
+}
+const QUEST_HOUSES = { rose: 'home', soleil: 'care', plume: 'museum' };
+function denyHouseDuringQuest(h) {
+  const q = storyOn() && QUESTS.find(o => qState[o.id] === 'active');
+  if (!q || QUEST_HOUSES[q.id] === h.id) return false;
+  say('Termine la quête de ' + String(q.who).split(',')[0].trim() + ' et remets-lui les objets avant de visiter un autre lieu.', 3.5);
+  return true;
 }
 function leaveHouse() {
   swapScene(() => {
@@ -4877,8 +4916,8 @@ let askHouse = null;
 const boatFree = () => qState.toto === 'active';   // pendant sa quête, Myah monte sur le bateau sans lui demander
 const BOAT_SPOT = [182, 424], BOAT_HALO = [236, 447];   // le bateau de l'île du Cygne : on le touche depuis le ponton
 const DOOR_R = h => Math.max(h.r, 20) + 45;
-const doorNear = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));
-const doorAt = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < h.r);
+const doorNear = () => IN.on || !started ? null : HOUSES.find(h => h.id !== 'boat' && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));
+const doorAt = () => IN.on || !started ? null : HOUSES.find(h => h.id !== 'boat' && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < h.r);
 const doorHalo = h => h.id === 'boat' ? BOAT_HALO : h.hl ? h.hl : [h.door[0], h.door[1] - 4];
 const boatTapNear = () => !IN.on && kobhakOpen() && dist(player.x, player.y, BOAT_SPOT[0], BOAT_SPOT[1]) < 70;
 function bedBtns(y, n, a) { $('#bedYes').textContent = y || 'Oui'; $('#bedNo').textContent = n || 'Non'; const b = $('#bedAlt'); b.style.display = a ? '' : 'none'; b.textContent = a || ''; }
@@ -4915,6 +4954,7 @@ function askBoat() {   // Zyno propose de monter sur le bateau
   h.askUntil = 0; askEnter(h); $('#bedPickT').textContent = 'Le bateau'; $('#bedPickP').textContent = 'Zyno : « Tu veux monter sur mon bateau ? »';
 }
 function askEnter(h) {   // devant une porte : on demande avant d'entrer ; après « Non », 15 s de tranquillité pour passer devant
+  if (denyHouseDuringQuest(h)) return;
   if (closedNow(h)) { if (!(h.askUntil && time < h.askUntil)) { h.askUntil = time + 8; say(CLOSED_AT_NIGHT[h.id], 3.4); } return; }
   if (bedPickOpen() || IN.busy || (h.askUntil && time < h.askUntil)) return;
   askHouse = h; bedAsk = 'enter'; player.mvx = player.mvy = 0; $('#bedPickT').textContent = 'Entrer'; $('#bedPickP').textContent = 'Veux-tu entrer : ' + h.name + ' ?'; $('#bedPick').style.display = 'grid';
@@ -5467,9 +5507,6 @@ function update(dt) {
   updateNpcs(dt);
   if (bubble.t > 0) bubble.t -= dt;
   const p = player;
-  const entryDoor = !cine && !dlg.open && p.state === 'free' && !p.mount && IN.cool <= 0 && !bedPickOpen() && !handsFull() ? doorAt() : null;
-  if (entryDoor && !(entryDoor.askUntil && time < entryDoor.askUntil)) enterHouse(entryDoor);
-
   // entrées
   let ix = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
   let iy = (keys.ArrowDown || keys.KeyS ? 1 : 0) - (keys.ArrowUp || keys.KeyW ? 1 : 0);
@@ -6602,15 +6639,29 @@ i.gv{display:inline-block;width:20px;height:20px;vertical-align:-5px;background:
 @keyframes gbob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 @keyframes gfly{0%{opacity:0;transform:translateY(0)}15%{opacity:1}100%{opacity:0;transform:translateY(-60px)}}
 @media (max-aspect-ratio:11/10){#garden .gbox{flex-direction:column;gap:6px}#garden .gbar{width:min(92vw,520px);flex-direction:row;flex-wrap:wrap;align-items:center}#garden .gtit{display:none}#garden .gmsg{flex:1 1 100%;min-height:0}#garden .gpick{grid-template-columns:repeat(6,1fr);flex:1 1 100%}}
+#hand .card{box-sizing:border-box;background:#fff8e6;border-radius:18px;padding:14px 16px;width:min(94vw,440px);max-height:calc(100dvh - 24px);overflow-y:auto;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.45);-webkit-overflow-scrolling:touch}
+#hand .title{font-weight:bold;font-size:17px;color:#5a3b1c;margin-bottom:6px}
 #hand .hr{display:flex;align-items:center;gap:8px;background:#ffe9b8;border-radius:12px;padding:6px 10px;margin:6px 0;color:#5a3b1c}
-#hand .hr .ic{width:40px;text-align:center;font-size:28px}
-#hand .hr b{flex:1;text-align:left;font-size:14px}
-#hand .hr button{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;background:#fff;text-align:center;line-height:34px;font-size:20px;font-weight:bold;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-#hand .hr .n{min-width:44px;font-size:16px;font-weight:bold}
+#hand .hr .ic{width:40px;text-align:center;font-size:28px;flex:none}
+#hand .hr b{flex:1;min-width:0;text-align:left;font-size:14px}
+#hand .hr button{all:unset;box-sizing:border-box;cursor:pointer;flex:none;width:40px;height:40px;border-radius:50%;background:#fff;text-align:center;line-height:40px;font-size:22px;font-weight:bold;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+#hand .hr .n{min-width:48px;font-size:16px;font-weight:bold}
 #hand .mk{width:26px;font-size:22px;font-weight:bold}
-#hand .go{all:unset;cursor:pointer;margin:8px 4px 0;padding:8px 16px;border-radius:12px;background:#4caf50;color:#fff;font-weight:bold;font-size:15px}
+#hand .fill{all:unset;box-sizing:border-box;display:block;width:100%;min-height:44px;cursor:pointer;margin:10px 0 2px;padding:8px 12px;border-radius:12px;background:#e6d9fc;color:#4b2a7a;font-weight:bold;font-size:14px}
+#hand .go{all:unset;box-sizing:border-box;cursor:pointer;margin:8px 4px 0;padding:8px 16px;min-height:44px;border-radius:12px;background:#4caf50;color:#fff;font-weight:bold;font-size:15px}
 #hand .go.off{background:#bbb;pointer-events:none}
-#hand .no{all:unset;cursor:pointer;margin:8px 4px 0;padding:8px 14px;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font-size:13px}
+#hand .no{all:unset;box-sizing:border-box;cursor:pointer;margin:8px 4px 0;padding:8px 14px;min-height:44px;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font-size:13px}
+#hand button:focus-visible{outline:3px solid #6d47c3;outline-offset:2px}
+@media(max-width:560px){
+  #hand{padding: max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));box-sizing:border-box}
+  #hand .card{width:100%;max-height:calc(100dvh - 24px);padding:12px}
+  #hand .hr{gap:5px;padding:6px}
+  #hand .hr .ic{width:30px;font-size:24px}
+  #hand .hr button{width:48px;height:48px;line-height:48px;font-size:24px}
+  #hand .hr .n{min-width:48px;text-align:center;font-size:15px}
+  #hand .mk{display:none}
+  #hand .fill,#hand .go,#hand .no{min-height:48px}
+}
 `;
 document.head.appendChild(st);
 
@@ -6724,17 +6775,19 @@ function handIn(q, ok, cancel) {
   player.state = 'talk'; const nm = String(q.who || '').split(',')[0].trim(), need = Object.entries(q.need), sel = {}; need.forEach(([k]) => sel[k] = 0);
   let o = document.getElementById('hand'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'hand';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-labelledby', 'handTitle');
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   const ico = k => { const i = VEG.findIndex(v => v.k === k); return i >= 0 ? '<i class="gv" style="width:36px;height:36px;background-size:144px 216px;background-position:0 -' + (i * 36) + 'px"></i>' : (ICON[k] || '?'); };
   const draw = () => {
     const all = need.every(([k, n]) => sel[k] === n);
-    o.innerHTML = '<div style="background:#fff8e6;border-radius:18px;padding:14px 16px;width:min(92vw,360px);box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center"><div style="font-weight:bold;font-size:17px;color:#5a3b1c;margin-bottom:6px">🎒 Remettre à ' + nm + '</div>' +
-      need.map(([k, n]) => '<div class="hr"><span class="ic">' + ico(k) + '</span><b>demandé : ' + n + '<br><small>dans le sac : ' + inv[k] + '</small></b><button data-d="-1" data-k="' + k + '">−</button><span class="n">' + sel[k] + '/' + n + '</span><button data-d="1" data-k="' + k + '">+</button><span class="mk" style="color:' + (sel[k] === n ? '#2e9e3e' : '#d33') + '">' + (sel[k] === n ? '✓' : '✗') + '</span></div>').join('') +
-      '<button class="go' + (all ? '' : ' off') + '" id="hGo">Remettre</button><button class="no" id="hNo">Plus tard</button></div>';
+    o.innerHTML = '<div class="card"><div class="title" id="handTitle">🎒 Remettre à ' + nm + '</div><button type="button" class="fill" data-fill-all>Choisir les quantités demandées</button>' +
+      need.map(([k, n]) => '<div class="hr"><span class="ic">' + ico(k) + '</span><b>demandé : ' + n + '<br><small>dans le sac : ' + inv[k] + '</small></b><button type="button" data-d="-1" data-k="' + k + '" aria-label="Retirer un objet">−</button><span class="n" aria-live="polite">' + sel[k] + '/' + n + '</span><button type="button" data-d="1" data-k="' + k + '" aria-label="Ajouter un objet">+</button><span class="mk" style="color:' + (sel[k] === n ? '#2e9e3e' : '#d33') + '">' + (sel[k] === n ? '✓' : '✗') + '</span></div>').join('') +
+      '<button type="button" class="go' + (all ? '' : ' off') + '" id="hGo"' + (all ? '' : ' disabled') + '>Remettre</button><button type="button" class="no" id="hNo">Plus tard</button></div>';
     o.innerHTML = emoFix(o.innerHTML);
-    o.querySelectorAll('button[data-k]').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); const k = b.dataset.k; sel[k] = Math.max(0, Math.min(inv[k], sel[k] + (+b.dataset.d))); sfx.talk(); draw(); }));
-    o.querySelector('#hGo').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); if (!need.every(([k, n]) => sel[k] === n)) return; o.remove(); ok(); });
-    o.querySelector('#hNo').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); o.remove(); cancel && cancel(); });
+    o.querySelectorAll('button[data-k]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); audio(); const k = b.dataset.k; sel[k] = Math.max(0, Math.min(inv[k], sel[k] + (+b.dataset.d))); sfx.talk(); draw(); }));
+    o.querySelector('[data-fill-all]').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); audio(); need.forEach(([k, n]) => { sel[k] = Math.min(inv[k], n); }); sfx.talk(); draw(); });
+    o.querySelector('#hGo').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); audio(); if (!need.every(([k, n]) => sel[k] === n)) return; o.remove(); ok(); });
+    o.querySelector('#hNo').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); audio(); o.remove(); cancel && cancel(); });
   };
   o.addEventListener('pointerdown', e => e.stopPropagation()); document.body.appendChild(o); draw();
 }
