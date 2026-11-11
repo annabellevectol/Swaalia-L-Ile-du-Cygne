@@ -1004,8 +1004,8 @@ function drawBfly(b) {
 }
 function drawPondSwan(s) {
   const near = dist(s.x, s.y, player.x, player.y) < 85 && !player.mount;
-  if (!near && time > (s.poseT || 0)) { s.poseT = time + rnd(1.6, 3.6); s.pose = Math.random() < .65 ? 0 : (Math.random() < .5 ? 1 : 2); }
-  const pose = near ? 3 : (s.pose || 0), bob = Math.sin(time * 1.6 + s.ph) * .8, k = (s.size || .8) * 1.12;
+  if (!near && time > (s.poseT || 0)) { s.poseT = time + rnd(1.6, 3.6); s.pose = swanLake() && perchVisible() ? (Math.random() < .5 ? 1 : 2) : (Math.random() < .65 ? 0 : (Math.random() < .5 ? 1 : 2)); }
+  const pose = near ? 1 : (s.pose || 0), bob = Math.sin(time * 1.6 + s.ph) * .8, k = (s.size || .8) * 1.12;
   ctx.save(); ctx.globalAlpha = .7; sprDraw('swan' + pose, s.x, s.y + bob, k, s.dir > 0); ctx.restore();   // légère transparence, comme les poissons
   if (near && dist(s.x, s.y, player.x, player.y) < 42) {   // petit cœur qui monte, seulement quand Myah est tout près
     const t = (time * .9 + s.ph) % 1, hx = s.x + (s.dir > 0 ? 1 : -1) * 13 * k, hy = s.y - 30 * k - t * 10;
@@ -1183,10 +1183,15 @@ function respawnFish(f) {
   f.state = 'swim'; f.cool = 0; f.tx = f.x; f.ty = f.y;
 }
 
+const SW_LAKE = [472, 267], SW_SMALL = .0729;
 const swans = spread(D.swanStart, 2).map((p, i) => { const q = snapMask(POND_SW, p[0], p[1]); return { x: q[0], y: q[1], tx: q[0], ty: q[1], dir: i % 2 ? 1 : -1, ph: i * 2.1, size: .4, sp: rnd(2, 3) }; });
-let lakeBuddySwan = null;
-{ let b = null, bd = 1e9; swans.forEach(s => { const d = Math.hypot(s.x - 466, s.y - 262); if (d < bd) { bd = d; b = s; } });   // le cygne classique le plus proche de la place de Gaïkin est déplacé ailleurs sur l'étang (il ne disparaît plus, il ne se superpose plus)
-  if (b && bd < 95) for (let k = 0; k < 400; k++) { const nx = b.x + rnd(-170, 170), ny = b.y + rnd(-120, 120); if (cell(POND_SW, nx, ny) && Math.hypot(nx - 466, ny - 262) > 110) { b.x = b.tx = nx; b.y = b.ty = ny; break; } } }   // le cygne qui nage là où Gaïkin se posera
+const lakeBuddySwan = swans[1], SWAN_CLASSIC_POND = D.swanStart[1];
+function placeLakeBuddy() {
+  const b = lakeBuddySwan; if (!swans.includes(b)) return;
+  const spot = snapMask(POND_SW, SWAN_CLASSIC_POND[0], SWAN_CLASSIC_POND[1]);
+  b.x = b.tx = spot[0]; b.y = b.ty = spot[1];
+}
+placeLakeBuddy();
 
 /* ----- le lac est trouble tant que Gaïkin n'est pas revenu : pas de poissons ni de cygnes, pas de pêche ; tout revient avec lui ----- */
 const lakeClear = () => phase === 'returned' || level === 'balade';   // Balade : le lac est propre et Gaïkin est là dès le début
@@ -1233,7 +1238,7 @@ function lakeSync(dt) {
     for (let i = fishes.length - 1; i >= 0; i--) if (fishes[i].region === 'pond') { const f = fishes[i]; if (fs.fish === f) { fs.fish = null; if (fs.phase) { player.state = 'free'; fs.phase = ''; fs.fight = null; } } L.stash.fish.push(f); fishes.splice(i, 1); }
     for (let i = swans.length - 1; i >= 0; i--) { L.stash.swans.push(swans[i]); swans.splice(i, 1); }
   } else if (clear && L.on && L.murk === 0) {   // Gaïkin est de retour : l'eau est claire, ils reviennent
-    L.on = false; L.stash.fish.forEach(f => { f.state = 'swim'; f.cool = 0; fishes.push(f); }); L.stash.swans.forEach(w => swans.push(w)); L.stash.fish = []; L.stash.swans = [];
+    L.on = false; L.stash.fish.forEach(f => { f.state = 'swim'; f.cool = 0; fishes.push(f); }); L.stash.swans.forEach(w => swans.push(w)); L.stash.fish = []; L.stash.swans = []; placeLakeBuddy();
   }
 }
 function lakeDraw() {
@@ -1245,6 +1250,7 @@ function lakeDraw() {
 }
 const SW_SEP = 22;
 function updateSwan(s, dt) {
+  if (s === lakeBuddySwan && swanLake() && !swanWait) { s.tx = s.x; s.ty = s.y; return; }
   if (dist(s.x, s.y, s.tx, s.ty) < 4) {
     if (s.rest === undefined) s.rest = rnd(4, 20);   // les cygnes flottent sur place longtemps, puis glissent doucement
     if ((s.rest -= dt) > 0) return;
@@ -1718,7 +1724,6 @@ function nearestItem(list, x, y, maxD) { let best = null, bd = maxD; for (const 
 const R_PICK = 30, R_NPC = 42, R_CHEST = 36, R_SWAN = 86;
 
 function perchVisible() { return level === 'balade' || phase === 'appeared' || phase === 'returned' || (phase === 'reveal' && cine && cine.t > .8); }
-const SW_LAKE = [472, 267], SW_SMALL = .0729;   // Gaïkin posé sur le lac (cercle dessiné par Annabelle), petit, une fois le lac propre
 const swanLake = () => (phase === 'returned' || level === 'balade') && !cine;
 let swanWait = null;   // Gaïkin attend Myah près d'un lieu (musée, phare…) : [x, y]
 const swanSpot = () => swanLake() ? (swanWait || SW_LAKE) : D.perch;
@@ -1787,6 +1792,7 @@ function doAction() {
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
 
+  if (!handsFull() && doorAt()) { enterHouse(doorAt()); return; }
   if (!handsFull() && doorNear()) { const h = doorNear(); h.askUntil = 0; askEnter(h); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
   // cibles proches : coffre, PNJ, cygne
@@ -3701,7 +3707,7 @@ function voyage(dest) {   // fondu, traversée illustrée (selon l'heure du jeu)
     ov.style.display = 'flex'; window.__voyOn = true;
   }));
   setTimeout(() => swapScene(() => {
-    window.__voyOn = false; ov.style.display = 'none'; setScene(dest); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.cool = 1; player.dir4 = 'up';
+    window.__voyOn = false; ov.style.display = 'none'; setScene(dest); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.exitArmed = false; IN.cool = 1; player.dir4 = 'up';
     if (dest === SC_KOBHAK) { IN.x = 275; IN.y = 612; IN.exitOk = IN.t + 30; IN.askT = IN.t + 8; setTimeout(() => say('Terre en vue ! Bienvenue sur l\'île Kobhak, l\'île du koala !', 4), 900); }
     else { IN.x = KOB_SPOT[0]; IN.y = KOB_SPOT[1] + 50; IN.askV = IN.t + 20; IN.askH = IN.t + 60; }
     sfx.hop && sfx.hop();
@@ -3756,7 +3762,7 @@ function icTouch(q) {
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
 const nearHatch = () => SC === SC_BOAT && IN.floor === 0 && dist(IN.x, IN.y, HATCH_SPOT[0], HATCH_SPOT[1]) < 42;
-function goScene(sc, x, y) { swapScene(() => { setScene(sc); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.x = x; IN.y = y; IN.cool = 1; player.dir4 = sc === SC_CABIN ? 'down' : 'up'; if (sc === SC_BOAT) IN.askH = IN.t + 60; sfx.hop && sfx.hop(); }); }
+function goScene(sc, x, y) { swapScene(() => { setScene(sc); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.exitArmed = false; IN.x = x; IN.y = y; IN.cool = 1; player.dir4 = sc === SC_CABIN ? 'down' : 'up'; if (sc === SC_BOAT) IN.askH = IN.t + 60; sfx.hop && sfx.hop(); }); }
 function askHatch(force) { if (bedPickOpen() || IN.busy || (!force && IN.askH && IN.t < IN.askH)) return; bedAsk = 'cabin'; $('#bedPickT').textContent = 'Cabine'; $('#bedPickP').textContent = 'Veux-tu descendre dans la cabine ?'; $('#bedPick').style.display = 'grid'; }
 const OBS_SKY = {   // [haut du ciel, bas du ciel, force des étoiles, mer]
   map: [[96, 196, 245], [205, 238, 251], 0, [38, 150, 190]],
@@ -4577,24 +4583,47 @@ function inPoly(poly, x, y) {
 function swapScene(fn) {   // fondu au noir -> changement -> retour de la lumière
   if (IN.busy) return; IN.busy = true; player.mvx = player.mvy = 0;
   fadeEl.classList.add('on');
-  setTimeout(() => { fn(); actQueued = jumpQueued = false; actBlock = time + .9; fadeEl.classList.remove('on'); setTimeout(() => { IN.busy = false; }, 500); }, 520);
+  setTimeout(() => {
+    fn(); actQueued = jumpQueued = false; actBlock = time + .9;
+    const im = SC.img;
+    const imageReady = !im || im.complete ? Promise.resolve() : new Promise(resolve => {
+      let timer;
+      const done = () => { clearTimeout(timer); im.removeEventListener('load', done); im.removeEventListener('error', done); resolve(); };
+      im.addEventListener('load', done, { once: true });
+      im.addEventListener('error', done, { once: true });
+      timer = setTimeout(done, 900);
+    });
+    Promise.all([imageReady, new Promise(resolve => setTimeout(resolve, 180))]).then(() => {
+      fadeEl.classList.remove('on');
+      setTimeout(() => { IN.busy = false; }, 500);
+    });
+  }, 520);
 }
 const CLOSED_AT_NIGHT = { museum: 'Le musée Kaïkiti est fermé. Reviens demain matin !', hall: 'Le comptoir de Maïmaï est fermé. Reviens demain matin !', care: 'Le poste de soin est fermé. Reviens demain matin !' };
 const closedNow = h => isEve() && !!CLOSED_AT_NIGHT[h.id];
 function enterHouse(h) {
-  if (closedNow(h)) { say(CLOSED_AT_NIGHT[h.id], 3.4); IN.cool = 4; return; }
+  if (handsFull()) { say('Range ton objet pour entrer.', 2.5); return; }
+  if (closedNow(h)) { h.askUntil = time + 8; say(CLOSED_AT_NIGHT[h.id], 3.4); IN.cool = 4; return; }
   if (!h.scene) { say('C\'est fermé. Reviens demain matin !', 3); IN.cool = 4; return; }
   swapScene(() => {
     HOUSE = h; setScene(h.scene);
     IN.prevTool = tool; setTool('none'); player.state = 'free'; player.dir4 = 'up'; setAnim('idle');
-    IN.on = true; IN.floor = 0; IN.camY = null; IN.dk = null; IN.x = IN_EXIT[0]; IN.y = IN_EXIT[1] - (SC === SC_HOME ? 2 : 30); document.body.classList.add('inside'); sfx.hop && sfx.hop();
+    IN.on = true; IN.floor = 0; IN.camY = null; IN.dk = null; IN.exitArmed = false; IN.x = IN_EXIT[0]; IN.y = IN_EXIT[1] - (SC === SC_HOME ? 2 : 30); document.body.classList.add('inside'); sfx.hop && sfx.hop();
   });
 }
 function leaveHouse() {
   swapScene(() => {
-    IN.on = false; document.body.classList.remove('inside'); setTool(IN.prevTool);
+    IN.on = false; IN.exitArmed = false; document.body.classList.remove('inside'); setTool(IN.prevTool);
     player.x = HOUSE.exit[0]; player.y = HOUSE.exit[1]; player.dir4 = 'down'; player.mvx = player.mvy = 0; IN.cool = 2.5; HOUSE.askUntil = time + 15; sfx.hop && sfx.hop();
   });
+}
+function leavePlace() {
+  if (handsFull() || IN.busy) return;
+  const place = KOB_PL.find(q => q.sc === SC);
+  if (place) { goScene(SC_KOBHAK, place.outP[0], place.outP[1]); IN.askD = IN.t + 20; }
+  else if (SC === SC_KOBHAK) voyage(SC_BOAT);
+  else if (SC === SC_CABIN) goScene(SC_BOAT, 790, 520);
+  else leaveHouse();
 }
 const nearBunkLadder = () => SC === SC_HOME && IN.floor === 1 && !IN.lie && !IN.bunk && dist(IN.x, IN.y, LAD_SPOT[0], LAD_SPOT[1]) < 38;
 const nearBed = () => SC === SC_HOME && IN.floor === 1 && !IN.lie && !IN.bunk && dist(IN.x, IN.y, BED_SPOT[0], BED_SPOT[1]) < 46;
@@ -4839,8 +4868,8 @@ const boatFree = () => qState.toto === 'active';   // pendant sa quête, Myah mo
 const BOAT_SPOT = [182, 424], BOAT_HALO = [236, 447];   // le bateau de l'île du Cygne : on le touche depuis le ponton
 const DOOR_R = h => Math.max(h.r, 20) + 45;
 const doorNear = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));
+const doorAt = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < h.r);
 const doorHalo = h => h.id === 'boat' ? BOAT_HALO : h.hl ? h.hl : [h.door[0], h.door[1] - 4];
-let doorWait = { house: null, elapsed: 0 };
 const boatTapNear = () => !IN.on && kobhakOpen() && dist(player.x, player.y, BOAT_SPOT[0], BOAT_SPOT[1]) < 70;
 function bedBtns(y, n, a) { $('#bedYes').textContent = y || 'Oui'; $('#bedNo').textContent = n || 'Non'; const b = $('#bedAlt'); b.style.display = a ? '' : 'none'; b.textContent = a || ''; }
 function askBoatChoice() { actQueued = false; actBlock = time + 5;   // toucher le bateau : y entrer, ou partir pour l'île aux Koalas
@@ -4883,10 +4912,6 @@ function askPaint(force) {   // « Tu veux dessiner ? » oui / non ; 15 s de tra
 function askTrunk(force) {   // « Veux-tu ouvrir le coffre ? » ; après « Non », on ne reproposera pas avant 15 s (sauf si elle appuie elle-même sur Action)
   if (bedPickOpen() || IN.busy || (!force && IN.askK && IN.t < IN.askK)) return;
   bedAsk = 'trunk'; $('#bedPickT').textContent = 'Vestiaire'; $('#bedPickP').textContent = 'Veux-tu changer de tenue ?'; $('#bedPick').style.display = 'grid';
-}
-function askLeave(force) {   // on demande avant de sortir : sinon impossible d'aller jusqu'à la douche
-  if (bedPickOpen() || IN.busy || (!force && IN.askT && IN.t < IN.askT)) return;
-  bedAsk = 'exit'; $('#bedPickT').textContent = KOB_PL.some(q => q.sc === SC) ? 'Sortir' : SC === SC_KOBHAK ? 'Retour' : SC === SC_CABIN ? 'Pont' : SC === SC_BOAT ? 'Quitter' : 'Sortir'; $('#bedPickP').textContent = KOB_PL.some(q => q.sc === SC) ? 'Veux-tu sortir ?' : SC === SC_KOBHAK ? 'Veux-tu rentrer à l\'île du Cygne ?' : SC === SC_CABIN ? 'Veux-tu remonter sur le pont ?' : SC === SC_BOAT ? 'Veux-tu descendre du bateau ?' : 'Veux-tu sortir de la maison ?'; $('#bedPick').style.display = 'grid';
 }
 function askClimb(kind) {   // on demande avant de monter / descendre une échelle
   if (bedPickOpen() || IN.busy || IN.climb || (IN.askL && IN.t < IN.askL)) return;
@@ -5030,15 +5055,16 @@ function updateInterior(dt) {
   if (nearHelm() && kobhakOpen() && !(IN.askV && IN.t < IN.askV)) { askHelm(); return; }
   if (IN.askP && !nearPaint() && dist(IN.x, IN.y, PAINT_SPOT[0], PAINT_SPOT[1]) > 90) IN.askP = 0;
   if (nearPaint() && !(IN.askP && IN.t < IN.askP)) { askPaint(); return; }
-  if (IN.askT && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) > 95) IN.askT = 0;   // on s'éloigne de la porte : la question reviendra normalement
-  // (sortie : on touche le halo doré devant la porte, plus de question automatique)
-  if (SC === SC_CABIN && IN.floor === 0 && dist(IN.x, IN.y, 725, 682) < 46 && !(IN.askT && IN.t < IN.askT)) askLeave();   // une fois sur l'échelle de la trappe, on peut remonter sur le pont
+  const exitRadius = 28, exitDist = IN.floor === 0 ? dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) : Infinity;
+  if (exitDist > exitRadius + 22) IN.exitArmed = true;
+  if (!handsFull() && IN.exitArmed && exitDist < exitRadius && !(SC === SC_KOBHAK && IN.exitOk && IN.t < IN.exitOk)) { leavePlace(); return; }
+  if (SC === SC_CABIN && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, 725, 682) < 30) { leavePlace(); return; }
   if (actQueued) {
     actQueued = false;
-    if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 58) askLeave(true);
+    if (!handsFull() && IN.floor === 0 && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < exitRadius) leavePlace();
     else if (SC === SC_KOBHAK && !handsFull() && nearPl()) askDisp(true, nearPl());
     else if (icNear()) icTouch(icNear());
-    else if (SC.npc && IN.floor === 0 && dist(IN.x, IN.y, SC.npc.x, SC.npc.y) < (SC.npc.r || 70)) { p.dir4 = 'up'; setAnim('idle'); const o = SC.npc.get(); if (o.kid || o.chal) kidTalk(o); else if (o === JUL && (!unlocked(o) || qState[o.id] === 'done' || (qState[o.id] === 'new' && o !== QUESTS.find(z => qState[z.id] !== 'done')))) { openDialog(o.who, o.met ? chatter(o.npc) : (o.met = true, ['Bienvenue au Musée Kaïkiti, Myah ! Je suis Yulia, la directrice. Je veille sur nos trésors. 🏛️', 'Voici le tableau de la collection : les objets en gris sont ceux qu\'il reste à trouver. 🌸🐟']), () => { player.state = 'free'; openColl(); }, o.portrait); } else if (o.id) talkTo(o); else openDialog(o.who, o.met ? chatter(o.key) : (o.met = true, o.lines), () => { if (o === YUR) openColl(); }, o.portrait); }
+    else if (SC.npc && IN.floor === 0 && dist(IN.x, IN.y, SC.npc.x, SC.npc.y) < (SC.npc.r || 70)) { p.dir4 = 'up'; setAnim('idle'); const o = SC.npc.get(); if (o.kid || o.chal) kidTalk(o); else if (o === JUL && storyOn() && (!unlocked(o) || qState[o.id] === 'done' || (qState[o.id] === 'new' && o !== QUESTS.find(z => qState[z.id] !== 'done')))) { openDialog(o.who, o.met ? chatter(o.npc) : (o.met = true, ['Bienvenue au Musée Kaïkiti, Myah ! Je suis Yulia, la directrice. Je veille sur nos trésors. 🏛️', 'Voici le tableau de la collection : les objets en gris sont ceux qu\'il reste à trouver. 🌸🐟']), () => { player.state = 'free'; openColl(); }, o.portrait); } else if (o.id) talkTo(o); else openDialog(o.who, o.met ? chatter(o.key) : (o.met = true, o.lines), () => { if (o === YUR) openColl(); }, o.portrait); }
     else if (nearScope()) openScope(nearScope() - 1);
     else if (nearPaint()) askPaint(true);
     else if (nearHatch()) askHatch(true);
@@ -5081,7 +5107,6 @@ function tapSpots() {
   if (!kobHF()) MGP.forEach(p => { if (mgOn(p) && dist(IN.x, IN.y, p.sx, p.sy) < (p.r || 46) + 45) L.push({ id: 'mg_' + p.k, big: 1, x: p.x, y: p.y - (p.kind === 'chest' ? p.h * .55 : p.kind === 'vase' ? 30 : 16), go: () => { actQueued = false; if (dist(IN.x, IN.y, p.sx, p.sy) > (p.r || 46)) { 0; return; } mgAct(); } }); });
   if (SC === SC_MK4 && (wmNear() || dist(IN.x, IN.y, WM.sx, WM.sy) < 120 || dist(IN.x, IN.y, WM.x, WM.y) < 100)) L.push({ id: 'wm', big: 1, x: WM.x, y: WM.y - 28, go: () => { actQueued = false; if (!wmAct()) 0; } });   // le walkman posé au sol
   if (IN.floor !== 0) return L;   // petit halo + rond doré devant chaque mini-jeu (comme sur l'île du Cygne)
-  if (dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < (SC === SC_KOBHAK ? 95 : 260) && !(SC === SC_KOBHAK && handsFull()) && !(SC === SC_KOBHAK && IN.exitOk && IN.t < IN.exitOk)) L.push({ id: 'exit_halo', big: 0, x: IN_EXIT[0], y: IN_EXIT[1] - 6, go: () => { actQueued = false; if (dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) > 85) { 0; return; } askLeave(true); } });   // retour vers l'île du Cygne
   if (SC === SC_KOBHAK && !handsFull()) KOB_PL.forEach(q => { if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) < (q.r || 32) + 55 || (q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 85)) L.push({ id: 'kpl_' + q.txt, big: 0, x: q.hl ? q.hl[0] : q.spot[0], y: q.hl ? q.hl[1] : q.spot[1] - 6, go: () => { actQueued = false; if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) > (q.r || 32) + 30 && !(q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 70)) { 0; return; } askDisp(true, q); } }); });   // halo doré + rond devant chaque porte de l'île aux Koalas
   if (IN.shower) return [{ id: 'shower', x: SHOWER.x, y: SHOWER.y - 128, on: 1, go: () => { tutDone('shower'); showerOff(); } }];
   if (IN.wash) return [{ id: 'wash', x: IN.wash.w.hl[0], y: IN.wash.w.hl[1], on: 1, go: washOff }];
@@ -5424,7 +5449,8 @@ function update(dt) {
   updateNpcs(dt);
   if (bubble.t > 0) bubble.t -= dt;
   const p = player;
-  if (!cine && !dlg.open && p.state === 'free' && !p.mount && IN.cool <= 0 && !bedPickOpen() && !handsFull() && HOUSES.some(h => h.scene ? false : dist(p.x, p.y, h.door[0], h.door[1]) < h.r && !(h.askUntil && time < h.askUntil) && (h.id !== 'boat' || boatFree()))) { IN.near += dt; if (IN.near > .3) { IN.near = 0; const hh = HOUSES.find(h => dist(p.x, p.y, h.door[0], h.door[1]) < h.r && !(h.askUntil && time < h.askUntil) && (h.id !== 'boat' || boatFree())); if (!hh) {} else if (hh.scene) askEnter(hh); else enterHouse(hh); } } else IN.near = 0;
+  const entryDoor = !cine && !dlg.open && p.state === 'free' && !p.mount && IN.cool <= 0 && !bedPickOpen() && !handsFull() ? doorAt() : null;
+  if (entryDoor && !(entryDoor.askUntil && time < entryDoor.askUntil)) enterHouse(entryDoor);
 
   // entrées
   let ix = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
@@ -5435,13 +5461,6 @@ function update(dt) {
   const moving = mag > 0.12 && !cine && !dlg.open && p.state !== 'talk';
   p.mvx = moving ? ix : 0; p.mvy = moving ? iy : 0;
   if (moving) p.dir4 = Math.abs(iy) > Math.abs(ix) * 1.2 ? (iy > 0 ? 'down' : 'up') : (ix > 0 ? 'right' : 'left');
-  const waitingDoor = handsFull() && !moving && !cine && !dlg.open && p.state === 'free' && !p.mount && !bedPickOpen() && IN.cool <= 0 ? doorNear() : null;
-  if (waitingDoor && !(waitingDoor.askUntil && time < waitingDoor.askUntil)) {
-    if (doorWait.house !== waitingDoor) doorWait = { house: waitingDoor, elapsed: 0 };
-    doorWait.elapsed += dt;
-    if (doorWait.elapsed >= 5) { doorWait = { house: null, elapsed: 0 }; askEnter(waitingDoor); }
-  } else doorWait = { house: null, elapsed: 0 };
-
   if (swanQueued) { swanQueued = false; summon(); }
   if (jumpQueued) {
     jumpQueued = false;
@@ -5462,7 +5481,7 @@ function update(dt) {
 
   if (p.mount) {
     if (phase === 'returned' && !endingSeen && storyOn() && p.state === 'free' && !dlg.open && !cine && !document.getElementById('stOv')) { rideT += dt; if (rideT > 28) { rideT = 0; startEnding(); } }
-    if (moving) tryMove(p.mount === 'fly' ? (run ? 250 : 175) : (run ? 66 : 47));
+    if (moving) tryMove(p.mount === 'fly' ? (run ? 220 : 155) : (run ? 66 : 47));
     p.alt += (p.altT - p.alt) * Math.min(1, dt * 5); if (Math.abs(p.altT - p.alt) < .6) p.alt = p.altT;
     if (p.dismounting && p.alt < 3) { p.dismounting = false; leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true }); p.mount = null; p.alt = 0; sfx.hop(); setAnim('idle'); }
     p.fr = (p.fr + dt * 10) % 18;
@@ -5709,6 +5728,7 @@ function updateHint() {
     else if (tool === 'fish') { if (time - hintWT > .25) { hintWT = time; hintWaterPt = waterNear(); } if (hintWaterPt && dist(hintWaterPt.x, hintWaterPt.y, p.x, p.y) < 16) { const isW = (x, y) => cell(POND, x, y) === 1 || cell(SEA, x, y) === 1, ring = (x, y) => { for (let a = 0; a < 10; a++) if (!isW(x + Math.cos(a * .628) * 11, y + Math.sin(a * .628) * 5)) return false; return isW(x, y); }; let hp = null, hd = 1e9; for (let oy = -24; oy <= 24; oy += 3) for (let ox = -24; ox <= 24; ox += 3) { const x = hintWaterPt.x + ox, y = hintWaterPt.y + oy, d = Math.hypot(ox, oy); if (d < hd && ring(x, y)) { hd = d; hp = { x, y }; } } if (hp) hz = { x: hp.x, y: hp.y, r: 9 }; else tapT = { x: hintWaterPt.x, y: hintWaterPt.y }; } }
   }
   if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !handsFull() && boatTapNear()) hz = { x: BOAT_HALO[0], y: BOAT_HALO[1], r: 24, boat: 1 };
+  else if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !p.mount && !handsFull() && doorNear()) { const h = doorNear(); tapT = { x: h.door[0], y: h.door[1] }; }
   if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Cygne pour descendre' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
   if (!hz && swanHaloNear()) hz = { x: swanSpot()[0], y: swanSpot()[1] - 2, r: 24, boat: 1, swan: 1 };
   if (hz && !tapT && p.state === 'free') tapT = { x: hz.x, y: hz.y };
@@ -6127,7 +6147,7 @@ function render() {
   if (useL) { if (lcv.width !== cv.width || lcv.height !== cv.height) { lcv.width = cv.width; lcv.height = cv.height; } lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, lcv.width, lcv.height); lctx.setTransform(dpr * cam.z, 0, 0, dpr * cam.z, -cam.x * cam.z * dpr, -cam.y * cam.z * dpr); lctx.imageSmoothingEnabled = true; lctx.imageSmoothingQuality = 'medium'; ctx = lctx; }
   lakeDraw();
   for (const f of fishes) if (f.state !== 'gone' && inV(f.x, f.y)) drawFishUnderPier(f);
-  { let only = null; if (swanLake() && perchVisible() && swans.length > 1) { if (!lakeBuddySwan || !swans.includes(lakeBuddySwan)) { const sp = swanSpot(); lakeBuddySwan = swans.reduce((m, w) => dist(w.x, w.y, sp[0], sp[1]) > dist(m.x, m.y, sp[0], sp[1]) ? w : m); } only = lakeBuddySwan; }   // garde le même cygne classique visible avec Gaïkin pour éviter l'alternance
+  { const only = swanLake() && perchVisible() ? lakeBuddySwan : null;   // le même cygne classique reste près de Gaïkin, jamais le cygne du fond
     for (const s of swans) if (inV(s.x, s.y) && (!only || s === only)) drawPondSwan(s); }
 
   const items = [];
@@ -6159,7 +6179,7 @@ function render() {
     items.push({ y: q.y, draw() {
       shadow(q.x, q.y, q.h * .26);
       ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(q), q.x, q.y, time, false); ctx.restore();
-      const st = qState[q.id]; if (!unlocked(q) || (st === 'done')) return;
+      const st = qState[q.id]; if (level === 'balade' || !unlocked(q) || (st === 'done')) return;
       if (st === 'new' && storyOn() && q !== QUESTS.find(o => qState[o.id] !== 'done')) return;   // '!' seulement pour la prochaine quête, dans l'ordre
       const ready = st === 'active' && hasAll(q);
       marker(q.x, q.y - q.h - 10, ready ? '✔' : (st === 'new' ? '!' : '…'), ready ? '#47b84a' : '#ffc83d');
@@ -6185,6 +6205,7 @@ function render() {
   INDOOR_QUEST_LOCATIONS.forEach(({ quest, house }) => {
     const q = QUESTS.find(item => item.id === quest), h = HOUSES.find(item => item.id === house);
     if (!q || !h || !h.lab) return;
+    if (level === 'balade') return;
     const st = qState[q.id];
     if (!unlocked(q) || st === 'done' || (st === 'new' && storyOn() && q !== QUESTS.find(item => qState[item.id] !== 'done'))) return;
     const ready = st === 'active' && hasAll(q), x = h.lab[0], y = h.lab[1] - 16;
@@ -6392,7 +6413,6 @@ press($('#bedYes'), () => {
   else if (bedAsk === 'cabin') { $('#bedPick').style.display = 'none'; goScene(SC_CABIN, 660, 640); }
   else if (bedAsk === 'voyage') { $('#bedPick').style.display = 'none'; voyage(SC_KOBHAK); }
   else if (bedAsk === 'disp') { $('#bedPick').style.display = 'none'; goScene(KOB_CUR.sc, KOB_CUR.inP[0], KOB_CUR.inP[1]); }
-  else if (bedAsk === 'exit') { $('#bedPick').style.display = 'none'; if (KOB_PL.some(q => q.sc === SC)) { const q = KOB_PL.find(q => q.sc === SC); goScene(SC_KOBHAK, q.outP[0], q.outP[1]); IN.askD = IN.t + 20; } else if (SC === SC_KOBHAK) voyage(SC_BOAT); else if (SC === SC_CABIN) goScene(SC_BOAT, 790, 520); else leaveHouse(); }
   else if (bedAsk === 'up' || bedAsk === 'down') { $('#bedPick').style.display = 'none'; climb(IN.floor === 0 ? 1 : 0); }
   else if (bedAsk === 'bunk') { $('#bedPick').style.display = 'none'; bunkClimb(); }
   else goToBed(bedAsk);
@@ -6462,7 +6482,6 @@ press($('#bedNo'), () => {
   if (bedAsk === 'boat') { bedBtns(); return; }
   if (bedAsk === 'quest') { const a = askQ; askQ = null; a && a.no(); return; }
   if (bedAsk === 'enter' && askHouse) { askHouse.askUntil = time + 15; askHouse = null; }
-  if (bedAsk === 'exit') IN.askT = IN.t + 15;
   if (bedAsk === 'cabin') IN.askH = IN.t + 15;
   if (bedAsk === 'voyage') IN.askV = IN.t + 15;
   if (bedAsk === 'disp') IN.askD = IN.t + 15;

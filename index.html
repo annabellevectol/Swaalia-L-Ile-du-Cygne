@@ -42,8 +42,8 @@
 
   #tools{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));display:flex;gap:8px}
   .tool{position:relative;width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0;transition:transform .15s}
-  .scopeTool{position:relative;width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0}
-  .scopeTool .scopeIcon{position:absolute;inset:2px 0 8px;display:grid;place-items:center;font-size:clamp(30px,5vw,46px)}
+  .scopeTool{position:relative;width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0;transition:transform .15s}
+  .scopeTool .scopeIcon{position:absolute;inset:1px 0 12px;width:100%;height:calc(100% - 12px);object-fit:contain}
   .tool .ico{position:absolute;inset:0;background-repeat:no-repeat}
   .tool .lbl,.scopeTool .lbl{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;font-weight:700;background:rgba(122,75,36,.85);color:#fff;padding:1px 0}
   .tool.sel{transform:none;border-color:#4b2a7a;box-shadow:0 0 0 2px #4b2a7a,0 0 0 3px rgba(255,255,255,.6)}
@@ -810,7 +810,7 @@
 <h3>Les actions</h3>
 <p>✨ Un <b>halo doré</b> brille autour de ce que tu peux cueillir, attraper, pêcher ou fouiller, quand tu as le bon outil en main. Dans les maisons, une <b>auréole dorée</b> marque ce que tu peux toucher : la malle, le petit coffre, la douche, le lavabo, le canapé…</p>
 <h3>Entrer et sortir</h3>
-<p>🚪 Pour <b>entrer</b> dans une maison, dans le bateau ou dans une boutique, <b>touche la partie scintillante</b> (le petit rond doré) posée sur la porte. Rien ne s'ouvre tout seul : la question « Veux-tu entrer ? » n'apparaît que si tu touches. Pour <b>sortir</b> ou <b>rentrer à l'île du Cygne</b>, touche de la même façon le rond doré devant la porte ou au bout du ponton.</p>
+<p>🚪 Pour <b>entrer</b> dans une maison ou une boutique, approche-toi de la porte les mains libres : Myah entrera quand elle sera devant. Si tu passes seulement à côté, rien ne s'ouvre. Pour <b>sortir</b>, approche-toi de la porte de sortie les mains libres. Pour rentrer à l'île du Cygne, touche le rond doré au bout du ponton.</p>
 <p>⛵ Sur le bateau de l'île du Cygne, touche le rond doré pour <b>entrer</b> ou <b>partir pour l'île aux Koalas</b>. Pour parler à quelqu'un, <b>touche-le</b> quand Myah est tout près.</p>
 <p>🎮 À l'étage de ta maison, le <b>petit coffre</b> près du lit superposé ouvre les <b>mini-jeux</b> : Dessiner 🎨, Memory 🃏, Puzzle 🧩 et Rythme avec Kykah 🥁. Tu peux le toucher depuis n'importe où à l'étage.</p>
 <h3>Les outils</h3>
@@ -830,7 +830,7 @@
 <p>🦢 Rends les plumes à <b>Gaïkin</b>, le grand Cygne, pour sauver le lac et voler avec lui !</p>
 </div><div class="cb" id="tipKo" style="display:none">
 <h3>Entrer et sortir</h3>
-<p>🚪 Pour entrer chez Okaï, à la boutique, au phare, dans la maison dans l'arbre ou chez Tomba, <b>touche le petit rond doré</b> sur la porte. Pour rentrer à l'île du Cygne, touche celui du <b>ponton</b>.</p>
+<p>🚪 Pour entrer ou sortir chez Okaï, à la boutique, au phare, dans la maison dans l'arbre ou chez Tomba, approche-toi de la porte les mains libres : Myah passera dès qu'elle sera devant. Pour rentrer à l'île du Cygne, touche le rond doré du <b>ponton</b>.</p>
 <h3>Soigner les animaux</h3>
 <p>🌿 Cueille les plantes de l'île avec ton <b>panier</b> : elles sont notées dans ton <b>carnet de plantes</b> 📖. Le <b>dispensaire</b> est la maison d'<b>Okaï</b>, le koala au pilon : il te montre comment préparer les remèdes.</p>
 <p>❗ Quand un animal est malade, un <b>point d'exclamation rouge</b> apparaît au-dessus de lui. Prends ta <b>mallette</b> 🧰 pour le soigner. Tu as aussi ton <b>filet</b>, ta <b>canne</b> et ton <b>panier</b> pour attraper des insectes, pêcher et ramasser des ingrédients.</p>
@@ -852,7 +852,7 @@
   <button class="tool panel" data-tool="basket"><span class="ico"></span><span class="lbl">Panier</span></button>
   <button class="tool panel" data-tool="net"><span class="ico"></span><span class="lbl">Filet</span></button>
   <button class="tool panel" data-tool="fish"><span class="ico"></span><span class="lbl">Canne</span></button>
-  <button id="scopeBtn" class="panel scopeTool" style="display:none" aria-label="Ouvrir la longue-vue"><span class="scopeIcon" aria-hidden="true">🔭</span><span class="lbl">Longue-vue</span></button>
+  <button id="scopeBtn" class="panel scopeTool" style="display:none" aria-label="Ouvrir la longue-vue"><img class="scopeIcon" src="assets/icons/longue-vue.png" alt=""><span class="lbl">Longue-vue</span></button>
 </div>
 
 <button id="kitB" class="panel" aria-label="Mallette"></button>
@@ -1108,7 +1108,7 @@
 <script src="mymask.js"></script>
 <script src="sprites.js"></script>
 <script src="art.js"></script>
-<script src="game.js?v=8"></script>
+<script src="game.js?v=15"></script>
 </body>
 </html>
 
