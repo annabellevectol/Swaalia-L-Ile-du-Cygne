@@ -733,9 +733,10 @@ function miniUpdate(dt) {
     for (const b of MI.bfl) { b.life += dt; b.flap += dt * 16; b.a += (Math.random() - .5) * 4 * dt; b.x += Math.cos(b.a) * 14 * dt; b.y += Math.sin(b.a) * 9 * dt; b.z = 8 + 14 * (.5 + .5 * Math.sin(time * 1.3 + b.ph)); if (!walkable(b.x, b.y)) b.a += Math.PI; }
     MI.bfl = MI.bfl.filter(b => dist(b.x, b.y, p.x, p.y) < 320 && dw > .25); }
   if (STR.pre > 0) { STR.pre -= dt; if (STR.pre <= 0) { STR.pre = 0; openScope(0, true); } }
-  // étoile filante : on peut la contempler avec Action
+  // étoile filante : l'observation se lance volontairement avec le bouton Longue-vue
   MI.nextStar -= dt;
-  if (ns > .6 && dayT < .9 && !MI.star && MI.nextStar <= 0 && player.state === 'free') { const vw = cv.width / dpr / cam.z; MI.star = { x: cam.x + vw * (.25 + Math.random() * .5), y: cam.y + 10, u: 0 }; MI.wishT = 3.2; MI.nextStar = 40 + Math.random() * 50; say('⭐ Une étoile filante ! Appuie sur Action pour contempler les étoiles', 3.2); }
+  $('#scopeBtn').style.display = started && SC === SC_HOME && !IN.on && ns > .5 ? '' : 'none';
+  if (ns > .6 && dayT < .9 && !MI.star && MI.nextStar <= 0 && player.state === 'free') { const vw = cv.width / dpr / cam.z; MI.star = { x: cam.x + vw * (.25 + Math.random() * .5), y: cam.y + 10, u: 0 }; MI.wishT = 3.2; MI.nextStar = 40 + Math.random() * 50; say('⭐ Une étoile filante ! Prends ta longue-vue pour la voir !', 3.2); }
   if (MI.star) { MI.star.u += dt / 1.1; if (MI.star.u >= 1) MI.star = null; }
   if (MI.wishT > 0) MI.wishT -= dt;
   // galet
@@ -766,7 +767,7 @@ function crabAction() {   // attraper le crabe avec le panier : prioritaire sur 
       if (cr && tool === 'basket') {
         if (!cr.catch) { cr.catch = { t: 0, T: IS_TOUCH ? 2.4 : 2 }; faceTo(cr.x); blip(520, .08, 'triangle', .06); say('🦀 Doucement… appuie quand le marqueur est dans le vert !', 2.4); return true; }
         const u = cr.catch.t / cr.catch.T; cr.catch = null;
-        if (u > crZone()[0] && u < crZone()[1]) { cr.hidden = true; cr.flash = { p: 4, t: 1.1 }; cr.cyc = 60 + Math.random() * 30; const isNew = !coll.crabe; coll.crabe = true; inv.crab++; renderHud(); mini.crabs = (mini.crabs || 0) + 1; burst(cr.x, cr.y - 6, 14, ['#ff8a5a', '#fff', '#ffe9a0'], true); blip(760, .1, 'sine', .08); blip(1140, .14, 'sine', .07, .08); blip(1520, .16, 'sine', .06, .18); say((isNew ? '✨ Nouveau ! ' : '') + 'Tu as attrapé le crabe ! Tu le remets à l\'eau 🦀', 3.4); { const ci = trophyImgColl('crabe'); if (ci) showTrophy(ci, 'Crabe rouge', 'Tu le remets doucement à l\'eau.'); } save(); }
+        if (u > crZone()[0] && u < crZone()[1]) { cr.hidden = true; cr.flash = { p: 4, t: 1.1 }; cr.cyc = 60 + Math.random() * 30; const isNew = !coll.crabe; coll.crabe = true; mini.crabs = (mini.crabs || 0) + 1; burst(cr.x, cr.y - 6, 14, ['#ff8a5a', '#fff', '#ffe9a0'], true); blip(760, .1, 'sine', .08); blip(1140, .14, 'sine', .07, .08); blip(1520, .16, 'sine', .06, .18); bedAsk = 'crab'; bedBtns('Garder dans mon sac', 'Remettre à l’eau'); $('#bedPickT').textContent = 'Crabe rouge'; $('#bedPickP').textContent = 'Tu as attrapé un crabe. Que veux-tu faire ?'; $('#bedPick').style.display = 'grid'; crabChoiceNew = isNew; save(); }
         else { player.surprise = time + 1.1; cr.hidden = true; cr.flash = { p: 3, t: .8 }; cr.cyc = 10 + Math.random() * 6; blip(240, .18, 'sawtooth', .07); blip(180, .2, 'sawtooth', .06, .1); burst(cr.x, cr.y - 6, 6, ['#ff8a5a', '#fff'], false); say('🦀 Aïe ! Il t\'a pincé le doigt ! Il se cache…', 3); }
         return true; } }
   return false;
@@ -803,7 +804,7 @@ cv.addEventListener('pointerup', e => {   // toucher le singe : si Myah est prè
 });
 function miniAction() {   // renvoie true si l'action a été utilisée
   const p = player, fishNow = tool === 'fish' && !!waterNear();   // canne en main au bord de l'eau : on pêche (coquillages, bestioles et lucioles alentour ne bloquent plus)
-  if (MI.star && MI.wishT > 0) { MI.wishT = 0; startStars(true); return true; }
+  if (MI.star && MI.wishT > 0) { say('Prends ta longue-vue pour voir l’étoile filante 🔭', 2.8); return true; }
   { let nf = null, nd = 52; for (const f of MI.flies) { const d = dist(f.x, f.y - f.z, p.x, p.y - 20); if (d < nd && f.life > 1) { nd = d; nf = f; } }
     if (nf && tool !== 'net' && tool !== 'basket' && !fishNow) { hint('Pour les lucioles ✨, prends le filet [filet] (touche 2)', 'net'); return true; } }
   { let bi = null, bd2 = 40; for (const it of MI.items) { const d = dist(it.x, it.y - 6, p.x, p.y - 12); if (d < bd2 && it.t > .6) { bd2 = d; bi = it; } }
@@ -1183,6 +1184,7 @@ function respawnFish(f) {
 }
 
 const swans = spread(D.swanStart, 2).map((p, i) => { const q = snapMask(POND_SW, p[0], p[1]); return { x: q[0], y: q[1], tx: q[0], ty: q[1], dir: i % 2 ? 1 : -1, ph: i * 2.1, size: .4, sp: rnd(2, 3) }; });
+let lakeBuddySwan = null;
 { let b = null, bd = 1e9; swans.forEach(s => { const d = Math.hypot(s.x - 466, s.y - 262); if (d < bd) { bd = d; b = s; } });   // le cygne classique le plus proche de la place de Gaïkin est déplacé ailleurs sur l'étang (il ne disparaît plus, il ne se superpose plus)
   if (b && bd < 95) for (let k = 0; k < 400; k++) { const nx = b.x + rnd(-170, 170), ny = b.y + rnd(-120, 120); if (cell(POND_SW, nx, ny) && Math.hypot(nx - 466, ny - 262) > 110) { b.x = b.tx = nx; b.y = b.ty = ny; break; } } }   // le cygne qui nage là où Gaïkin se posera
 
@@ -1251,13 +1253,13 @@ function updateSwan(s, dt) {
       const a = Math.random() * TAU, d = rnd(14, 70), nx = s.x + Math.cos(a) * d, ny = s.y + Math.sin(a) * d;
       if (!cell(POND_SW, nx, ny) || !cell(POND_SW, (nx + s.x) / 2, (ny + s.y) / 2)) continue;
       if (perchVisible() && dist(nx, ny, D.perch[0], D.perch[1]) < 62) continue;
-      if (swanLake() && perchVisible() && !perchAway() && dist(nx, ny, swanSpot()[0], swanSpot()[1]) < 80) continue;   // jamais par-dessus Gaïkin
+      if (swanLake() && perchVisible() && dist(nx, ny, swanSpot()[0], swanSpot()[1]) < 80) continue;   // jamais par-dessus Gaïkin, même pendant son vol
       if (swans.some(o => o !== s && (dist(nx, ny, o.x, o.y) < SW_SEP + 14 || dist(nx, ny, o.tx, o.ty) < SW_SEP + 14))) continue;
       s.tx = nx; s.ty = ny; break;
     }
   }
   const dx = s.tx - s.x, dy = s.ty - s.y, d = Math.hypot(dx, dy);
-  if (d > 1) { const nx = s.x + dx / d * s.sp * dt, ny = s.y + dy / d * s.sp * dt; const blocked = swans.some(o => o !== s && dist(nx, ny, o.x, o.y) < SW_SEP && dist(nx, ny, o.x, o.y) < dist(s.x, s.y, o.x, o.y) + .01) || fishes.some(f => f.region === 'pond' && f.state === 'swim' && dist(nx, ny, f.x, f.y) < 38 && dist(nx, ny, f.x, f.y) < dist(s.x, s.y, f.x, f.y) + .01);
+  if (d > 1) { const nx = s.x + dx / d * s.sp * dt, ny = s.y + dy / d * s.sp * dt, sp = swanSpot(), gaikinBlocked = swanLake() && perchVisible() && dist(nx, ny, sp[0], sp[1]) < 80 && dist(nx, ny, sp[0], sp[1]) < dist(s.x, s.y, sp[0], sp[1]), blocked = gaikinBlocked || swans.some(o => o !== s && dist(nx, ny, o.x, o.y) < SW_SEP && dist(nx, ny, o.x, o.y) < dist(s.x, s.y, o.x, o.y) + .01) || fishes.some(f => f.region === 'pond' && f.state === 'swim' && dist(nx, ny, f.x, f.y) < 38 && dist(nx, ny, f.x, f.y) < dist(s.x, s.y, f.x, f.y) + .01);
     if (blocked) { s.tx = s.x; s.ty = s.y; } else if (cell(POND_SW, nx, ny)) { s.x = nx; s.y = ny; } else { s.tx = s.x; s.ty = s.y; } if (Math.abs(dx) > 3) s.dir = dx > 0 ? 1 : -1; }
 }
 
@@ -1813,7 +1815,6 @@ function doAction() {
   if (miniAction()) return;
   if (tool === 'none') {
     if (nearestItem(bananas, player.x, player.y, R_PICK) || nearestItem(flowers, player.x, player.y, R_PICK)) return hint('Pour cueillir, prends le panier [panier] (touche 1)', 'basket');
-    if (nightAmt() > .5 && dayT < .9 && !IN.on) return startStars(false);   // le soir seulement
     if (butterflies.some(b => b.alive && dist(b.x, b.y, player.x, player.y) < 70)) return hint('Pour les papillons 🦋, prends le filet [filet] (touche 2)', 'net');
     if (waterNear()) return hint('Pour pêcher 🐟, prends la canne [canne] (touche 3)', 'fish');
     sfx.no(); return say('Mains libres ! Choisis un outil pour agir [panier] [filet] [canne]', 2.6);
@@ -2511,7 +2512,7 @@ const BED_SPOT = [838, 288], BED_ANG = -69 * Math.PI / 180;
    // illustrations de Myah endormie : emplacement dans le décor
 
 const imgSleep = new Image(); imgSleep.src = 'assets/myah/sleep_side.png'; const SLP = { w: 150, dx: 14, dy: -22, rot: .24 };
-let bedAsk = 'bottom', askQ = null;
+let bedAsk = 'bottom', askQ = null, crabChoiceNew = false;
 function askQuest(txt, yes, no) { askQ = { yes, no }; bedAsk = 'quest'; $('#bedPickT').textContent = 'Mission'; $('#bedPickP').textContent = txt; $('#bedPick').style.display = 'grid'; }
 const BEDS = { top: { head: [802, 84], k: .95 }, bottom: { head: [802, 186], k: .95 } };
 const imgShower = new Image(); imgShower.src = 'assets/myah/bath_shower.png';   // dessin de Myah sans lunettes pour se laver
@@ -4536,6 +4537,8 @@ function openScope(which = 0, sky = false) {
   if (scopeOpen()) return; SCP.which = which; SCP.py = .5; SCP.vy = 0; SCP.btn = null; player.mvx = player.mvy = 0; setAnim('idle'); SCP.birds = []; SCP.next = .6; SCP.t = 0; SCP.lastMx = undefined; SCP.rot = 0; SCP.zoom = 1; SCP.ptrs = {}; SCP.pan = (!which && !sky) ? 0 : .5; SCP.vel = 0;
   $('#scope').style.display = 'block'; SCP.last = performance.now(); if (!SCP.raf) SCP.raf = requestAnimationFrame(scopeFrame); blip(520, .12, 'sine', .08); blip(780, .12, 'sine', .06, .1);
 }
+press($('#scopeBtn'), () => startStars(MI.wishT > 0));
+$('#scopeBtn').addEventListener('keydown', e => { if (e.repeat || (e.code !== 'Enter' && e.code !== 'Space')) return; e.preventDefault(); e.stopPropagation(); audio(); startStars(MI.wishT > 0); });
 function closeScope() { $('#scope').style.display = 'none'; if (SCP.sky) { SCP.sky = false; if (player.state === 'talk') player.state = 'free'; } actQueued = false; IN.cool = Math.max(IN.cool || 0, .3); }
 document.querySelectorAll('.scArr').forEach(b => { const st = e => { e.preventDefault(); e.stopPropagation(); SCP.btn = b.dataset.d; }, en = e => { SCP.btn = null; }; b.addEventListener('pointerdown', st); ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => b.addEventListener(ev, en)); });
 $('#scopeX').addEventListener('click', e => { e.stopPropagation(); closeScope(); });
@@ -4835,8 +4838,9 @@ let askHouse = null;
 const boatFree = () => qState.toto === 'active';   // pendant sa quête, Myah monte sur le bateau sans lui demander
 const BOAT_SPOT = [182, 424], BOAT_HALO = [236, 447];   // le bateau de l'île du Cygne : on le touche depuis le ponton
 const DOOR_R = h => Math.max(h.r, 20) + 45;
-const doorNear = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));   // maisons de l'île du Cygne : on touche le halo devant la porte
+const doorNear = () => IN.on || !started ? null : HOUSES.find(h => (h.id !== 'boat' || !kobhakOpen()) && h.scene && dist(player.x, player.y, h.door[0], h.door[1]) < DOOR_R(h));
 const doorHalo = h => h.id === 'boat' ? BOAT_HALO : h.hl ? h.hl : [h.door[0], h.door[1] - 4];
+let doorWait = { house: null, elapsed: 0 };
 const boatTapNear = () => !IN.on && kobhakOpen() && dist(player.x, player.y, BOAT_SPOT[0], BOAT_SPOT[1]) < 70;
 function bedBtns(y, n, a) { $('#bedYes').textContent = y || 'Oui'; $('#bedNo').textContent = n || 'Non'; const b = $('#bedAlt'); b.style.display = a ? '' : 'none'; b.textContent = a || ''; }
 function askBoatChoice() { actQueued = false; actBlock = time + 5;   // toucher le bateau : y entrer, ou partir pour l'île aux Koalas
@@ -4846,8 +4850,8 @@ function askBoatChoice() { actQueued = false; actBlock = time + 5;   // toucher 
 }
 cv.addEventListener('pointerdown', e => {   // toucher le bateau (même si Zyno est juste à côté sur le ponton)
   if (IN.on || !started || player.state !== 'free' || cine || dlg.open || bedPickOpen() || handsFull()) return;
-  const bn = boatTapNear(), dn = !bn && !player.mount && doorNear(); if (!bn && !dn) return;
-  const r = cv.getBoundingClientRect(), hp = bn ? BOAT_HALO : doorHalo(dn); if (Math.hypot((e.clientX - r.left) - (hp[0] - cam.x) * cam.z, (e.clientY - r.top) - (hp[1] - cam.y) * cam.z) < 85) { lastSpotPtr = e.pointerId; tapArm(e, () => { if (bn) askBoatChoice(); else { actQueued = false; actBlock = time + 5; dn.askUntil = 0; askEnter(dn); } }); }
+  const bn = boatTapNear(); if (!bn) return;
+  const r = cv.getBoundingClientRect(), hp = BOAT_HALO; if (Math.hypot((e.clientX - r.left) - (hp[0] - cam.x) * cam.z, (e.clientY - r.top) - (hp[1] - cam.y) * cam.z) < 85) { lastSpotPtr = e.pointerId; tapArm(e, () => askBoatChoice()); }
 }, true);
 function boatHalo(px, py) {   // même petit halo pulsant avec un rond au milieu que dans les maisons
   const x = px != null ? px : BOAT_HALO[0], y = py != null ? py : BOAT_HALO[1], p = .5 + .5 * Math.sin(time * 3.2), K = .36, R = (19 + 2.5 * p) * 1.9 * K;
@@ -5431,6 +5435,12 @@ function update(dt) {
   const moving = mag > 0.12 && !cine && !dlg.open && p.state !== 'talk';
   p.mvx = moving ? ix : 0; p.mvy = moving ? iy : 0;
   if (moving) p.dir4 = Math.abs(iy) > Math.abs(ix) * 1.2 ? (iy > 0 ? 'down' : 'up') : (ix > 0 ? 'right' : 'left');
+  const waitingDoor = handsFull() && !moving && !cine && !dlg.open && p.state === 'free' && !p.mount && !bedPickOpen() && IN.cool <= 0 ? doorNear() : null;
+  if (waitingDoor && !(waitingDoor.askUntil && time < waitingDoor.askUntil)) {
+    if (doorWait.house !== waitingDoor) doorWait = { house: waitingDoor, elapsed: 0 };
+    doorWait.elapsed += dt;
+    if (doorWait.elapsed >= 5) { doorWait = { house: null, elapsed: 0 }; askEnter(waitingDoor); }
+  } else doorWait = { house: null, elapsed: 0 };
 
   if (swanQueued) { swanQueued = false; summon(); }
   if (jumpQueued) {
@@ -5699,7 +5709,6 @@ function updateHint() {
     else if (tool === 'fish') { if (time - hintWT > .25) { hintWT = time; hintWaterPt = waterNear(); } if (hintWaterPt && dist(hintWaterPt.x, hintWaterPt.y, p.x, p.y) < 16) { const isW = (x, y) => cell(POND, x, y) === 1 || cell(SEA, x, y) === 1, ring = (x, y) => { for (let a = 0; a < 10; a++) if (!isW(x + Math.cos(a * .628) * 11, y + Math.sin(a * .628) * 5)) return false; return isW(x, y); }; let hp = null, hd = 1e9; for (let oy = -24; oy <= 24; oy += 3) for (let ox = -24; ox <= 24; ox += 3) { const x = hintWaterPt.x + ox, y = hintWaterPt.y + oy, d = Math.hypot(ox, oy); if (d < hd && ring(x, y)) { hd = d; hp = { x, y }; } } if (hp) hz = { x: hp.x, y: hp.y, r: 9 }; else tapT = { x: hintWaterPt.x, y: hintWaterPt.y }; } }
   }
   if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !handsFull() && boatTapNear()) hz = { x: BOAT_HALO[0], y: BOAT_HALO[1], r: 24, boat: 1 };
-  else if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !p.mount && !handsFull() && doorNear()) { const dh = doorHalo(doorNear()); hz = { x: dh[0], y: dh[1], r: 24, door: doorNear() }; }
   if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Cygne pour descendre' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
   if (!hz && swanHaloNear()) hz = { x: swanSpot()[0], y: swanSpot()[1] - 2, r: 24, boat: 1, swan: 1 };
   if (hz && !tapT && p.state === 'free') tapT = { x: hz.x, y: hz.y };
@@ -6118,7 +6127,7 @@ function render() {
   if (useL) { if (lcv.width !== cv.width || lcv.height !== cv.height) { lcv.width = cv.width; lcv.height = cv.height; } lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, lcv.width, lcv.height); lctx.setTransform(dpr * cam.z, 0, 0, dpr * cam.z, -cam.x * cam.z * dpr, -cam.y * cam.z * dpr); lctx.imageSmoothingEnabled = true; lctx.imageSmoothingQuality = 'medium'; ctx = lctx; }
   lakeDraw();
   for (const f of fishes) if (f.state !== 'gone' && inV(f.x, f.y)) drawFishUnderPier(f);
-  { const only = swanLake() && perchVisible() && swans.length > 1 ? swans.reduce((m, w) => (dist(w.x, w.y, swanSpot()[0], swanSpot()[1]) > dist(m.x, m.y, swanSpot()[0], swanSpot()[1]) ? w : m)) : null;   // sur le lac : un seul cygne classique + Gaïkin, c'est tout
+  { let only = null; if (swanLake() && perchVisible() && swans.length > 1) { if (!lakeBuddySwan || !swans.includes(lakeBuddySwan)) { const sp = swanSpot(); lakeBuddySwan = swans.reduce((m, w) => dist(w.x, w.y, sp[0], sp[1]) > dist(m.x, m.y, sp[0], sp[1]) ? w : m); } only = lakeBuddySwan; }   // garde le même cygne classique visible avec Gaïkin pour éviter l'alternance
     for (const s of swans) if (inV(s.x, s.y) && (!only || s === only)) drawPondSwan(s); }
 
   const items = [];
@@ -6368,7 +6377,26 @@ $('#levelBack').addEventListener('click', () => { $('#levelPick').style.display 
 press($('#newYes'), () => { $('#newConf').style.display = 'none'; if (pendingDel) { deleteSlot(pendingDel); pendingDel = 0; refreshTitle(); } });
 press($('#newNo'), () => { $('#newConf').style.display = 'none'; pendingDel = 0; refreshTitle(); });
 $('#wmPP').onclick = () => { if (!WM.au) return; if (WM.playing) WM.au.pause(); else WM.au.play().catch(() => {}); }; $('#wmUp').onclick = () => { $('#wmCf').style.display = 'block'; }; $('#wmCfY').onclick = () => { $('#wmCf').style.display = 'none'; wmStop(); }; $('#wmCfN').onclick = () => { $('#wmCf').style.display = 'none'; }; $('#wmPrev').onclick = () => wmPlay((WM.i + WM_TR.length - 1) % WM_TR.length); $('#wmNext').onclick = () => wmPlay((WM.i + 1) % WM_TR.length);
-press($('#bedYes'), () => { actQueued = false; actBlock = time + 5; if (bedAsk === 'swanwait') { $('#bedPick').style.display = 'none'; swanWaitHere(); return; } if (bedAsk === 'swan') { $('#bedPick').style.display = 'none'; summon(); return; } if (bedAsk === 'boat') { $('#bedPick').style.display = 'none'; bedBtns(); kobTest(); return; } if (bedAsk === 'kobbed') { $('#bedPick').style.display = 'none'; goToBedKob(); return; } if (bedAsk === 'walkman') { $('#bedPick').style.display = 'none'; if (wmNear()) wmStart(); return; } if (bedAsk === 'quest') { $('#bedPick').style.display = 'none'; const a = askQ; askQ = null; a && a.yes(); return; } if (bedAsk === 'enter') { $('#bedPick').style.display = 'none'; const h = askHouse; askHouse = null; if (h) enterHouse(h); } else if (bedAsk === 'paint') { $('#bedPick').style.display = 'none'; IN.askP = IN.t + 15; openMiniMenu(); } else if (bedAsk === 'trunk') { $('#bedPick').style.display = 'none'; IN.askK = IN.t + 15; openWardrobe(); } else if (bedAsk === 'cabin') { $('#bedPick').style.display = 'none'; goScene(SC_CABIN, 660, 640); } else if (bedAsk === 'voyage') { $('#bedPick').style.display = 'none'; voyage(SC_KOBHAK); } else if (bedAsk === 'disp') { $('#bedPick').style.display = 'none'; goScene(KOB_CUR.sc, KOB_CUR.inP[0], KOB_CUR.inP[1]); } else if (bedAsk === 'exit') { $('#bedPick').style.display = 'none'; if (KOB_PL.some(q => q.sc === SC)) { const q = KOB_PL.find(q => q.sc === SC); goScene(SC_KOBHAK, q.outP[0], q.outP[1]); IN.askD = IN.t + 20; } else if (SC === SC_KOBHAK) voyage(SC_BOAT); else if (SC === SC_CABIN) goScene(SC_BOAT, 790, 520); else leaveHouse(); } else if (bedAsk === 'up' || bedAsk === 'down') { $('#bedPick').style.display = 'none'; climb(IN.floor === 0 ? 1 : 0); } else if (bedAsk === 'bunk') { $('#bedPick').style.display = 'none'; bunkClimb(); } else goToBed(bedAsk); });
+press($('#bedYes'), () => {
+  actQueued = false; actBlock = time + 5;
+  if (bedAsk === 'crab') { $('#bedPick').style.display = 'none'; bedBtns(); inv.crab = (inv.crab || 0) + 1; renderHud(); say((crabChoiceNew ? '✨ Nouveau dans ta collection ! ' : '') + 'Crabe gardé dans ton sac 🦀', 3.2); crabChoiceNew = false; save(); return; }
+  if (bedAsk === 'swanwait') { $('#bedPick').style.display = 'none'; swanWaitHere(); return; }
+  if (bedAsk === 'swan') { $('#bedPick').style.display = 'none'; summon(); return; }
+  if (bedAsk === 'boat') { $('#bedPick').style.display = 'none'; bedBtns(); kobTest(); return; }
+  if (bedAsk === 'kobbed') { $('#bedPick').style.display = 'none'; goToBedKob(); return; }
+  if (bedAsk === 'walkman') { $('#bedPick').style.display = 'none'; if (wmNear()) wmStart(); return; }
+  if (bedAsk === 'quest') { $('#bedPick').style.display = 'none'; const a = askQ; askQ = null; a && a.yes(); return; }
+  if (bedAsk === 'enter') { $('#bedPick').style.display = 'none'; const h = askHouse; askHouse = null; if (h) enterHouse(h); }
+  else if (bedAsk === 'paint') { $('#bedPick').style.display = 'none'; IN.askP = IN.t + 15; openMiniMenu(); }
+  else if (bedAsk === 'trunk') { $('#bedPick').style.display = 'none'; IN.askK = IN.t + 15; openWardrobe(); }
+  else if (bedAsk === 'cabin') { $('#bedPick').style.display = 'none'; goScene(SC_CABIN, 660, 640); }
+  else if (bedAsk === 'voyage') { $('#bedPick').style.display = 'none'; voyage(SC_KOBHAK); }
+  else if (bedAsk === 'disp') { $('#bedPick').style.display = 'none'; goScene(KOB_CUR.sc, KOB_CUR.inP[0], KOB_CUR.inP[1]); }
+  else if (bedAsk === 'exit') { $('#bedPick').style.display = 'none'; if (KOB_PL.some(q => q.sc === SC)) { const q = KOB_PL.find(q => q.sc === SC); goScene(SC_KOBHAK, q.outP[0], q.outP[1]); IN.askD = IN.t + 20; } else if (SC === SC_KOBHAK) voyage(SC_BOAT); else if (SC === SC_CABIN) goScene(SC_BOAT, 790, 520); else leaveHouse(); }
+  else if (bedAsk === 'up' || bedAsk === 'down') { $('#bedPick').style.display = 'none'; climb(IN.floor === 0 ? 1 : 0); }
+  else if (bedAsk === 'bunk') { $('#bedPick').style.display = 'none'; bunkClimb(); }
+  else goToBed(bedAsk);
+});
 document.querySelectorAll('.wdTabs button').forEach(b => b.addEventListener('click', () => wdTab(b.dataset.part)));
 { const w = $('#wdWheel'); let down = false; w.addEventListener('pointerdown', e => { down = true; w.setPointerCapture(e.pointerId); wdPickColor(e); }); w.addEventListener('pointermove', e => { if (down) wdPickColor(e); }); w.addEventListener('pointerup', () => down = false); w.addEventListener('pointercancel', () => down = false); }
 $('#wdLum').addEventListener('input', e => { let t = wdTarget(); const l = (+e.target.value) / 100; if (!t) { if (wd.part === 'stickers') return; const d = WD_DEF[wd.part]; t = { h: d.h, s: d.s, l }; if (wd.part === 'bag') wd.o.bagOn = true; } wdSetTarget({ h: t.h, s: t.s, l }); wdDraw(); });
@@ -6428,7 +6456,20 @@ addEventListener('keydown', e => {   // PC : barre espace / Entrée / E = « Oui
   const b = $(yes ? '#bedYes' : '#bedNo'); if (b) b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
 }, true);
 press($('#bedAlt'), () => { actQueued = false; actBlock = time + 5; $('#bedPick').style.display = 'none'; bedBtns(); if (bedAsk === 'boat') enterHouse(HOUSES.find(h => h.id === 'boat')); });
-press($('#bedNo'), () => { actQueued = false; actBlock = time + 5; $('#bedPick').style.display = 'none'; if (bedAsk === 'boat') { bedBtns(); return; } if (bedAsk === 'quest') { const a = askQ; askQ = null; a && a.no(); return; } if (bedAsk === 'enter' && askHouse) { askHouse.askUntil = time + 15; askHouse = null; } if (bedAsk === 'exit') IN.askT = IN.t + 15; if (bedAsk === 'cabin') IN.askH = IN.t + 15; if (bedAsk === 'voyage') IN.askV = IN.t + 15; if (bedAsk === 'disp') IN.askD = IN.t + 15; if (bedAsk === 'trunk') IN.askK = IN.t + 15; if (bedAsk === 'paint') IN.askP = IN.t + 15; if (bedAsk === 'up' || bedAsk === 'down' || bedAsk === 'bunk') IN.askL = IN.t + 15; /* 15 s de tranquillité près de la porte */ /* « Non » : elle reste en haut de l'échelle, on redescend avec ↓ */ });
+press($('#bedNo'), () => {
+  actQueued = false; actBlock = time + 5; $('#bedPick').style.display = 'none';
+  if (bedAsk === 'crab') { bedBtns(); say((crabChoiceNew ? '✨ Nouveau dans ta collection ! ' : '') + 'Tu remets le crabe à l’eau 🦀', 3.2); crabChoiceNew = false; save(); return; }
+  if (bedAsk === 'boat') { bedBtns(); return; }
+  if (bedAsk === 'quest') { const a = askQ; askQ = null; a && a.no(); return; }
+  if (bedAsk === 'enter' && askHouse) { askHouse.askUntil = time + 15; askHouse = null; }
+  if (bedAsk === 'exit') IN.askT = IN.t + 15;
+  if (bedAsk === 'cabin') IN.askH = IN.t + 15;
+  if (bedAsk === 'voyage') IN.askV = IN.t + 15;
+  if (bedAsk === 'disp') IN.askD = IN.t + 15;
+  if (bedAsk === 'trunk') IN.askK = IN.t + 15;
+  if (bedAsk === 'paint') IN.askP = IN.t + 15;
+  if (bedAsk === 'up' || bedAsk === 'down' || bedAsk === 'bunk') IN.askL = IN.t + 15;
+});
 
 
 addEventListener('keydown', e => {   // PC : barre espace / Entrée valident aussi le bouton principal des fenêtres (Terminé, J'ai compris, Rejouer…)
