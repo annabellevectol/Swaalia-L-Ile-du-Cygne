@@ -24,7 +24,13 @@ const names = ['map', 'mapx_lever', 'mapx_apm', 'mapx_coucher', 'mapx_nuit'].con
 const LATE = n => n.startsWith('mapx_') || (n[0] === 'm' && n[1] === '_' && n !== 'm_walk');   // cartes d'autres moments de la journée, tenues d'outils : chargées après le démarrage
 const crit = names.filter(n => !LATE(n)); let loaded = 0, critLeft = crit.length, lateStarted = false;
 const srcOf = n => n === 'map' ? 'assets/map.jpg' : n.startsWith('mapx_') ? 'assets/map_' + n.slice(5) + '.jpg' : n === 't_trees' ? TR.file : n === 't_coconut' ? TALT.coconut.file : n === 't_mango' ? TALT.mango.file : n[0] === 'm' && n[1] === '_' ? MY[n.slice(2)].file : SPR[n.slice(2)].src;
-const startLate = () => { if (lateStarted) return; lateStarted = true; names.filter(LATE).forEach(n => { img[n].src = srcOf(n); }); };
+const startLate = () => {
+  if (lateStarted) return;
+  lateStarted = true;
+  const load = () => names.filter(LATE).forEach(n => { img[n].src = srcOf(n); });
+  if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 1500 });
+  else setTimeout(load, 250);
+};
 names.forEach(n => { const i = new Image(); const done = ok => { loaded++; if (!LATE(n) && --critLeft === 0) startLate(); if (!ok) console.warn('image manquante', n); }; i.onload = () => done(true); i.onerror = () => done(false); img[n] = i; if (!LATE(n)) i.src = srcOf(n); });
 const ready = () => critLeft <= 0;
 
@@ -113,8 +119,8 @@ function startMusic() {
     const src = actx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(musGain); musGain.connect(out); src.start(); musApply();
   }).catch(() => { musStarted = false; });
 }
-/* la musique du générique démarre dès la page d'accueil, dès que le navigateur l'autorise (premier toucher) */
-;(() => { const go = () => { try { audio(); } catch (e) {} if (actx && actx.state === 'running') ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(ev => document.removeEventListener(ev, go, true)); }; ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(ev => document.addEventListener(ev, go, true)); try { audio(); } catch (e) {} })();
+/* l'AudioContext et la musique démarrent au premier geste, quand le navigateur l'autorise */
+;(() => { const go = () => { try { audio(); } catch (e) {} if (actx && actx.state === 'running') ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(ev => document.removeEventListener(ev, go, true)); }; ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(ev => document.addEventListener(ev, go, true)); })();
 function blip(freq, dur = 0.12, type = 'sine', vol = 0.12, delay = 0, slide = 0) {
   if (muted || !actx) return;
   const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
@@ -2699,7 +2705,10 @@ const HATCH_SPOT = [800, 492];
 /* ----- L'île Kobhak (île du koala) : voyage en bateau après le retour de Gaïkin. Île PROVISOIRE dessinée par le jeu, à remplacer par la carte fournie (assets/kobhak.jpg) ----- */
 const KOB_SPOT = [690, 530], KOB_EXIT = [222, 640];
 const KOB_IMG = {};   // les 5 cartes de l'île Kobhak (même cycle jour / nuit que l'île du Cygne), chargées au premier voyage
-function kobLoad() { if (KOB_IMG.map) return; [['map', 'midi'], ['mapx_apm', 'apm'], ['mapx_coucher', 'coucher'], ['mapx_nuit', 'nuit'], ['mapx_lever', 'lever']].forEach(([k, f]) => { const i = new Image(); i.src = 'assets/kobhak_' + f + '.jpg'; KOB_IMG[k] = i; }); }
+function kobLoad() {
+  if (!KOB_IMG.map) [['map', 'midi'], ['mapx_apm', 'apm'], ['mapx_coucher', 'coucher'], ['mapx_nuit', 'nuit'], ['mapx_lever', 'lever']].forEach(([k, f]) => { const i = new Image(); i.src = 'assets/kobhak_' + f + '.jpg'; KOB_IMG[k] = i; });
+  [[KOB_ATLAS, 'assets/kob_npcs.png'], [KOB_KOA, 'assets/kob_koalas.png'], [KOB_PIMG, 'assets/kob_plantes.png'], [KANI, SOI], [KDI, KD_U]].forEach(([im, src]) => { if (!im.src) im.src = src; });
+}
 const SC_KOBHAK = Object.assign({}, SC_BOAT, {
   img: { complete: false, naturalWidth: 0 }, W: 1375, H: 768, K: 1.4, chroma: false, uw: null, npc: null, spd: 1.1, holes: [], polys: [], sky: [0, 0, 1, 1, 0, 0, 1, 1], kob: true,
   floors: [[[208, 634], [300, 572], [292, 445], [262, 412], [215, 385], [190, 350], [120, 325], [100, 300], [140, 275], [240, 275], [330, 290], [345, 330], [395, 335], [410, 380], [440, 400], [470, 385], [500, 335], [570, 335], [640, 305], [700, 295], [790, 285], [830, 305], [860, 370], [1000, 385], [950, 340], [975, 250], [1030, 195], [1030, 178], [950, 178], [912, 172], [900, 158], [925, 148], [1000, 146], [1045, 140], [1060, 150], [1100, 138], [1200, 138], [1215, 170], [1120, 188], [1095, 235], [1110, 262], [1130, 330], [1130, 380], [1150, 420], [1175, 470], [1190, 520], [1160, 560], [1100, 580], [1000, 600], [900, 615], [860, 640], [760, 660], [640, 670], [520, 665], [420, 640], [360, 608], [245, 656], [205, 640]], [[0, 0], [1, 0], [1, 1]]],
@@ -2716,7 +2725,7 @@ const SC_KOBHAK = Object.assign({}, SC_BOAT, {
   ],
   exit: KOB_EXIT,
 });
-const imgDisp = new Image(); imgDisp.src = 'assets/dispensaire.png';
+const imgDisp = new Image();
 const SC_DISP = Object.assign({}, SC_BOAT, {   // le dispensaire de l'île Kobhak (étage : le lit et la balancelle)
   img: imgDisp, W: 1375, H: 768, K: 3.6, chroma: false, uw: null, npc: null, spd: 1.8, holes: [], polys: [], sky: [0, 0, 1, 1, 0, 0, 1, 1],
   floors: [[[225, 612], [330, 590], [480, 560], [650, 498], [740, 475], [1130, 548], [1215, 592], [1140, 640], [1050, 735], [740, 652], [690, 642], [400, 725], [300, 690], [225, 640]],
@@ -2739,7 +2748,7 @@ const SC_DISP = Object.assign({}, SC_BOAT, {   // le dispensaire de l'île Kobha
   exit: [1012, 712], ladder: [[815, 640], [830, 392]],
   win: { polys: [[[795, 240], [795, 150], [832, 88], [900, 52], [990, 40], [1085, 54], [1146, 106], [1184, 200], [1196, 292]]], circ: [[592, 172, 38]] },
 });
-const imgMk1 = new Image(); imgMk1.src = 'assets/maison_kob1.png';
+const imgMk1 = new Image();
 const SC_MK1 = Object.assign({}, SC_DISP, {   // la maison de pierre sur la falaise de gauche (Kobhak)
   img: imgMk1, W: 896, H: 1200, K: 3.6, spd: 1.2, occ: [],
   floors: [[[135, 850], [370, 758], [520, 735], [600, 730], [845, 880], [500, 1095], [210, 905]],
@@ -2754,7 +2763,7 @@ const SC_MK1 = Object.assign({}, SC_DISP, {   // la maison de pierre sur la fala
   exit: [610, 760], ladder: [[335, 855], [318, 548]],
   win: { polys: [[[243, 382], [245, 330], [262, 304], [282, 298], [292, 330], [287, 374]], [[432, 272], [454, 266], [454, 342], [432, 348]], [[220, 612], [268, 598], [292, 608], [292, 690], [224, 708]], [[563, 563], [627, 576], [627, 737], [566, 717]], [[630, 578], [692, 598], [692, 742], [634, 747]]], circ: [] },
 });
-const imgMk2 = new Image(); imgMk2.src = 'assets/maison_kob2.png';
+const imgMk2 = new Image();
 const MK2_LOFT = [[468, -60], [1250, -60], [1250, 330], [1100, 392], [1092, 428], [1000, 446], [880, 450], [780, 434], [700, 409], [640, 380], [555, 376], [480, 364], [468, 364]];   // la chambre d'en haut (dessus du plancher)
 const SC_MK2 = Object.assign({}, SC_DISP, {   // la maison perchée dans l'arbre (Kobhak) : labo en bas, chambre en haut
   img: imgMk2, W: 1375, H: 768, K: 3.6, spd: 1.8, occ: [],
@@ -2771,7 +2780,7 @@ const SC_MK2 = Object.assign({}, SC_DISP, {   // la maison perchée dans l'arbre
   exit: [1050, 700], ladder: [[830, 540], [845, 382]],
   win: { polys: [[[772, 238], [772, 170], [790, 125], [830, 98], [895, 86], [960, 90], [1010, 115], [1035, 160], [1040, 258]], [[1112, 214], [1140, 202], [1140, 262], [1112, 258]]], circ: [] },
 });
-const imgMk3 = new Image(); imgMk3.src = 'assets/maison_kob3.jpg';
+const imgMk3 = new Image();
 const SC_MK3 = Object.assign({}, SC_MK1, {   // la maison du jardinier (Kobhak) : atelier en bas, chambre et salle d'eau à l'étage (pas d'échelle dessinée : étage fermé)
   img: imgMk3, W: 765, H: 1024, K: 3.4, spd: 1.2, win: null,
   floors: [[[157, 733], [203, 665], [300, 659], [407, 651], [467, 621], [520, 625], [727, 743], [733, 748], [413, 945], [320, 911], [220, 845], [170, 763]],
@@ -2793,7 +2802,7 @@ const SC_MK3 = Object.assign({}, SC_MK1, {   // la maison du jardinier (Kobhak) 
   ],
   exit: [400, 928], ladder: [[-900, -900], [-900, -960]],
 });
-const imgMk4 = new Image(); imgMk4.src = 'assets/phare.jpg';
+const imgMk4 = new Image();
 const SC_MK4 = Object.assign({}, SC_MK1, {   // le phare : la terrasse en bois au bout du pont (Kobhak)
   img: imgMk4, W: 925, H: 1024, K: 3.4, spd: 1.2, win: null,
   floors: [[[75, 700], [130, 660], [240, 625], [330, 605], [450, 590], [580, 600], [700, 625], [790, 650], [850, 690], [855, 730], [800, 765], [740, 772], [560, 768], [440, 770], [335, 775], [300, 840], [200, 810], [110, 770], [65, 735]],
@@ -2818,7 +2827,7 @@ const SC_MK4 = Object.assign({}, SC_MK1, {   // le phare : la terrasse en bois a
   ],
   exit: [120, 738], ladder: [[-900, -900], [-900, -960]],
 });
-const imgMk5 = new Image(); imgMk5.src = 'assets/boutique.jpg';
+const imgMk5 = new Image();
 const SC_MK5 = Object.assign({}, SC_MK1, {   // la boutique souvenir (Kobhak) : sortie par la porte du fond
   img: imgMk5, W: 1296, H: 831, K: 3.4, spd: 1.5, win: null,
   floors: [[[385, 530], [450, 495], [600, 462], [650, 432], [810, 438], [850, 445], [975, 445], [1195, 598], [1150, 640], [900, 780], [740, 832], [695, 805], [650, 730], [625, 660], [560, 620], [470, 580], [400, 555]],
@@ -2849,10 +2858,11 @@ const KOB_PL = [
 let KOB_CUR = null;
 const kobZone = { q: null, t: 0 };
 const KOB_SCS = () => [SC_KOBHAK, SC_DISP, SC_MK1, SC_MK2, SC_MK3, SC_MK4, SC_MK5];
+const KOB_SCENE_ASSETS = new Map([[SC_DISP, 'assets/dispensaire.png'], [SC_MK1, 'assets/maison_kob1.png'], [SC_MK2, 'assets/maison_kob2.png'], [SC_MK3, 'assets/maison_kob3.jpg'], [SC_MK4, 'assets/phare.jpg'], [SC_MK5, 'assets/boutique.jpg']]);
 const nearPl = () => SC === SC_KOBHAK ? KOB_PL.find(q => dist(IN.x, IN.y, q.spot[0], q.spot[1]) < (q.r || 32)) : null;
 function askDisp(force, q) { q = q || nearPl(); if (!q || bedPickOpen() || IN.busy || (!force && IN.askD && IN.t < IN.askD)) return; if (q.eve && !isEve()) { say(q.eve, 3.4); IN.askD = IN.t + 12; return; } if (q.closed && isEve()) { say(q.closed, 3.6); IN.askD = IN.t + 12; return; } KOB_CUR = q; bedAsk = 'disp'; $('#bedPickT').textContent = 'Entrer'; $('#bedPickP').textContent = 'Veux-tu entrer dans ' + q.txt + ' ?'; $('#bedPick').style.display = 'grid'; }
 /* ----- les habitants de Kobhak (mi-humains, mi-koalas) : planche découpée dans assets/kob_npcs.png ----- */
-const KOB_ATLAS = new Image(); KOB_ATLAS.src = 'assets/kob_npcs.png';
+const KOB_ATLAS = new Image();
 const KOB_META = {"okai": {"f": [0, 0, 147, 225], "s": [151, 0, 110, 225]}, "bimba": {"f": [265, 0, 128, 210], "s": [397, 0, 119, 210]}, "tobi": {"f": [0, 229, 116, 165], "s": [120, 229, 105, 165]}, "maia": {"f": [229, 229, 119, 210], "s": [352, 229, 95, 210]}, "tomba": {"f": [0, 447, 138, 201], "s": [142, 447, 107, 200]}, "koki": {"f": [253, 447, 120, 191], "s": [253, 447, 120, 191]}, "nuna": {"f": [377, 447, 122, 190], "s": [503, 447, 86, 190]}};
 const KOB_H = { okai: 56, bimba: 52, tobi: 41, maia: 52, tomba: 54, koki: 56, nuna: 52 };
 const KOB_FACE = { okai: 'l', bimba: 'l', tobi: 'r', maia: 'l', tomba: 'l', koki: 'l', nuna: 'l' };   // sens du profil sur la planche
@@ -2874,7 +2884,7 @@ const KOB_NIGHT = [{ k: 'maia', x: 790, y: 682 }, { k: 'tobi', x: 850, y: 672 }]
 const kobList = () => SC === SC_KOBHAK ? (isEve() ? KOB_N.filter(n => n.k !== 'tobi') : KOB_N) : SC === SC_DISP ? (isEve() ? [] : KOB_D) : SC === SC_MK1 ? (isEve() ? [KOB_OK_HOME] : []) : SC === SC_MK3 ? KOB_G : SC === SC_MK5 ? KOB_S : SC === SC_MK2 ? (isEve() ? KOB_T.concat(KOB_NIGHT) : KOB_T) : [];
 const kobScene = () => SC === SC_KOBHAK || KOB_PL.some(q => q.sc === SC);
 const KOB_EXCL = [492, 290];   // le point d'exclamation au-dessus du dispensaire : c'est là qu'il faut aller d'abord
-const KOB_KOA = new Image(); KOB_KOA.src = 'assets/kob_koalas.png';
+const KOB_KOA = new Image();
 const KOB_KM = { lumi_s: [0, 0, 184, 211], zuki_s: [188, 0, 192, 200], mini_s: [384, 0, 128, 145], lumi_h: [516, 0, 185, 209], zuki_h: [705, 0, 193, 196], mini_h: [902, 0, 129, 148] };
 const KOB_KH = { zuki: 30, lumi: 28, mini: 19 };
 let kobSick = true;   // la famille koala est enrhumée tant que le remède n'est pas donné
@@ -2897,7 +2907,7 @@ const KOB_PLT = [
   { k: 'coq', n: 'Coquillage rose', x: 500, y: 590, d: 'Un trésor de la plage : il rend la tisane toute rose.' },
 ];
 const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 0, 122, 128], mousse: [387, 0, 132, 86], racine: [523, 0, 128, 117], coq: [655, 0, 134, 114], euca_x: [793, 0, 130, 64], mousse_x: [927, 0, 130, 64], baies_x: [1061, 0, 130, 72], racine_x: [1195, 0, 130, 63], coq_x: [1329, 0, 134, 76], miel_x: [1467, 0, 130, 63] };
-const KOB_PIMG = new Image(); KOB_PIMG.src = 'assets/kob_plantes.png';
+const KOB_PIMG = new Image();
 let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » dans le carnet, étape de l'aventure (0 pas commencée, 1 cueillette, 2 tout est cueilli, 3 remèdes)
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ === 1 && IN.floor === 0 ? KOB_PLT.find(p => !kobPick[p.k] && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
@@ -2945,7 +2955,7 @@ const KA_M = {"wallaby_s":[0,0,145,160],"wallaby_i":[149,0,127,160],"wallaby_h":
 const KS_M = {"thermo":[2147,0,176,211],"cuillere":[2327,0,175,211],"brosse":[2506,0,177,211],"gamelle":[2867,0,176,214],"couverture":[3047,0,175,214],"tisane":[3226,0,176,214]}, KS2_M = { pipette: [0, 918, 154, 214], gelule: [158, 918, 154, 214], baume: [316, 918, 154, 214] }, KMAL = [0, 0, 175, 214];
 Object.values(KA_M).forEach(m => m[1] += 170); KMAL[1] += 544; Object.assign(KA_M, { roussette_s: [574, 918, 100, 160], roussette_i: [678, 918, 109, 160], roussette_h: [791, 918, 301, 160] }); Object.assign(KA_M, { souris_s: [0, 1132, 173, 160], souris_h: [177, 1132, 166, 160], souris_i: [347, 1132, 327, 160] }); const KICO = {"sirop": [0, 1292, 64, 128], "baume": [68, 1292, 122, 128], "gelule": [194, 1292, 87, 128]}; const KGV = {"pip_side": [0, 1420, 116, 214], "pip_act": [120, 1420, 152, 214], "gel_side": [276, 1420, 123, 214], "gel_act": [403, 1420, 137, 214], "bal_side": [544, 1420, 127, 214], "bal_act": [675, 1420, 139, 214]}; const KPIP = [474, 918, 96, 128];   // les 4 planches sont empilées dans kob_soins.png (outils 0, animaux 170, poses soin 330, mallette 544)
 const SOI = 'assets/kob_soins.png', SOW = 3327, SOH = 2054;
-const KANI = new Image(); KANI.src = SOI;
+const KANI = new Image();
 const spr = (url, aw, ah, m, h, cls) => { const s = h / m[3]; return '<i class="sp ' + (cls || '') + '" style="width:' + (m[2] * s).toFixed(1) + 'px;height:' + h + 'px;background:url(' + url + ') -' + (m[0] * s).toFixed(1) + 'px -' + (m[1] * s).toFixed(1) + 'px/' + (aw * s).toFixed(1) + 'px ' + (ah * s).toFixed(1) + 'px no-repeat"></i>'; };
 const sprAn = (k, st, h) => spr(SOI, SOW, SOH, KA_M[k + '_' + st], h);
 const sprHeld = (t, h) => KS2_M[t] ? spr(SOI, SOW, SOH, KS2_M[t], h) : spr('assets/myah_soin.png', 3406, 214, KS_M[t], h);
@@ -3017,7 +3027,7 @@ function vetFeedAct() { const v = vetFeedNear(); if (!v) return false;
   o.querySelector('#offYes').addEventListener('pointerdown', e => { stop(e); o.remove(); player.state = 'free'; clearInput(); actBlock = time + .6; sfx.star(); kobFeedT[v.k] = time + 2.6; say(FEED_TXT[v.k] || (v.n + ' mange de bon appétit !'), 4); });
   return true; }
 // --- mini-défis de l'île Kobhak : pêche (Okaï), fruits locaux (Koki), course (Tobi)
-const KD_M = {"fish0":[0,0,112,90],"fish1":[116,0,125,90],"fish2":[245,0,240,90],"fish3":[489,0,114,90],"fish4":[607,0,129,90],"fish5":[740,0,135,90],"fr_baie":[879,0,84,100],"fc_baie":[967,0,100,100],"fr_lune":[1071,0,72,100],"fc_lune":[1147,0,79,100],"fr_rose":[1230,0,93,100],"fc_rose":[1327,0,144,100],"ic_fish":[1475,0,108,110],"ic_fruit":[1587,0,108,110],"ic_race":[1699,0,108,110],"i_drop":[0,110,41,64],"i_honeydrop":[45,110,40,64],"i_oil":[89,110,29,64],"i_wax":[122,110,80,64],"i_honey":[206,110,66,64],"i_hpowder":[276,110,47,64],"i_star":[327,110,55,64],"i_flame":[386,110,47,64]}, KD_W = 1811, KD_H = 174, KD_U = 'assets/kob_defis.png', KDI = new Image(); KDI.src = KD_U;
+const KD_M = {"fish0":[0,0,112,90],"fish1":[116,0,125,90],"fish2":[245,0,240,90],"fish3":[489,0,114,90],"fish4":[607,0,129,90],"fish5":[740,0,135,90],"fr_baie":[879,0,84,100],"fc_baie":[967,0,100,100],"fr_lune":[1071,0,72,100],"fc_lune":[1147,0,79,100],"fr_rose":[1230,0,93,100],"fc_rose":[1327,0,144,100],"ic_fish":[1475,0,108,110],"ic_fruit":[1587,0,108,110],"ic_race":[1699,0,108,110],"i_drop":[0,110,41,64],"i_honeydrop":[45,110,40,64],"i_oil":[89,110,29,64],"i_wax":[122,110,80,64],"i_honey":[206,110,66,64],"i_hpowder":[276,110,47,64],"i_star":[327,110,55,64],"i_flame":[386,110,47,64]}, KD_W = 1811, KD_H = 174, KD_U = 'assets/kob_defis.png', KDI = new Image();
 const kdSpr = (k, h) => spr(KD_U, KD_W, KD_H, KD_M[k], h);
 const KD_A = .86;   // légère transparence des éléments posés sur la carte (comme sur l'île de Myah)
 let kobD = { acc: {}, done: {}, fr: {}, fi: {}, st: 0, rw: 0 };   // acc : défi accepté, fr : fruits cueillis, fi : poissons pêchés (nombre), st : étoiles, rw : victoires à la course
@@ -4556,7 +4566,7 @@ $('#scopeX').addEventListener('click', e => { e.stopPropagation(); closeScope();
   sc.addEventListener('pointerup', up); sc.addEventListener('pointercancel', up); }
 addEventListener('keydown', e => { if (scopeOpen() && (e.code === 'Escape' || e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE')) { closeScope(); e.preventDefault(); } }, true);
 let SC = SC_HOME, IN_W = SC.W, IN_H = SC.H, IN_K = SC.K, IN_FLOORS = SC.floors, IN_EXIT = SC.exit, IN_LADDER = SC.ladder;
-function setScene(sc) { SC = sc; IN_W = sc.W; IN_H = sc.H; IN_K = sc.K; IN_FLOORS = sc.floors; IN_EXIT = sc.exit; IN_LADDER = sc.ladder; IN.sdb = 0; IN.sdbOn = false; IN.sdbOff = 0; }
+function setScene(sc) { SC = sc; const asset = KOB_SCENE_ASSETS.get(sc); if (asset && !sc.img.src) sc.img.src = asset; if (sc === SC_KOBHAK) kobLoad(); IN_W = sc.W; IN_H = sc.H; IN_K = sc.K; IN_FLOORS = sc.floors; IN_EXIT = sc.exit; IN_LADDER = sc.ladder; IN.sdb = 0; IN.sdbOn = false; IN.sdbOff = 0; }
 const HOUSES = [
   { id: 'home', name: 'La maison de Myah', lab: [172, 84], door: [188, 197], exit: [188, 211], r: 11, scene: SC_HOME },
   { id: 'care', name: 'Le Poste de Soin', lab: [342, 176], door: [350, 243], exit: [350, 250], r: 11, scene: SC_CARE },
@@ -4586,7 +4596,7 @@ function swapScene(fn) {   // fondu au noir -> changement -> retour de la lumiè
   setTimeout(() => {
     fn(); actQueued = jumpQueued = false; actBlock = time + .9;
     const im = SC.img;
-    const imageReady = !im || im.complete ? Promise.resolve() : new Promise(resolve => {
+    const imageReady = !im || im.complete || typeof im.addEventListener !== 'function' ? Promise.resolve() : new Promise(resolve => {
       let timer;
       const done = () => { clearTimeout(timer); im.removeEventListener('load', done); im.removeEventListener('error', done); resolve(); };
       im.addEventListener('load', done, { once: true });
@@ -5212,7 +5222,7 @@ function renderInterior(vw, vh) {
   if (SC.win) {   // les fenêtres (transparentes sur le dessin) montrent le ciel du moment de la journée
     ctx.save(); ctx.beginPath(); SC.win.polys.forEach(P => { P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); }); SC.win.circ.forEach(c => { ctx.moveTo(c[0] + c[2], c[1]); ctx.arc(c[0], c[1], c[2], 0, TAU); }); ctx.clip(); drawObsSky(); ctx.restore();
   }
-  if (SC.img.complete && !SC.chroma) {
+  if (SC.img.complete && SC.img.naturalWidth && !SC.chroma) {
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, IN_W, IN_H); holes.forEach(h => { ctx.moveTo(h[0] + h[2], h[1]); ctx.ellipse(h[0], h[1], h[2], h[3], 0, 0, TAU, true); }); (SC.polys || []).forEach(p => { p.forEach((q, qi) => qi ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); }); ctx.clip('evenodd');
     ctx.drawImage(SC.img, 0, 0); ctx.restore();
   }
@@ -5372,7 +5382,7 @@ function renderInterior(vw, vh) {
   kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
   { const NL = (kobScene() ? kobList() : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
-    const OC = SC.occ && SC.occ.length && SC.img.complete ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
+    const OC = SC.occ && SC.occ.length && SC.img.complete && SC.img.naturalWidth ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
     const redraw = o => { o.done = true; const q = o.q; ctx.save(); ctx.beginPath(); q.poly.forEach((a, i) => i ? ctx.lineTo(a[0], a[1]) : ctx.moveTo(a[0], a[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); };   // quelqu'un passe derrière : on redessine le décor par-dessus
     seq.forEach(e => { OC.forEach(o => { if (o.done || e.x <= o.x0 || e.x >= o.x1) return; if (e.y < occBy(o.q, e.x)) o.behind = true; else if (o.behind) redraw(o); });   // celui qui est devant le meuble est dessiné APRÈS le meuble : il ne passe plus « à travers »
       e.d(); });
@@ -6265,7 +6275,19 @@ function render() {
   }
 }
 
+let framePending = false, frameGeneration = 0;
+function scheduleFrame() {
+  if (document.hidden || framePending) return;
+  framePending = true;
+  const generation = frameGeneration;
+  requestAnimationFrame(now => {
+    if (generation !== frameGeneration) return;
+    framePending = false;
+    frame(now);
+  });
+}
 function frame(now) {
+  if (document.hidden) return;
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now; if (IN.wm && SC !== SC_MK4) wmStop(); if (started && IN.on && !IN.busy && kobScene()) kobPillTick();
     const sleepFast = sleepSkip && dayAuto && started && IN.on && IN.lie && !IN.lie.waking && (dayT >= .62 || dayT < .1) && (IN.lie.fast || IN.lie.kob || allHome());
   if (sleepSkip && started && IN.on && IN.lie && !IN.lie.kob && !IN.lie.fast && !IN.lie.hinted && (dayT >= .62 || dayT < .1) && !sleepFast) { IN.lie.hinted = true; say('Il y a encore du monde dehors : la nuit ne passera vite que quand tous les habitants seront rentrés.', 4.5); }   // Myah dort la nuit : le temps file jusqu'au matin
@@ -6274,7 +6296,7 @@ function frame(now) {
   if (dayAuto) { const d0 = dayT; dayT = (dayT + dt * (sleepFast ? 45 : 1) / DAY_LEN) % 1; if (dayT < d0) { mini.dayNo = (mini.dayNo || 0) + 1; MI.items = MI.items.filter(i => i.kind !== 'shell'); jarsExpire(); } }   // nouveau jour : les coquillages changent
   if (started) update(dt);
   else { time += dt; const vw = cv.width / dpr; cam.z = Math.max(vw / W, 1.5); cam.x = (W - vw / cam.z) / 2; cam.y = Math.max(0, (H - cv.height / dpr / cam.z) / 2); for (const f of fishes) updateFish(f, dt); for (const s of swans) updateSwan(s, dt); butterflies.forEach((b, i) => updateButterfly(b, dt, i)); }
-  render(); requestAnimationFrame(frame);
+  render(); scheduleFrame();
 }
 
 /* ================= démarrage ================= */
@@ -6501,7 +6523,13 @@ addEventListener('keydown', e => {   // PC : barre espace / Entrée valident aus
 }, true);
 /* ---- sauvegarde automatique + sortie ---- */
 setInterval(() => { if (started && autoSv && !$('#quit').style.display.includes('grid')) save(); }, 4000);
-document.addEventListener('visibilitychange', () => { if (document.hidden && started) save(); });
+document.addEventListener('visibilitychange', () => {
+  frameGeneration++;
+  framePending = false;
+  if (document.hidden) { if (started) save(); return; }
+  lastT = performance.now();
+  scheduleFrame();
+});
 addEventListener('pagehide', () => { if (started) save(); });
 function openQuit() { if (!started) return; save(); $('#quitNoSave').style.display = autoSv ? 'none' : ''; $('#quit').style.display = 'grid'; }
 function closeQuit() { $('#quit').style.display = 'none'; }
@@ -6521,7 +6549,7 @@ $('#keep').addEventListener('click', () => { $('#win').style.display = 'none'; }
 if ('ontouchstart' in window || navigator.maxTouchPoints > 0) $('#helpKeys').innerHTML = '<b>Glisse le doigt</b> n\'importe où pour marcher (glisse plus loin pour courir) · <b>tape</b> pour agir · <b>🛟</b> en haut à droite si tu es coincée · <b>touche un outil</b> pour le prendre ou le ranger · bouton <b>Cygne</b> : l\'appeler · bouton <b>flèche</b> : voler ou flotter avec lui';
 
 renderHud(); setTool('none');
-requestAnimationFrame(t => { lastT = t; frame(t); });
+scheduleFrame();
 
 /* ================= potager de Maman ================= */
 const st = document.createElement('style');

@@ -311,6 +311,7 @@
   #setTabs .stab{flex:1;font:800 clamp(13px,2.2vw,16px) "Trebuchet MS",sans-serif;padding:9px 4px;border-radius:14px;border:2px solid #fff9;background:rgba(255,255,255,.35);color:#0d5560;cursor:pointer}
   #setTabs .stab.on{background:#fff;color:#c7447a;border-color:#fff;box-shadow:0 3px 0 rgba(0,70,90,.25)}
   #settings .setKid .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  #settings .setKid .tiles.two{grid-template-columns:repeat(2,1fr)}
   #settings .tile.go.wide{margin:0;min-height:72px;padding:6px 3px;line-height:1.1;font-size:clamp(12px,2vw,15px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;border-radius:20px;overflow:hidden}
   #settings .tile .ti{font-size:28px;line-height:1.1}
   #settings .tile .tl{display:block}
@@ -318,11 +319,22 @@
   #settings .setKid .setSl label{font-size:24px;margin:0;width:34px;flex:none;display:block}
   #settings .setKid .setSl input{flex:1}
   #settings .setKid .setSl b{display:none}
+  #settings #setSound{grid-column:1/-1}
   #settings .card{max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
   #settings h1{margin:4px 0 2px}
+  #settings .setSections{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+  #settings .setGroup,#setPar{border:1.5px solid rgba(255,255,255,.72);border-radius:16px;background:rgba(255,255,255,.2);padding:3px 10px 10px}
+  #settings .setGroup>summary,#setPar>summary{cursor:pointer;list-style:none;font-weight:800;font-size:16px;padding:8px 2px;color:#4b2a7a}
+  #settings .setGroup>summary::-webkit-details-marker,#setPar>summary::-webkit-details-marker{display:none}
+  #settings .setGroup>summary::after,#setPar>summary::after{content:'＋';float:right;opacity:.7}
+  #settings .setGroup[open]>summary::after,#setPar[open]>summary::after{content:'−'}
+  #settings .setGroup .setKid{margin-top:0}
   #setPar{margin-top:12px}
-  #setPar>summary{cursor:pointer;font-weight:800;color:#0c4a52;font-size:15px;padding:6px 2px;list-style:none}
-  #setPar>summary::-webkit-details-marker{display:none}
+  #setPar{padding:3px 10px 10px}
+  #settings .setSubhead{margin:10px 0 2px;font-size:14px;color:#7a5a2a}
+  #settings .setTest{margin-top:8px;border-top:1px solid rgba(120,90,40,.25);padding-top:4px}
+  #settings .setTest>summary{cursor:pointer;font-weight:800;font-size:14px;padding:6px 2px;list-style:none;color:#7a5a2a}
+  #settings .setTest>summary::-webkit-details-marker{display:none}
   #settings #setPar .go.wide{font-size:14px;padding:7px 12px;margin-top:6px;box-shadow:none}
   #setFoot{display:flex;gap:8px;margin-top:14px}
   #setFoot .go{flex:1;margin:0;font-size:clamp(14px,2.3vw,17px);padding:9px 8px}
@@ -1047,32 +1059,54 @@
   <div class="card panel" style="position:relative">
     <button id="setX" aria-label="Fermer" style="all:unset;cursor:pointer;position:absolute;top:10px;right:12px;width:36px;height:36px;border-radius:50%;border:3px solid #a8691a;background:#fff;color:#7a4b24;font:900 18px/30px sans-serif;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.35);touch-action:manipulation">✕</button>
     <h1>⚙️ Réglages</h1>
-    <div class="setKid">
-      <div class="setSl"><label for="setVol">🔉 <b id="setVolV"></b></label><input id="setVol" type="range" min="0" max="100" step="5" value="5"></div>
-      <div class="setSl"><label for="setMus">🎵 <b id="setMusV"></b></label><input id="setMus" type="range" min="0" max="100" step="5" value="20"></div>
-      <div class="setSl"><label for="setBri">☀️ <b id="setBriV"></b></label><input id="setBri" type="range" min="50" max="150" step="5" value="100"></div>
-      <div class="tiles">
-        <button id="setSound" class="go alt wide tile"><span class="ti">🔊</span><span class="tl">Son</span></button>
-        <button id="setNight" class="go wide tile"><span class="ti">🌙</span><span class="tl">Aller à la nuit</span></button>
-        <button id="setDay" class="go alt wide tile"><span class="ti">🌗</span><span class="tl">Jour et nuit</span></button>
-        <button id="setCalm" class="go alt wide tile"><span class="ti">🐢</span><span class="tl">Calme</span></button>
-        <button id="setLevel" class="go alt wide tile"><span class="ti"><img src="assets/ui/lv_aventure.png" alt="" style="height:34px;width:auto"></span><span class="tl">Niveau</span></button>
-        <button id="setTxt" class="go alt wide tile"><span class="ti">🔤</span><span class="tl">Texte</span></button>
-        <button id="setSave" class="go alt wide tile"><span class="ti">💾</span><span class="tl">Sauvegarder</span></button>
-        <button id="setStory" class="go alt wide tile"><span class="ti">📖</span><span class="tl">Histoire</span></button>
-      </div>
+    <div class="setSections">
+      <details class="setGroup" open>
+        <summary>🔊 Son</summary>
+        <div class="setKid">
+          <div class="setSl"><label for="setVol">🔉 <b id="setVolV"></b></label><input id="setVol" type="range" min="0" max="100" step="5" value="5"></div>
+          <div class="setSl"><label for="setMus">🎵 <b id="setMusV"></b></label><input id="setMus" type="range" min="0" max="100" step="5" value="20"></div>
+          <div class="tiles"><button id="setSound" class="go alt wide tile"><span class="ti">🔊</span><span class="tl">Son</span></button></div>
+        </div>
+      </details>
+      <details class="setGroup">
+        <summary>✨ Affichage et confort</summary>
+        <div class="setKid">
+          <div class="setSl"><label for="setBri">☀️ <b id="setBriV"></b></label><input id="setBri" type="range" min="50" max="150" step="5" value="100"></div>
+          <div class="tiles two">
+            <button id="setCalm" class="go alt wide tile"><span class="ti">🐢</span><span class="tl">Calme</span></button>
+            <button id="setTxt" class="go alt wide tile"><span class="ti">🔤</span><span class="tl">Texte</span></button>
+          </div>
+        </div>
+      </details>
+      <details class="setGroup">
+        <summary>🎮 Partie</summary>
+        <div class="setKid">
+          <div class="tiles">
+            <button id="setNight" class="go wide tile"><span class="ti">🌙</span><span class="tl">Aller à la nuit</span></button>
+            <button id="setDay" class="go alt wide tile"><span class="ti">🌗</span><span class="tl">Jour et nuit</span></button>
+            <button id="setLevel" class="go alt wide tile"><span class="ti"><img src="assets/ui/lv_aventure.png" alt="" style="height:34px;width:auto"></span><span class="tl">Niveau</span></button>
+            <button id="setStory" class="go alt wide tile"><span class="ti">📖</span><span class="tl">Histoire</span></button>
+            <button id="setSave" class="go alt wide tile"><span class="ti">💾</span><span class="tl">Sauvegarder</span></button>
+          </div>
+        </div>
+      </details>
     </div>
     <details id="setPar">
-      <summary>👨‍👩‍👧 Pour les parents ▾</summary>
+      <summary>👨‍👩‍👧 Parents et sauvegardes</summary>
+      <h2 class="setSubhead">Options parents</h2>
       <button id="setSleep" class="go alt wide">Dormir la nuit : le matin arrive vite</button>
       <button id="setSkip" class="go alt wide">🏠 Écran d'accueil : affiché</button>
       <button id="setAuto" class="go alt wide">💾 Sauvegarde : automatique</button>
+      <h2 class="setSubhead">Sauvegarder ou restaurer</h2>
       <button id="setCopy" class="go alt wide">📋 Copier mon code de secours</button>
       <button id="setPaste" class="go alt wide">📥 Récupérer avec un code</button>
       <button id="setFile" class="go alt wide">📁 Enregistrer un fichier de sauvegarde</button>
-      <button id="setKob" class="go alt wide">Tester l'île Kobhak (accès direct)</button>
-      <button id="setVet" class="go alt wide">Test Kobhak : animaux normaux</button>
       <button id="setLoad" class="go alt wide">📂 Récupérer depuis un fichier</button><input type="file" id="setPick" accept=".txt,text/plain" style="display:none">
+      <details class="setTest">
+        <summary>Outils de test</summary>
+        <button id="setKob" class="go alt wide">Tester l'île Kobhak (accès direct)</button>
+        <button id="setVet" class="go alt wide">Test Kobhak : animaux normaux</button>
+      </details>
     </details>
     <div id="setFoot"><button id="setQuit" class="go">🚪 Quitter</button><button id="setClose" class="go alt">▶ Jouer</button></div>
     <div id="setMsg" class="auto"></div>
@@ -1108,7 +1142,7 @@
 <script src="mymask.js"></script>
 <script src="sprites.js"></script>
 <script src="art.js"></script>
-<script src="game.js?v=17"></script>
+<script src="game.js?v=19"></script>
 </body>
 </html>
 
