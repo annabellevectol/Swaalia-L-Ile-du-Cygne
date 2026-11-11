@@ -559,7 +559,7 @@ function miniWorldUpdate(dt, ns) {
       if (a.asleep) { a.tx = a.x; a.ty = a.y; a.react = 0; a.was = true; }
     }
     if (a.id === 'singe' && !a.asleep) {   // le singe s'anime quand Myah passe devant lui
-      a.react = Math.max(0, (a.react || 0) - dt); const near = player.state !== 'cine' && dist(player.x, player.y, a.x, a.y) < 46;
+      a.react = handsFull() ? 0 : Math.max(0, (a.react || 0) - dt); const near = !handsFull() && player.state !== 'cine' && dist(player.x, player.y, a.x, a.y) < 46;
       if (near && !a.was && a.react <= 0 && time > (a.nextReact || 0)) { a.nextReact = time + 25 + Math.random() * 30; if (Math.random() < .3) { a.react = 1.5; a.face = player.x > a.x ? 1 : -1; blip(a.snd[0], .1, 'triangle', .07); blip(a.snd[1], .14, 'triangle', .06, .12); burst(a.x, a.y - a.h, 5, ['#ffd27a', '#fff'], false); } }   // il ne réagit pas à chaque passage : une fois de temps en temps seulement
       a.was = near;
     }
@@ -763,7 +763,7 @@ cv.addEventListener('pointerup', e => {   // toucher le singe : si Myah est prè
   const sg = MI.animals.find(a => a.id === 'singe' && !a.hidden); if (!sg) return;
   const wx = e.clientX / cam.z + cam.x, wy = e.clientY / cam.z + cam.y;
   if (dist(wx, wy, sg.x, sg.y - sg.h / 2) > 26) return;
-  if (dist(player.x, player.y, sg.x, sg.y) < 64) actQueued = true; ;
+  if (!handsFull() && dist(player.x, player.y, sg.x, sg.y) < 64) actQueued = true;
 });
 function miniAction() {   // renvoie true si l'action a été utilisée
   const p = player, fishNow = tool === 'fish' && !!waterNear();   // canne en main au bord de l'eau : on pêche (coquillages, bestioles et lucioles alentour ne bloquent plus)
@@ -1295,6 +1295,7 @@ const handsFull = () => tool !== 'none';
 const kobHF = () => tool !== 'none' && typeof kobScene === 'function' && kobScene();   // île Koala : objet en main = ni habitants, ni animaux, ni lieux (cueillette et pêche restent possibles)   // filet, panier ou canne en main : ni entrée dans un lieu ni discussion alentour (sauf la mallette sur l'île Koala)
 function setTool(t) {
   tool = t; document.querySelectorAll('.tool').forEach(b => b.classList.toggle('sel', b.dataset.tool === t));
+  if (t !== 'none' && (ANIMAL_TXT.singe.includes(bubble.txt) || ANIMAL_TXT.singeDort.includes(bubble.txt))) bubble = { txt: '', t: 0 };
   const a = ACT_LBL[t] || ACT_LBL.none, b = $('#bAct'); if (b) b.innerHTML = (a[0] ? '<img class="acti" alt="" src="' + a[0] + '">' : '') + '<b class="actl">' + a[1] + '</b>';
 }
 document.querySelectorAll('.tool').forEach(b => {
