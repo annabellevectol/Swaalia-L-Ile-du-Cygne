@@ -3124,15 +3124,141 @@ const KA_HH = { wallaby: 22, kookaburra: 17, quokka: 19, echidne: 15, roussette:
 function vetDraw() {
   if (SC !== SC_KOBHAK || !KANI.complete || !KANI.naturalWidth) return;
   VET.forEach(v => {
-    const p = vetShowAll ? v.sp[0] : (vetS[v.k] === 1 || (vetS[v.k] === 3 && vetDone())) && vetPos(v); if (!p) return; const sk = vetShowAll === 2 || (!vetShowAll && vetS[v.k] === 3), m = KA_M[v.k + (sk ? '_i' : '_s')], h = KA_HH[v.k] || 20, w = h * m[2] / m[3];
-    ctx.save(); ctx.globalAlpha = KD_A; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .4, 3.5, 0, 0, TAU); ctx.fill(); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], p.x - w / 2, p.y - h + 2, w, h); ctx.restore();
+    const p = vetShowAll ? v.sp[0] : (vetS[v.k] === 1 || (vetS[v.k] === 3 && vetDone())) && vetPos(v); if (!p) return; const cr = CARE && CARE.v.k === v.k, sk = vetShowAll === 2 || (!vetShowAll && vetS[v.k] === 3), m = KA_M[v.k + (cr && CARE.step === 'heal' ? '_h' : sk ? '_i' : '_s')], h = KA_HH[v.k] || 20, w = h * m[2] / m[3];
+    const shx = cr && time < CARE.shake ? Math.sin(time * 40) * 1.6 : 0, hop = cr && CARE.step === 'heal' ? Math.abs(Math.sin(time * 7)) * 3 : cr && CARE.step === 'gest' && CARE.g.kind === 'time' && careMouth() ? 1.5 : 0;
+    ctx.save(); ctx.globalAlpha = KD_A; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .4, 3.5, 0, 0, TAU); ctx.fill(); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], p.x - w / 2 + shx, p.y - h + 2 - hop, w, h); ctx.restore();
     if (kobFeedT[v.k] > time) { const kk = 1 - (kobFeedT[v.k] - time) / 2.6; ctx.save(); ctx.globalAlpha = Math.min(1, (1 - kk) * 2.2); ctx.fillStyle = '#ff7eb6'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText('♥', p.x - 6, p.y - h - 4 - kk * 14); ctx.fillText('♥', p.x + 7, p.y - h - 1 - kk * 18); ctx.restore(); }
-    if (vetShowAll === 1 || (!vetShowAll && vetS[v.k] === 1)) redBang(p.x, p.y - h - 11 - Math.abs(Math.sin(time * 4)) * 4); });
+    if (!cr && (vetShowAll === 1 || (!vetShowAll && vetS[v.k] === 1))) redBang(p.x, p.y - h - 11 - Math.abs(Math.sin(time * 4)) * 4); });
   if (kobQ === 4) KOB_N.filter(n => n.ko && !kobKoa[n.k]).forEach(n => redBang(n.x, n.y - KOB_KH[n.k] - 11 - Math.abs(Math.sin(time * 4)) * 4));
 }
 const vetOvOpen = () => $('#vetOv').style.display === 'grid', remOvOpen = () => $('#remOv').style.display === 'grid';
-const kobOvOpen = () => kobBkOpen() || vetOvOpen() || remOvOpen() || mgOvOpen() || wmOpen();
-function vetAct() { const v = vetNear(); if (!v) return false; vetFiche(v); return true; }
+const kobOvOpen = () => kobBkOpen() || vetOvOpen() || remOvOpen() || mgOvOpen() || wmOpen() || (typeof careOn === 'function' && careOn());
+function vetAct() { const v = vetNear(); if (!v) return false; return careStart(v, vetShowAll === 1 ? v.sp[0] : vetPos(v)); }
+/* ================= soins sur l'île (Kobhak) : le mini-jeu se joue sur la carte, comme la pêche =================
+   1) thermomètre : on touche l'animal ; 2) les objets de la mallette apparaissent en bulles ; 3) un geste par soin ;
+   4) l'animal guérit (cœurs, étoile). */
+const MYS = new Image(); MYS.src = 'assets/myah_soin.png';
+let CARE = null;
+const careOn = () => !!CARE;
+const CARE_GEST = { cuillere: 'pour', tisane: 'pour', pipette: 'pour', brosse: 'brush', couverture: 'drag', baume: 'rub', gelule: 'time' };
+const CARE_HELP = { pour: 'Garde le doigt appuyé pour verser… et lâche quand c\'est dans le vert !', brush: 'Brosse-le doucement : fais glisser ton doigt de gauche à droite sur lui !', drag: 'Fais glisser la couverture jusque sur son dos !', rub: 'Masse doucement : fais des petits ronds sur lui avec ton doigt !', time: 'Attends qu\'il ouvre la bouche… et touche-le à ce moment-là !' };
+const careToolM = k => k === 'pipette' ? KPIP : KICO[k] ? KICO[k] : KT_M[k];
+const careAnimH = c => c.v.koala ? (KOB_KH[c.v.k] || 26) : (KA_HH[c.v.k] || 20);
+const careAC = c => [c.p.x, c.p.y - careAnimH(c) * .5];   // le centre de l'animal
+function careStart(v, p) {
+  if (!p) return false;
+  const side = IN.x < p.x ? -1 : 1;   // Myah reste où elle est (à côté de l'animal)
+  CARE = { v, p: { x: p.x, y: p.y }, step: 'thermo', t: 0, wrong: 0, off: {}, tool: null, hold: 0, shake: 0, g: {}, side };
+  player.mvx = player.mvy = 0; setAnim('idle'); actQueued = false;
+  careBtn(true); sfx.pick && sfx.pick();
+  say(v.mal + ' Touche ' + (v.koala ? 'le koala' : 'l\'animal') + ' pour prendre sa température.', 5);
+  return true;
+}
+function careStop() { CARE = null; careBtn(false); player.state = 'free'; actBlock = time + .5; }
+function careBtn(on) {
+  let b = document.getElementById('careX');
+  if (!b) { b = document.createElement('button'); b.id = 'careX'; b.textContent = 'Arrêter le soin'; b.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;padding:9px 18px;border-radius:20px;border:2px solid #fff;background:#c8973e;color:#fff;font:700 15px system-ui;box-shadow:0 3px 10px rgba(0,0,0,.3);display:none'; document.body.appendChild(b); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); careStop(); }); }
+  b.style.display = on ? 'block' : 'none';
+}
+const careBubbles = c => { const ks = TOOLS.map(t => t.k).filter(k => k !== 'thermo'), n = ks.length, cx = (IN.x + c.p.x) / 2, cy = Math.min(IN.y, c.p.y) - 92, R = 44;
+  return ks.map((k, i) => { const a = Math.PI * (1.08 + .84 * i / (n - 1)); return { k, x: cx + Math.cos(a) * R * 1.25, y: cy + Math.sin(a) * R * .9 + 18 }; }); };
+const careLocked = (c, k) => !!REMK[k] && !c.v.koala && vetShowAll !== 1 && !(kobRx[REMK[k]] > 0);
+function careWorld(e) { const r = cv.getBoundingClientRect(), v = IN.view; if (!v) return [0, 0]; return [(e.clientX - r.left - v.ox) / v.s, (e.clientY - r.top - v.oy) / v.s]; }
+function careDown(e) {
+  const c = CARE; if (!c || !IN.on) return; e.preventDefault(); e.stopImmediatePropagation(); audio();
+  const [x, y] = careWorld(e), [ax, ay] = careAC(c), dA = dist(x, y, ax, ay), near = Math.max(34, careAnimH(c) * 1.3);
+  c.down = { x, y, id: e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  if (c.step === 'thermo') { if (dA < near + 14) { c.step = 'temp'; c.t = 0; sfx.pick && sfx.pick(); } else say('Touche ' + (c.v.koala ? 'le koala' : 'l\'animal') + ' avec le thermomètre !', 2.4); return; }
+  if (c.step === 'choose') {
+    let best = null, bd = 16; careBubbles(c).forEach(b => { const d = dist(x, y, b.x, b.y); if (d < bd) { bd = d; best = b; } }); if (!best) return;
+    const k = best.k, nm = TOOLS.find(t => t.k === k).n;
+    if (c.off[k]) return;
+    if (careLocked(c, k)) { sfx.no && sfx.no(); say('Tu n\'as plus de ' + nm.toLowerCase() + ' dans ta mallette : prépare-en au plan de travail du dispensaire !', 4); return; }
+    sfx.pick && sfx.pick(); c.hold = k; c.holdT = time + 1.1;
+    if (k === c.v.tool) { c.tool = k; c.step = 'gest'; c.t = 0; c.g = { kind: CARE_GEST[k], lvl: 0, prog: 0, sx: null, dir: 0, ang: null, bx: IN.x, by: IN.y - 30 }; say(CARE_HELP[c.g.kind], 5); }
+    else { c.off[k] = 1; c.wrong++; c.shake = time + .7; sfx.no && sfx.no(); say('Ça ne le guérit pas… ' + (c.wrong >= 2 ? 'Conseil : ' + (c.v.koala || vetAdv[c.v.k] || vetShowAll === 1 ? c.v.conseil : 'demande au docteur Tarah, au dispensaire.') : 'Essaie un autre soin !'), c.wrong >= 2 ? 6 : 3); }
+    return;
+  }
+  if (c.step === 'gest') { const g = c.g;
+    if (g.kind === 'pour') g.pouring = true;
+    else if (g.kind === 'drag') { g.drag = true; g.bx = x; g.by = y; }
+    else if (g.kind === 'brush') { g.sx = x; g.lx = x; }
+    else if (g.kind === 'rub') { g.ang = Math.atan2(y - ay, x - ax); }
+    else if (g.kind === 'time') { if (careMouth()) careHeal(); else { sfx.no && sfx.no(); c.shake = time + .4; say('Pas encore… attends qu\'il ouvre la bouche !', 2.2); } }
+  }
+}
+function careMove(e) {
+  const c = CARE; if (!c || !c.down || c.step !== 'gest') return; e.preventDefault(); e.stopImmediatePropagation();
+  const [x, y] = careWorld(e), [ax, ay] = careAC(c), g = c.g, near = Math.max(40, careAnimH(c) * 1.6);
+  if (g.kind === 'drag' && g.drag) { g.bx = x; g.by = y; }
+  else if (g.kind === 'brush' && dist(x, y, ax, ay) < near) { const dx = x - g.lx; if (Math.abs(dx) > 3) { const d = Math.sign(dx); if (d !== g.dir) { if (g.dir && Math.abs(x - g.sx) > 8) { g.prog = Math.min(1, g.prog + 1 / 6); sfx.pick && sfx.pick(); g.sx = x; } g.dir = d; } g.lx = x; } if (g.prog >= 1) careHeal(); }
+  else if (g.kind === 'rub' && dist(x, y, ax, ay) < near) { const a = Math.atan2(y - ay, x - ax); if (g.ang != null) { let d = a - g.ang; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; g.prog = Math.min(1, g.prog + Math.abs(d) / (TAU * 3)); } g.ang = a; if (g.prog >= 1) careHeal(); }
+}
+function careUp(e) {
+  const c = CARE; if (!c || !c.down) return; e.preventDefault(); e.stopImmediatePropagation(); c.down = null; const g = c.g;
+  if (c.step !== 'gest') return;
+  if (g.kind === 'pour' && g.pouring) { g.pouring = false;
+    if (g.lvl >= .62 && g.lvl <= .86) careHeal();
+    else if (g.lvl > .86) { g.lvl = 0; sfx.no && sfx.no(); say('Oups, c\'est trop ! On recommence, plus doucement.', 2.6); }
+    else say('Encore un petit peu…', 1.6); }
+  if (g.kind === 'drag' && g.drag) { g.drag = false; const [ax, ay] = careAC(c); if (dist(g.bx, g.by, ax, ay) < Math.max(26, careAnimH(c))) careHeal(); else { g.bx = IN.x; g.by = IN.y - 30; say('Pose-la bien sur son dos !', 2); } }
+  if (g.kind === 'rub') g.ang = null;
+}
+cv.addEventListener('pointerdown', careDown, true); cv.addEventListener('pointermove', careMove, true); addEventListener('pointerup', careUp, true); addEventListener('pointercancel', careUp, true);
+const careMouth = () => CARE && ((time - (CARE.g.t0 || 0)) % 1.7) > 1.15;   // gélule : la bouche s'ouvre un court instant toutes les 1,7 s
+function careHeal() {
+  const c = CARE; if (!c || c.step === 'heal') return;
+  c.step = 'heal'; c.t = 0; c.down = null; sfx.star && sfx.star();
+  const rk = REMK[c.tool]; if (rk && !c.v.koala && vetShowAll !== 1) kobRx[rk] = Math.max(0, (kobRx[rk] || 0) - 1);
+  say('Bravo ! ' + c.v.n + (c.v.koala ? ' va mieux' : (' est guéri' + (c.v.k === 'roussette' || c.v.k === 'souris' ? 'e' : ''))) + ' ! ⭐', 3);
+  setTimeout(() => { const v = c.v; if (CARE !== c) return; careStop(); vetCured(v); save(); try { kobHud(); } catch (e) {} }, 2300);
+}
+function careUpdate(dt) {
+  const c = CARE; if (!c) return; c.t += dt;
+  if (SC !== SC_KOBHAK || !IN.on) { careStop(); return; }
+  if (c.step === 'temp' && c.t > 2.4) { c.step = 'choose'; c.t = 0; say('Ouvre ta mallette : quel soin va le guérir ?', 4); }
+  if (c.step === 'gest' && c.g.kind === 'pour' && c.g.pouring) c.g.lvl = Math.min(1.05, c.g.lvl + dt * .42);
+  if (c.step === 'gest' && c.g.kind === 'time' && !c.g.t0) c.g.t0 = time;
+}
+function careFrame(img, m, x, y, h, flip) { if (!img.complete || !img.naturalWidth || !m) return; const w = h * m[2] / m[3]; ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1); ctx.drawImage(img, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); }
+function careDrawMyah() {   // Myah, de face, avec l'objet du soin en main
+  const c = CARE, h = 46 * IN_K * .78, k = c.hold && time < c.holdT ? c.hold : c.step === 'gest' || c.step === 'heal' ? c.tool : c.step === 'choose' ? null : 'thermo';
+  ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, 21, 7.5, 0, 0, TAU); ctx.fill(); ctx.restore();
+  const act = c.step === 'gest' && (c.g.pouring || c.g.drag || c.down) ? 'act' : 'side';
+  if (!k) careFrame(KANI, KMAL, IN.x, IN.y + 2, h, false);
+  else if (GV_KEY[k] && c.step === 'gest') careFrame(KANI, KGV[GV_KEY[k] + '_' + act], IN.x, IN.y + 2, h, c.side > 0);
+  else if (KS2_M[k]) careFrame(KANI, KS2_M[k], IN.x, IN.y + 2, h, false);
+  else careFrame(MYS, KS_M[k], IN.x, IN.y + 2, h, false);
+}
+function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (au-dessus du décor)
+  const c = CARE; if (!c || SC !== SC_KOBHAK) return; const [ax, ay] = careAC(c), ah = careAnimH(c), T = time;
+  ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const ring = (x, y, r, p, col) => { ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + TAU * p); ctx.stroke(); };
+  if (c.step === 'thermo') { const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(255,230,120,' + (.5 + .4 * a) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, ay, ah * .75 + 3 * a, 0, TAU); ctx.stroke(); }
+  if (c.step === 'temp' || c.step === 'choose') {   // le thermomètre au-dessus de l'animal
+    const tv = (VET_TEMP[c.v.k] || [38.6])[0], u = c.step === 'temp' ? Math.min(1, c.t / 1.4) : 1, pc = Math.max(.05, Math.min(1, (tv - 36) / 5)) * u, x = ax, y = c.p.y - ah - 30;
+    ctx.fillStyle = 'rgba(255,250,240,.95)'; ctx.strokeStyle = '#b07a3a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 34, y - 12, 68, 24, 8) : ctx.rect(x - 34, y - 12, 68, 24); ctx.fill(); ctx.stroke();
+    const g = ctx.createLinearGradient(x - 28, 0, x + 28, 0); g.addColorStop(0, '#5fb4ff'); g.addColorStop(.5, '#6fd16f'); g.addColorStop(1, '#ff5a4a'); ctx.fillStyle = '#e8ddd0'; ctx.fillRect(x - 28, y + 3, 56, 5); ctx.fillStyle = g; ctx.fillRect(x - 28, y + 3, 56 * pc, 5);
+    ctx.fillStyle = '#5a3a1e'; ctx.font = '700 9px system-ui'; ctx.fillText(u < 1 ? '…' : String(tv).replace('.', ',') + ' °C', x, y - 4);
+  }
+  if (c.step === 'choose') careBubbles(c).forEach((b, i) => {   // les objets de la mallette, en bulles
+    const lock = careLocked(c, b.k), off = c.off[b.k], bob = Math.sin(T * 2.4 + i) * 1.2, r = 11;
+    ctx.globalAlpha = off ? .35 : 1; ctx.fillStyle = lock ? 'rgba(235,228,218,.95)' : '#fffaf0'; ctx.strokeStyle = lock ? '#b9a98f' : '#e0a63a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(b.x, b.y + bob, r, 0, TAU); ctx.fill(); ctx.stroke();
+    const m = careToolM(b.k); if (m && KANI.complete) { const hh = 15, ww = hh * m[2] / m[3], s = Math.min(1, 16 / ww); ctx.globalAlpha = (off ? .35 : 1) * (lock ? .45 : 1); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], b.x - ww * s / 2, b.y + bob - hh * s / 2, ww * s, hh * s); }
+    ctx.globalAlpha = 1; if (REMK[b.k] && !c.v.koala) { const n = kobRx[REMK[b.k]] || 0; ctx.fillStyle = n ? '#2e9e6b' : '#b23'; ctx.beginPath(); ctx.arc(b.x + 8, b.y + bob - 8, 4.5, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '700 6px system-ui'; ctx.fillText(String(n), b.x + 8, b.y + bob - 7.6); }
+  });
+  if (c.step === 'gest') { const g = c.g;
+    if (g.kind === 'pour') { const x = IN.x + c.side * -22, y = IN.y - 52, H = 40; ctx.fillStyle = 'rgba(255,250,240,.95)'; ctx.strokeStyle = '#b07a3a'; ctx.lineWidth = 1.5; ctx.fillRect(x - 5, y - H, 10, H); ctx.strokeRect(x - 5, y - H, 10, H);
+      ctx.fillStyle = 'rgba(80,200,110,.45)'; ctx.fillRect(x - 5, y - H * .86, 10, H * .24); ctx.fillStyle = c.tool === 'tisane' ? '#c98a3a' : c.tool === 'pipette' ? '#7cc4f0' : '#8a3a2a'; ctx.fillRect(x - 4, y - H * Math.min(1, g.lvl), 8, H * Math.min(1, g.lvl));
+      if (g.pouring) for (let i = 0; i < 3; i++) { ctx.fillStyle = ctx.fillStyle; ctx.beginPath(); ctx.arc(ax + (Math.random() - .5) * 6, ay - 6 + ((T * 60 + i * 9) % 14), 1.4, 0, TAU); ctx.fill(); } }
+    if (g.kind === 'brush' || g.kind === 'rub') { ring(ax, c.p.y - ah - 12, 7, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
+    if (g.kind === 'drag') { const m = careToolM('couverture'), hh = 16, ww = hh * m[2] / m[3]; ctx.globalAlpha = .95; if (KANI.complete) ctx.drawImage(KANI, m[0], m[1], m[2], m[3], g.bx - ww / 2, g.by - hh / 2, ww, hh); ctx.globalAlpha = 1; const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(111,209,111,' + (.4 + .5 * a) + ')'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax, ay, Math.max(14, ah * .6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+    if (g.kind === 'time') { const open = careMouth(); ctx.strokeStyle = open ? '#6fd16f' : 'rgba(255,255,255,.7)'; ctx.lineWidth = open ? 3 : 1.5; ctx.beginPath(); ctx.arc(ax, ay, ah * .7 + (open ? 3 : 0), 0, TAU); ctx.stroke(); if (open) { ctx.fillStyle = '#2e7d4a'; ctx.font = '800 8px system-ui'; ctx.fillText('Maintenant !', ax, c.p.y - ah - 10); } }
+  }
+  if (c.step === 'heal') for (let i = 0; i < 5; i++) { const u = (c.t * .7 + i / 5) % 1; ctx.globalAlpha = 1 - u; ctx.fillStyle = '#ff7eb6'; ctx.font = 'bold ' + (9 + i % 3 * 2) + 'px system-ui'; ctx.fillText('♥', ax + Math.sin(i * 2.3 + c.t * 2) * 12, ay - 6 - u * 34); }
+  ctx.restore();
+}
+
 // --- nourrir les animaux guéris (comme Jukii et Sukah sur l'île du Cygne) : une gamelle, pas de stock à gérer
 const kobFeedT = {};   // animal -> fin du petit effet de joie
 const vetFeedNear = () => { if (SC !== SC_KOBHAK || IN.floor !== 0) return null; return VET.find(v => { const p = vetShowAll === 2 ? v.sp[0] : (vetS[v.k] === 3 && vetDone()) && vetPos(v); return p && dist(IN.x, IN.y, p.x, p.y) < 46; }) || null; };
@@ -3794,7 +3920,7 @@ function kobTalk() {
   if (n.k === 'koki' && mgBouquetGive()) return true;
   if (SC === SC_DISP) IN.lastKobN = n; const T = KOB_TALK[n.k]; const first = !kobSeen[n.k]; kobSeen[n.k] = true; n.walk = false; n.wait = 6;
   let lines = first ? T.first : T.again, after = null;
-  if (n.ko && kobQ === 4 && !kobKoa[n.k]) { vetFiche(koalaV(n.k)); return true; }
+  if (n.ko && kobQ === 4 && !kobKoa[n.k]) { careStart(koalaV(n.k), { x: n.x, y: n.y }); return true; }
   if (n.ko && kobKoa[n.k]) lines = { zuki: ['Plus d\'atchoum ! Merci, Myah, tu es une vraie vétérinaire !'], lumi: ['Je respire enfin ! Merci pour la bonne tisane.'], mini: ['Hihi ! Mon nez n\'est plus rouge ! Merci !'] }[n.k];
   if (n.k === 'maia') {
     const pend = VET.filter(v => vetS[v.k] === 1 && !vetAdv[v.k]);
@@ -5110,6 +5236,7 @@ function npcWander(n, dt) {   // petite promenade entre quelques points libres ;
 function updateInterior(dt) {
   IN.t += dt; time += dt;
   updateKobBeachFish(dt);
+  careUpdate(dt);
   dawnReset();
   (SC === SC_HOME || SC === SC_UKAI || SC === SC_MUS ? SC.npcs() : kobList().filter(n => !n.ko)).forEach(n => npcWander(n, dt));   // les habitants se promènent un peu chez eux
   { const c = IN.climb, tgD = (SC === SC_HOME || SC === SC_UKAI || SC === SC_MUS || SC === SC_MK2) ? (c ? Math.min(1, Math.max(0, c.u)) : (IN.floor === 1 ? 1 : 0)) * DK_UP : 0;
@@ -5483,7 +5610,7 @@ function renderInterior(vw, vh) {
     }
     if (t.fg === 'table') { ctx.save(); ctx.beginPath(); TABLE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); if (SC === SC_HOME) drawTblItems(2); ctx.restore(); }
   };
-  const drawMy = () => { if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
+  const drawMy = () => { if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
     const bh = 46 * IN_K * .76, d4 = player.dir4 || 'down', bwob = Math.abs(Math.sin(time * 8)) * 1.3 * (Math.hypot(player.mvx || 0, player.mvy || 0) > .1 ? 1 : 0);
     
@@ -5530,7 +5657,7 @@ function renderInterior(vw, vh) {
   };
   if (ichest && IN.y >= ichest.inside.y) drawIC();
   if (SC === SC_UKAI && IN.floor === 0) { const ct = MI.animals.find(a => a.id === 'chat'); const im = MIM.an_chat; if (ct && isEve() && im && im.complete && im.naturalWidth) { const h = 36, w = h * im.naturalWidth / im.naturalHeight, cx = 466, cy = 542; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy, w * .45, 3, 0, 0, TAU); ctx.fill(); ctx.translate(cx, cy); ctx.rotate(1.3); ctx.scale(1, 1 + Math.sin(time * 1.6) * .03); ctx.drawImage(im, -w / 2, -h + 4, w, h); ctx.restore(); ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(60,40,20,.8)'; ctx.lineWidth = .8; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; const zz = (time * .7) % 1; ctx.globalAlpha = 1 - zz; ctx.strokeText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.fillText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.restore(); } }
-  kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
+  kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); careDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
   { const NL = (kobScene() ? kobList() : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
     const OC = SC.occ && SC.occ.length && SC.img.complete && SC.img.naturalWidth ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
