@@ -2972,7 +2972,7 @@ const KOB_N = [
   { k: 'bimba', x: 880, y: 478, r: 40, wp: [[880, 478]] },
   { k: 'tobi', x: 630, y: 605, r: 40, wp: [[630, 605], [648, 614], [614, 600], [640, 622]] },   // Kobi reste là (à l'endroit choisi), sans barrer le chemin
 ].map(n => Object.assign(n, { wi: 0, wait: 3 + Math.random() * 4, fl: false, walk: false, get: () => n, sprite: null }));
-const KOB_D = [{ k: 'okai', x: 640, y: 600, r: 40, wp: [[640, 600]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }, { k: 'maia', x: 735, y: 565, r: 40, wp: [[735, 565], [770, 585], [700, 560], [745, 590]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }];   // Docteur Tarah, dans le dispensaire
+const KOB_D = [{ k: 'okai', x: 300, y: 648, r: 40, wp: [[300, 648]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }, { k: 'maia', x: 735, y: 565, r: 40, wp: [[735, 565], [770, 585], [700, 560], [745, 590]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }];   // Docteur Tarah, dans le dispensaire
 const mkInh = (k, x, y, wp) => ({ k, x, y, r: 40, wp, wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null });
 const KOB_G = [mkInh('tomba', 350, 700, [[350, 700], [385, 722], [322, 690]])], KOB_S = [mkInh('koki', 900, 650, [[900, 650], [850, 690], [950, 640]])], KOB_T = [mkInh('nuna', 700, 650, [[700, 650], [760, 690], [800, 660]])];
 const KOB_OK_HOME = { k: 'okai', x: 330, y: 850, r: 40, wp: [[330, 850]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null };   // le soir, Okaï rentre chez lui (la maison à gauche du dispensaire)
@@ -5201,9 +5201,9 @@ function updateInterior(dt) {
     else if (nearScope()) openScope(nearScope() - 1);
     else if (nearPaint()) askPaint(true);
     else if (nearHatch()) askHatch(true);
+    else if (!kobHF() && nearDesk()) deskMenu();   // le poste de soin passe avant les habitants qui sont à côté
     else if (!kobHF() && kobScene() && kobTalk()) { }
     else if (kobGather()) { }
-    else if (!kobHF() && nearDesk()) deskMenu();
     else if (!kobHF() && vetAct()) { }
     else if (!kobHF() && vetFeedAct()) { }
     else if (!kobHF() && mgAct()) { }
@@ -5257,6 +5257,7 @@ function tapSpots() {
   if (nearTbl()) L.push({ id: 'tbl', x: TBL_C[0], y: TBL_C[1] - 70, go: () => { tutDone('tbl'); actQueued = false; tblEdOpen(1); } });
   if (nearTbl2()) L.push({ id: 'tbl2', x: DT_H[0], y: DT_H[1], go: () => { tutDone('tbl'); actQueued = false; tblEdOpen(2); } });
   if (wallDecorUnlocked() && SC === SC_HOME) HANG_SLOTS.forEach(s => { if (s.floor === IN.floor && Math.abs(IN.x - (s.z[0] + s.z[2]) / 2) < 70) L.push({ id: 'hang_' + s.id, x: (s.z[0] + s.z[2]) / 2, y: (s.z[1] + s.z[3]) / 2, go: () => { tutDone('hang'); actQueued = false; hangEdOpen(s); } }); });
+  if (SC === SC_DISP && IN.floor === 0 && kobQ >= 2 && dist(IN.x, IN.y, DESK[0], DESK[1]) < 140) L.push({ id: 'desk', x: 600, y: 572, go: () => { actQueued = false; deskMenu(); } });   // le plan de travail aux flacons : on touche le halo pour préparer les remèdes
   if (SC === SC_HOME && dist(IN.x, IN.y, COOK_SPOT[0], COOK_SPOT[1]) < 120) L.push({ id: 'cook', x: COOK_HL[0], y: COOK_HL[1], go: () => { actQueued = false; openCook(); } });
   const ns = nearSeat();
   SEATS.forEach(t => { if (t.off || (t.sc || SC_HOME) !== SC) return; if (ns === t || dist(IN.x, IN.y, t.ap[0], t.ap[1]) < 120) L.push({ id: t.id, x: t.hl ? t.hl[0] : t.pos[0], y: t.hl ? t.hl[1] : t.pos[1] - 85, go: () => { tutDone(t.id === 'wc' ? 'wc' : 'seat'); sitDown(t); } }); });
