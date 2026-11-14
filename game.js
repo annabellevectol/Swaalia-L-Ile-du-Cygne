@@ -3298,7 +3298,7 @@ const redBang = (x, y) => { ctx.save(); ctx.fillStyle = '#e22d3b'; ctx.strokeSty
 const vetDone = () => VET.every(v => vetS[v.k] === 3);
 function vetNext(msg) { if (kobQ !== 6 || VET.some(v => vetS[v.k] === 1)) return; const c = VET.filter(v => !vetS[v.k]); if (!c.length) return; vetS[c[Math.floor(Math.random() * c.length)].k] = 1; if (msg) setTimeout(() => say('Un animal a besoin de toi quelque part sur l\'île ! Cherche le point d\'exclamation rouge.', 6), msg); }
 let vetShowAll = 0;   // test (menu parents) : 1 = tous les animaux malades, 2 = tous guéris
-const KA_HH = { wallaby: 22, kookaburra: 17, quokka: 19, echidne: 15, roussette: 18, phalanger: 13, ornitho: 18, casoar: 22, diable: 17, bandicoot: 14, souris: 11 };   // hauteur sur la carte, proportionnelle à Myah (≈ 40) selon la vraie taille de l'animal
+const KA_HH = { wallaby: 29, kookaburra: 21, quokka: 25, echidne: 19, roussette: 21, phalanger: 17, ornitho: 22, casoar: 22, diable: 17, bandicoot: 19, souris: 14 };   // hauteur sur la carte, proportionnelle à Myah (≈ 40) selon la vraie taille de l'animal
 function vetDraw() {
   if (SC !== SC_KOBHAK || !KANI.complete || !KANI.naturalWidth) return;
   VET.forEach(v => {
