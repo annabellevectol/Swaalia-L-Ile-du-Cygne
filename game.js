@@ -837,7 +837,7 @@ function miniAction() {   // renvoie true si l'action a été utilisée
 const player = { x: D.start[0], y: D.start[1], face: 1, anim: 'idle', fr: 0, state: 'free', mount: null, alt: 0, altT: 0, hopT: 0 };
 
 const NP = window.NPCS, npcImg = {};
-Object.keys(NP).forEach(k => { const i = new Image(); i.src = NP[k].src + '?v=30'; npcImg[k] = i; });   // ?v= : force le téléphone à recharger les nouvelles images
+Object.keys(NP).forEach(k => { const i = new Image(); i.src = NP[k].src + '?v=31'; npcImg[k] = i; });   // ?v= : force le téléphone à recharger les nouvelles images
 const NPC_K = .76;
 function npcSprite(key) {
   const m = NP[key], sc = NPC_K * (m.sc || m.H / (m.feet - m.head)) ;        // taille selon l'âge, pas selon l'image d'origine
