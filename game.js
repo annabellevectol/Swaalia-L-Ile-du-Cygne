@@ -902,9 +902,9 @@ function npcBake(sp, nk = NK, slot = 'baked') {
   return (sp[slot] = c);
 }
 const PARROT = new Image(); PARROT.src = 'assets/npc3/perroquet_kito.png?v=32';
-function drawKitoParrot(x, y) {   // le petit perroquet rouge de Kito, posé à côté de lui (il sautille un peu)
-  if (!PARROT.complete || !PARROT.naturalWidth) return; const h = 10, w = h * PARROT.naturalWidth / PARROT.naturalHeight, hop = Math.max(0, Math.sin(time * 3.1)) * 1.6;
-  ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x + 13, y, 4, 1.4, 0, 0, TAU); ctx.fill(); ctx.drawImage(PARROT, x + 13 - w / 2, y - h - hop, w, h); ctx.restore();
+function drawKitoParrot(x, y, k) {   // le petit perroquet rouge de Kito, posé à côté de lui (il sautille un peu) ; k = taille du décor
+  if (!PARROT.complete || !PARROT.naturalWidth) return; k = k || 1; ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.translate(-x, -y); ctx.restore(); const h = 10 * k, w = h * PARROT.naturalWidth / PARROT.naturalHeight, hop = Math.max(0, Math.sin(time * 3.1)) * 1.6;
+  ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x + 13 * k, y, 4 * k, 1.4 * k, 0, 0, TAU); ctx.fill(); ctx.drawImage(PARROT, x + 13 * k - w / 2, y - h - hop * k, w, h); ctx.restore();
 }
 const NPC_SX = {};   // (nouvelles images : plus besoin de corriger la largeur)
 function drawNpcSprite(sp, x, y, t, flip, hi) {
@@ -913,7 +913,8 @@ function drawNpcSprite(sp, x, y, t, flip, hi) {
   const fr = sp.key === 'frere';   // le petit frère : plus fin (il paraissait trop large à côté de Myah) et un peu transparent comme elle
   ctx.save(); ctx.translate(x, y - (sp.bob || 0)); ctx.scale(flip ? -1 : 1, 1); ctx.globalAlpha = 1;
   const sx = NPC_SX[sp.key.replace(/_[lru]$/, '')] || 1;   // largeur corrigée : les plus trapus un peu affinés, l'ado un peu étoffé   // l'ado : un peu plus épais que Myah
-  ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .7; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .6; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.restore();   // PNJ : ailes translucides renforcées (3 passes)
+  ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .7; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .6; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.restore();   // PNJ : ailes translucides
+  if (/^kito/.test(sp.key)) drawKitoParrot(x, y, (m.feet - m.head) * s / 17);   // le perroquet de Kito, dehors comme dans les maisons renforcées (3 passes)
 }
 QUESTS.forEach(q => {
   const st = D.stands[q.spot];
@@ -2328,7 +2329,7 @@ function postAct() {   // ramasser l'œuf
   player.state = 'talk'; openDialog('Myah', ['Un œuf de cygne, tout tiède ! 🥚', 'Lulia saura comment lui faire un nid. Je vais la voir au poste de soin !'], () => { player.state = 'free'; }); return true;
 }
 function postUpdate() {
-  if (!postOn()) return; postNewDay(); tamaUpdate();
+  if (!postOn()) return; postNewDay(); tamaUpdate(); folUpdate(1 / 60);
   const p = player, fly = p.mount === 'fly';
   [['ring', RINGS, 'anneau'], ['fea', FEATHERS, 'plume']].forEach(([k, L, n]) => { const m = post[k]; if (!m || m.done || !fly) return;
     L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); if (k === 'ring') ringPop.push([q[0], q[1] - 52, time]); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
@@ -2382,7 +2383,12 @@ function tamaUpdate() {   // les besoins baissent doucement avec le temps du jeu
   tamaDay = dn;
 }
 const nearNest = () => postOn() && !IN.on && !player.mount && nestBaby() && dist(player.x, player.y, NEST()[0], NEST()[1]) < 30;
-const nearTeen = () => postOn() && !IN.on && !player.mount && babies().find((b, i) => b.st === 'teen' && dist(player.x, player.y, teenPos(i)[0], teenPos(i)[1]) < 26);
+const nearTeen = () => postOn() && !IN.on && !player.mount && (folBaby() && dist(player.x, player.y, FOL.x, FOL.y) < 26 ? folBaby() : babies().find((b, i) => b.st === 'teen' && b !== folBaby() && dist(player.x, player.y, teenPos(i)[0], teenPos(i)[1]) < 26));
+const FOL = { x: 0, y: 0, fl: false, mv: 0, on: false };   // le jeune cygne qui suit Myah
+const folBaby = () => { const i = post.follow; return i != null && i >= 0 && babies()[i] && babies()[i].st === 'teen' ? babies()[i] : null; };
+function folUpdate(dt) { const b = folBaby(); if (!b || IN.on) { FOL.on = false; return; } const p = player;
+  if (!FOL.on || dist(FOL.x, FOL.y, p.x, p.y) > 160) { FOL.x = p.x - 18; FOL.y = p.y + 4; FOL.on = true; }
+  const dx = p.x - FOL.x, dy = p.y - FOL.y, dd = Math.hypot(dx, dy); if (dd > 22) { const k = Math.min(1, dt * 3.2) * (dd - 22) / dd; FOL.x += dx * k; FOL.y += dy * k; FOL.mv = Math.min(1, FOL.mv + dt * 4); if (Math.abs(dx) > 2) FOL.fl = dx < 0; } else FOL.mv = Math.max(0, FOL.mv - dt * 3); }
 function teenPos(i) { const s = TEEN_SPOTS[i % 3], u = (Math.sin(time * .12 + i * 2) + 1) / 2, a = s[0], c = s[1]; return [a[0] + (c[0] - a[0]) * u, a[1] + (c[1] - a[1]) * u, s[2] === 'swim', Math.cos(time * .12 + i * 2) > 0]; }
 function tamaDraw(items) {   // le nid (avec l'œuf ou le bébé) et les ados sur la plage
   if (!postOn() || IN.on || !TAMA_IMG.complete || !TAMA_IMG.naturalWidth) return;
@@ -2394,7 +2400,8 @@ function tamaDraw(items) {   // le nid (avec l'œuf ou le bébé) et les ados su
     else { d('nest', nx, ny + 2, 12, 0, false); if (b) d(babyMood(b), nx, ny - 4 - (babyMood(b) === 'joy' ? Math.abs(Math.sin(time * 6)) * 2 : 0), 15, b.hue, false); }
     if (b && b.st === 'baby' && Math.min(b.faim, b.prop, b.jeu, b.calin) < 35 && !(isEve() && dayT > .72)) marker(nx, ny - 26, '!', '#ff9ec7');
   } }); }
-  babies().forEach((t, i) => { if (t.st !== 'teen') return; const [x, y, sw, fl] = teenPos(i); items.push({ y, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(x, y, 10, 3, 0, 0, TAU); ctx.fill(); ctx.restore(); d(isEve() && dayT > .72 ? 't_sleep' : sw ? 't_swim' : 't_walk', x, y + (sw ? 3 : 0), 24, t.hue, !fl); } }); });
+  const fo = folBaby(); if (fo && !player.mount) { const c = FOL, mv = c.mv > .2; items.push({ y: c.y, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(c.x, c.y, 10, 3, 0, 0, TAU); ctx.fill(); ctx.restore(); d(mv ? 't_walk' : 't_idle', c.x, c.y + (mv ? Math.abs(Math.sin(time * 9)) * -1 : 0), 24, fo.hue, c.fl); } }); }
+  babies().forEach((t, i) => { if (t.st !== 'teen' || t === fo) return; const [x, y, sw, fl] = teenPos(i); items.push({ y, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(x, y, 10, 3, 0, 0, TAU); ctx.fill(); ctx.restore(); d(isEve() && dayT > .72 ? 't_sleep' : sw ? 't_swim' : 't_walk', x, y + (sw ? 3 : 0), 24, t.hue, !fl); } }); });
 }
 function tamaOpen(b) {   // l'écran façon Tamagotchi
   b = b || nestBaby(); if (!b) return; player.state = 'talk'; player.mvx = player.mvy = 0; setAnim('idle');
@@ -2408,11 +2415,13 @@ function tamaOpen(b) {   // l'écran façon Tamagotchi
       '<h3>' + b.name + '</h3><div class="sub">' + (b.st === 'egg' ? 'Un œuf tout tiède… fais-lui un câlin chaque jour pour qu\'il éclose !' : b.st === 'teen' ? 'C\'est maintenant un jeune cygne : il se promène sur la plage.' : sleeping ? 'Chut… il dort. Reviens demain matin !' : 'Bébé cygne · bonnes journées : ' + b.good + '/3') + '</div>' +
       '<div class="scr"><span id="tmPic" class="' + (act ? 'hop' : '') + '">' + (act === 'feed' ? tmSpr('feed_hand', 60, 0) : '') + tmSpr(mood, act === 'bath' || act === 'cuddle' || act === 'play' ? 150 : b.st === 'teen' ? 165 : 150, b.hue) + '</span>' + (mood === 'hungry' ? '<span style="position:absolute;right:18%;top:12%">' + tmSpr('think', 46, 0) + '</span>' : '') + '<div class="fx" id="tmFx"></div></div>' +
       (b.st === 'baby' ? '<div class="g">' + NEED_K.map(([k, n]) => '<span>' + n + '</span><div class="bar"><i style="width:' + (b[k] * .884).toFixed(1) + '%;background:' + (b[k] < 35 ? '#ff7a5a' : b[k] < 65 ? '#ffc23d' : '#6fd16f') + '"></i></div>').join('') + '</div>' : '<div style="height:10px"></div>') +
-      '<div class="bt">' + (b.st === 'baby' ? [['feed', 'Nourrir (' + (inv.graine || 0) + ')', 'seeds'], ['bath', 'Laver', 'tub'], ['play', 'Jouer', 'play'], ['cuddle', 'Câlin', 'caress']] : [['cuddle', b.st === 'egg' ? 'Réchauffer' : 'Câlin', 'caress']]).map(([a, n, ic]) => '<button data-a="' + a + '"' + (sleeping || (b.st === 'egg' && b.warm > 0) ? ' disabled' : '') + '>' + (a === 'feed' ? '<img src="assets/spr/graines.png?v=50" alt="" style="height:34px">' : tmSpr(ic, 34, 0)) + n + '</button>').join('') + '</div></div>';
+      '<div class="bt">' + (b.st === 'baby' ? [['feed', 'Nourrir (' + (inv.graine || 0) + ')', 'seeds'], ['bath', 'Laver', 'tub'], ['play', 'Jouer', 'play'], ['cuddle', 'Câlin', 'caress']] : [['cuddle', b.st === 'egg' ? 'Réchauffer' : 'Câlin', 'caress']].concat(b.st === 'teen' ? [['walk', folBaby() === b ? 'Rester sur la plage' : 'Promenade avec moi', 't_walk']] : [])).map(([a, n, ic]) => '<button data-a="' + a + '"' + (sleeping || (b.st === 'egg' && b.warm > 0) ? ' disabled' : '') + '>' + (a === 'feed' ? '<img src="assets/spr/graines.png?v=50" alt="" style="height:34px">' : tmSpr(ic, 34, 0)) + n + '</button>').join('') + '</div></div>';
     o.style.display = 'flex';
     o.querySelector('#tmX').onclick = () => { o.style.display = 'none'; player.state = 'free'; actBlock = time + .5; };
     o.querySelectorAll('.tabs button').forEach(t => t.onclick = () => { b = babies()[+t.dataset.i]; draw(); });
-    o.querySelectorAll('.bt button').forEach(t => t.onclick = () => { if (busy.on) return; busy.on = true; const a = t.dataset.a; sfx.pick && sfx.pick();
+    o.querySelectorAll('.bt button').forEach(t => t.onclick = () => { if (busy.on) return; const a = t.dataset.a; sfx.pick && sfx.pick();
+      if (a === 'walk') { post.follow = folBaby() === b ? -1 : babies().indexOf(b); FOL.on = false; save(); say(post.follow >= 0 ? b.name + ' te suit partout sur l\'île ! 🦢' : b.name + ' retourne se promener sur la plage.', 4); o.style.display = 'none'; player.state = 'free'; actBlock = time + .5; return; }
+      busy.on = true;
       if (b.st === 'egg') { b.warm = 1; save(); draw('egg_crack'); hearts(); setTimeout(() => { busy.on = false; say('L\'œuf est bien au chaud. Demain matin, il éclora peut-être…', 4); draw(); }, 1500); return; }
       if (a === 'feed' && b.st === 'baby' && !(inv.graine > 0)) { busy.on = false; sfx.no && sfx.no(); say('Plus de graines ! Cultive des cacahuètes au potager, puis échange-les chez Kykah contre un sachet de graines. 🥜', 5); return; }
       if (a === 'feed' && b.st === 'baby') { inv.graine--; renderHud(); }
@@ -3314,7 +3323,7 @@ function vetDraw() {
 }
 const vetOvOpen = () => $('#vetOv').style.display === 'grid', remOvOpen = () => $('#remOv').style.display === 'grid';
 const kobOvOpen = () => kobBkOpen() || vetOvOpen() || remOvOpen() || mgOvOpen() || wmOpen() || (typeof careOn === 'function' && careOn());
-const KWALK = {"wallaby_f": [0, 0, 117, 160], "kookaburra_f": [119, 0, 149, 160], "quokka_f": [270, 0, 125, 160], "echidne_f": [397, 0, 175, 160], "wallaby_s": [574, 0, 152, 160], "kookaburra_s": [728, 0, 148, 160], "quokka_s": [878, 0, 120, 160], "echidne_s": [1000, 0, 193, 160], "wallaby_u": [1195, 0, 150, 160], "kookaburra_u": [0, 162, 123, 160], "quokka_u": [125, 162, 115, 160], "echidne_u": [242, 162, 182, 160], "phalanger_f": [0, 324, 144, 160], "ornitho_f": [146, 324, 142, 160], "phalanger_s": [290, 324, 197, 160], "ornitho_s": [489, 324, 246, 160], "bandicoot_f": [0, 486, 118, 110], "souris_f": [120, 486, 135, 110], "bandicoot_s": [257, 486, 196, 110], "souris_s": [455, 486, 169, 110]}, KWI = new Image(); KWI.src = 'assets/kob_walk.png?v=48';
+const KWALK = {"wallaby_f": [0, 0, 117, 160], "kookaburra_f": [119, 0, 149, 160], "quokka_f": [270, 0, 125, 160], "echidne_f": [397, 0, 175, 130], "wallaby_s": [574, 0, 152, 160], "kookaburra_s": [728, 0, 148, 160], "quokka_s": [878, 0, 120, 160], "echidne_s": [1000, 0, 193, 136], "wallaby_u": [1195, 0, 150, 160], "kookaburra_u": [0, 162, 123, 160], "quokka_u": [125, 162, 115, 160], "echidne_u": [242, 162, 182, 160], "phalanger_f": [0, 324, 144, 160], "ornitho_f": [146, 324, 142, 160], "phalanger_s": [290, 324, 197, 160], "ornitho_s": [489, 324, 246, 160], "bandicoot_f": [0, 486, 118, 110], "souris_f": [120, 486, 135, 110], "bandicoot_s": [257, 486, 196, 110], "souris_s": [455, 486, 169, 110]}, KWI = new Image(); KWI.src = 'assets/kob_walk.png?v=52';
 function kobWander(v, p) {   // va-et-vient tranquille : pause de face, marche de profil, demi-tour
   const u = (time * .22 + (v.k.length * .37)) % 4, D = 24, ph = Math.floor(u), f = u - ph, hopK = v.k === 'wallaby' || v.k === 'quokka';
   if (ph === 0) return { m: KWALK[v.k + '_f'], dx: 0, fl: false, hop: 0 };
@@ -6685,7 +6694,7 @@ function render() {
       marker(q.x, q.y - q.h - 10, ready ? '✔' : (st === 'new' ? '!' : '…'), ready ? '#47b84a' : '#ffc83d');
     } });
   });
-  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); if (e.key === 'kito') drawKitoParrot(e.x, e.y); postMark(e); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
+  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); postMark(e); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
   if (!IN.on && inV(GX, GY - 40) && gd.some(p => p.c >= 0) && gd.every(p => p.c < 0 || gStage(p) === 4)) items.push({ y: GY + 400, draw() { const bob = Math.sin(time * 3) * 2.2, cx = GX + 3, cy = GY - 32 + bob; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 4; ctx.fillStyle = '#3fbf5a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(cx - 4.5, cy + .4); ctx.lineTo(cx - 1.2, cy + 3.8); ctx.lineTo(cx + 5, cy - 3.3); ctx.stroke(); ctx.restore(); } });
   for (const j of jarsL()) { if (j.at === 'bag' || j.at === 'tbl') continue; const n = ALLNPC().find(o => npcKeyOf(o) === j.at); if (!n || !(n.hx > 0) || !inV(n.hx + 16, n.hy)) continue; items.push({ y: n.hy + 3, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(n.hx + 16, n.hy + 2, 6, 2.2, 0, 0, 7); ctx.fill(); ctx.translate(n.hx + 16 - 9, n.hy + 2 - 22); jarDraw(ctx, j, 18, 22, time); ctx.restore(); } }); }
   butterflies.forEach(b => b.alive && inV(b.x, b.y) && items.push({ y: b.y + 30, draw() {
