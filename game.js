@@ -3139,6 +3139,7 @@ function vetAct() { const v = vetNear(); if (!v) return false; return careStart(
    4) l'animal guérit (cœurs, étoile). */
 const MYS = new Image(); MYS.src = 'assets/myah_soin.png';
 let CARE = null;
+const CK_SP = ['sp0', 'sp1', 'sp2'].map(n => { const i = new Image(); i.src = 'assets/cook/' + n + '.png'; return i; });   // la main à la spatule du jeu de cuisine
 const CK_VB = new Image(); CK_VB.src = 'assets/cook/fx/vbar.png'; const CK_HB = new Image(); CK_HB.src = 'assets/cook/fx/bar.png';   // les jauges en bois du jeu de cuisine
 function careHBar(x, y, w, p, col) {   // jauge horizontale en bois (comme en cuisine), remplie à p
   const h = w * 69 / 420; if (CK_HB.complete && CK_HB.naturalWidth) ctx.drawImage(CK_HB, x - w / 2, y - h / 2, w, h); else { ctx.fillStyle = '#8a5a2a'; ctx.fillRect(x - w / 2, y - h / 2, w, h); }
@@ -3146,7 +3147,7 @@ function careHBar(x, y, w, p, col) {   // jauge horizontale en bois (comme en cu
 }
 const careOn = () => !!CARE;
 const CARE_GEST = { cuillere: 'pour', tisane: 'pour', pipette: 'pour', brosse: 'brush', couverture: 'drag', baume: 'rub', gelule: 'time' };
-const CARE_HELP = { pour: 'Garde le doigt appuyé pour verser… et lâche quand c\'est dans le vert !', brush: 'Brosse-le doucement : fais glisser ton doigt de gauche à droite sur lui !', drag: 'Fais glisser la couverture jusque sur son dos !', rub: 'Masse doucement : fais des petits ronds sur lui avec ton doigt !', time: 'Attends qu\'il ouvre la bouche… et touche-le à ce moment-là !' };
+const CARE_HELP = { pour: 'Garde le doigt appuyé pour verser… et lâche quand c\'est dans le vert !', brush: 'Brosse-le doucement : fais glisser ton doigt de gauche à droite sur lui !', drag: 'Fais glisser la couverture jusque sur son dos !', rub: 'Étale le baume sur lui avec la spatule : fais glisser ton doigt sur l\'animal !', time: 'Attends qu\'il ouvre la bouche… et touche-le à ce moment-là !' };
 const careToolM = k => k === 'pipette' ? KPIP : KICO[k] ? KICO[k] : KT_M[k];
 const careAnimH = c => c.v.koala ? (KOB_KH[c.v.k] || 26) : (KA_HH[c.v.k] || 20);
 const careAC = c => [c.p.x, c.p.y - careAnimH(c) * .5];   // le centre de l'animal
@@ -3188,7 +3189,7 @@ function careDown(e) {
     if (g.kind === 'pour') g.pouring = true;
     else if (g.kind === 'drag') { g.drag = true; g.bx = x; g.by = y; }
     else if (g.kind === 'brush') { g.sx = x; g.lx = x; }
-    else if (g.kind === 'rub') { g.ang = Math.atan2(y - ay, x - ax); }
+    else if (g.kind === 'rub') { g.lx = x; g.ly = y; }
     else if (g.kind === 'time') { if (careMouth()) careHeal(); else { sfx.no && sfx.no(); c.shake = time + .4; say('Pas encore… attends qu\'il ouvre la bouche !', 2.2); } }
   }
 }
@@ -3197,7 +3198,7 @@ function careMove(e) {
   const [x, y] = careWorld(e), [ax, ay] = careAC(c), g = c.g, near = Math.max(40, careAnimH(c) * 1.6);
   if (g.kind === 'drag' && g.drag) { g.bx = x; g.by = y; }
   else if (g.kind === 'brush' && dist(x, y, ax, ay) < near) { const dx = x - g.lx; if (Math.abs(dx) > 3) { const d = Math.sign(dx); if (d !== g.dir) { if (g.dir && Math.abs(x - g.sx) > 8) { g.prog = Math.min(1, g.prog + 1 / 6); sfx.pick && sfx.pick(); g.sx = x; } g.dir = d; } g.lx = x; } if (g.prog >= 1) careHeal(); }
-  else if (g.kind === 'rub' && dist(x, y, ax, ay) < near) { const a = Math.atan2(y - ay, x - ax); if (g.ang != null) { let d = a - g.ang; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; g.prog = Math.min(1, g.prog + Math.abs(d) / (TAU * 3)); } g.ang = a; if (g.prog >= 1) careHeal(); }
+  else if (g.kind === 'rub') { g.px = x; g.py = y; if (dist(x, y, ax, ay) < near && g.lx != null) { const d = dist(x, y, g.lx, g.ly); g.prog = Math.min(1, g.prog + d / (careAnimH(c) * 9)); (g.pts = g.pts || []).push([x, y]); if (g.pts.length > 80) g.pts.shift(); } g.lx = x; g.ly = y; if (g.prog >= 1) careHeal(); }   // on étale le baume : la spatule glisse sur l'animal
 }
 function careUp(e) {
   const c = CARE; if (!c || !c.down) return; e.preventDefault(); e.stopImmediatePropagation(); c.down = null; const g = c.g;
@@ -3207,7 +3208,7 @@ function careUp(e) {
     else if (g.lvl > .86) { g.lvl = 0; sfx.no && sfx.no(); say('Oups, c\'est trop ! On recommence, plus doucement.', 2.6); }
     else say('Encore un petit peu…', 1.6); }
   if (g.kind === 'drag' && g.drag) { g.drag = false; const [ax, ay] = careAC(c); if (dist(g.bx, g.by, ax, ay) < Math.max(26, careAnimH(c))) careHeal(); else { g.bx = IN.x; g.by = IN.y - 30; say('Pose-la bien sur son dos !', 2); } }
-  if (g.kind === 'rub') g.ang = null;
+  if (g.kind === 'rub') { g.lx = null; }
 }
 cv.addEventListener('pointerdown', careDown, true); cv.addEventListener('pointermove', careMove, true); addEventListener('pointerup', careUp, true); addEventListener('pointercancel', careUp, true);
 const careMouth = () => CARE && ((time - (CARE.g.t0 || 0)) % 1.7) > 1.15;   // gélule : la bouche s'ouvre un court instant toutes les 1,7 s
@@ -3259,7 +3260,13 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
       const my = Y(Math.min(1, g.lvl)); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#7a4b24'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - Wb * .78, my - 1.6, Wb * 1.56, 3.2, 1.5) : ctx.rect(x - Wb * .78, my - 1.6, Wb * 1.56, 3.2); ctx.fill(); ctx.stroke();
       ctx.fillStyle = c.tool === 'tisane' ? '#c98a3a' : c.tool === 'pipette' ? '#7cc4f0' : '#8a3a2a';
       if (g.pouring) for (let i = 0; i < 3; i++) { ctx.fillStyle = ctx.fillStyle; ctx.beginPath(); ctx.arc(ax + (Math.random() - .5) * 6, ay - 6 + ((T * 60 + i * 9) % 14), 1.4, 0, TAU); ctx.fill(); } }
-    if (g.kind === 'brush' || g.kind === 'rub') { careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
+    if (g.kind === 'rub') {   // le baume étalé (traînées crème) puis la main à la spatule, comme pour la pâte à gâteau
+      ctx.save(); ctx.beginPath(); ctx.arc(ax, ay, Math.max(10, ah * .6), 0, TAU); ctx.clip(); ctx.fillStyle = 'rgba(255,236,170,.38)'; (g.pts || []).forEach(q => { ctx.beginPath(); ctx.ellipse(q[0], q[1], 2.6, 1.7, 0, 0, TAU); ctx.fill(); }); ctx.restore();
+      careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f');
+      const im = CK_SP[g.prog < .34 ? 0 : g.prog < .67 ? 1 : 2], px = c.down ? (g.px != null ? g.px : c.down.x) : ax + 6, py = c.down ? (g.py != null ? g.py : c.down.y) : ay;
+      if (im.complete && im.naturalWidth) { const h = 24, w = h * im.naturalWidth / im.naturalHeight; ctx.globalAlpha = c.down ? 1 : .55; ctx.drawImage(im, px - w * .04, py - h * .93, w, h); ctx.globalAlpha = 1; }
+    }
+    if (g.kind === 'brush') { careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
     if (g.kind === 'drag') { const m = careToolM('couverture'), hh = 22, ww = hh * m[2] / m[3]; ctx.globalAlpha = .95; if (KANI.complete) ctx.drawImage(KANI, m[0], m[1], m[2], m[3], g.bx - ww / 2, g.by - hh / 2, ww, hh); ctx.globalAlpha = 1; const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(111,209,111,' + (.4 + .5 * a) + ')'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax, ay, Math.max(14, ah * .6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
     if (g.kind === 'time') { const open = careMouth(); ctx.strokeStyle = open ? '#6fd16f' : 'rgba(255,255,255,.7)'; ctx.lineWidth = open ? 3 : 1.5; ctx.beginPath(); ctx.arc(ax, ay, ah * .7 + (open ? 3 : 0), 0, TAU); ctx.stroke(); if (open) { ctx.fillStyle = '#2e7d4a'; ctx.font = '800 8px system-ui'; ctx.fillText('Maintenant !', ax, c.p.y - ah - 10); } }
   }
