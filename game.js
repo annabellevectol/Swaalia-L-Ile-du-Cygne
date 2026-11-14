@@ -3139,7 +3139,7 @@ function vetAct() { const v = vetNear(); if (!v) return false; return careStart(
    4) l'animal guérit (cœurs, étoile). */
 const MYS = new Image(); MYS.src = 'assets/myah_soin.png';
 let CARE = null;
-const CK_SP = ['sp0', 'sp1', 'sp2'].map(n => { const i = new Image(); i.src = 'assets/cook/' + n + '.png'; return i; });   // la main à la spatule du jeu de cuisine
+const CK_SP = ['hb0', 'hb1', 'hb2'].map(n => { const i = new Image(); i.src = 'assets/cook/' + n + '.png?v=37'; return i; }), HB_TIP = [[55, 257], [93, 257], [96, 254]];   // la main qui étale le baume du bout des doigts (et où sont les doigts sur chaque image)
 const CK_VB = new Image(); CK_VB.src = 'assets/cook/fx/vbar.png'; const CK_HB = new Image(); CK_HB.src = 'assets/cook/fx/bar.png';   // les jauges en bois du jeu de cuisine
 function careHBar(x, y, w, p, col) {   // jauge horizontale en bois (comme en cuisine), remplie à p
   const h = w * 69 / 420; if (CK_HB.complete && CK_HB.naturalWidth) ctx.drawImage(CK_HB, x - w / 2, y - h / 2, w, h); else { ctx.fillStyle = '#8a5a2a'; ctx.fillRect(x - w / 2, y - h / 2, w, h); }
@@ -3264,7 +3264,7 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
       ctx.save(); ctx.beginPath(); ctx.arc(ax, ay, Math.max(10, ah * .6), 0, TAU); ctx.clip(); ctx.fillStyle = 'rgba(255,236,170,.38)'; (g.pts || []).forEach(q => { ctx.beginPath(); ctx.ellipse(q[0], q[1], 2.6, 1.7, 0, 0, TAU); ctx.fill(); }); ctx.restore();
       careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f');
       const im = CK_SP[g.prog < .34 ? 0 : g.prog < .67 ? 1 : 2], px = c.down ? (g.px != null ? g.px : c.down.x) : ax + 6, py = c.down ? (g.py != null ? g.py : c.down.y) : ay;
-      if (im.complete && im.naturalWidth) { const h = 24, w = h * im.naturalWidth / im.naturalHeight; ctx.globalAlpha = c.down ? 1 : .55; ctx.drawImage(im, px - w * .04, py - h * .93, w, h); ctx.globalAlpha = 1; }
+      const fi = g.prog < .34 ? 0 : g.prog < .67 ? 1 : 2; if (im.complete && im.naturalWidth) { const k = 26 / 300, w = im.naturalWidth * k, h = im.naturalHeight * k; ctx.globalAlpha = c.down ? 1 : .55; ctx.drawImage(im, px - HB_TIP[fi][0] * k, py - HB_TIP[fi][1] * k, w, h); ctx.globalAlpha = 1; }
     }
     if (g.kind === 'brush') { careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
     if (g.kind === 'drag') { const m = careToolM('couverture'), hh = 22, ww = hh * m[2] / m[3]; ctx.globalAlpha = .95; if (KANI.complete) ctx.drawImage(KANI, m[0], m[1], m[2], m[3], g.bx - ww / 2, g.by - hh / 2, ww, hh); ctx.globalAlpha = 1; const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(111,209,111,' + (.4 + .5 * a) + ')'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax, ay, Math.max(14, ah * .6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
