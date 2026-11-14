@@ -2315,7 +2315,7 @@ function postSwan() {   // Gaïkin : plumes perdues et histoire de l'œuf
   if (!postOn() || player.mount) return false; const free = () => { player.state = 'free'; };
   if (post.nd >= 3 && !post.egg) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Myah… cette nuit, j\'ai entendu un tout petit bruit dans les roseaux, au bord du lac. 🦢', 'Il y a un œuf là-bas ! Un œuf de cygne, tout seul. Peux-tu le trouver ? Cherche ce qui scintille près de l\'eau.'], () => { post.egg = 1; save(); free(); }, LP()); return true; }
   if (post.egg === 3 && (mini.dayNo || 0) > post.eggDay) { player.state = 'talk'; post.egg = 4; save(); sfx.star && sfx.star(); confetti();
-    openDialog('Gaïkin, le grand Cygne', ['Regarde, Myah ! L\'œuf craque… 🥚', 'Un bébé cygne ! Il te regarde comme si tu étais sa maman. 🤍', 'Il s\'appellera Plumette. Elle nagera près de moi sur le lac. Merci d\'avoir pris soin d\'elle !'], () => { free(); postReward('Gaïkin'); }, LP()); return true; }
+    openDialog('Gaïkin, le grand Cygne', ['Regarde, Myah ! L\'œuf craque… 🥚', 'Un bébé cygne ! Il te regarde comme si tu étais sa maman. 🤍', 'Il s\'appellera Plume. Elle nagera près de moi sur le lac. Merci d\'avoir pris soin d\'elle !'], () => { free(); postReward('Gaïkin'); }, LP()); return true; }
   if (post.egg === 3) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['L\'œuf est bien au chaud dans son nid. Il faut attendre une nuit… va dormir ! 🌙'], free, LP()); return true; }
   if (post.nd >= 1 && !post.fea) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Pendant que je volais, trois de mes plumes se sont envolées au loin. 🪶', 'Viens sur mon dos, on va les chercher ! Elles brillent : passe juste au-dessus en volant.'], () => { post.fea = { got: [] }; save(); free(); }, LP()); return true; }
   return false;
@@ -2333,7 +2333,7 @@ function postUpdate() {
     L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
       if (m.got.length >= L.length) { m.done = true; save(); say(k === 'ring' ? 'Les 5 anneaux ! Va raconter ça à Yurii !' : 'Toutes les plumes sont retrouvées ! Merci, Myah ! 🪶', 4); setTimeout(() => postReward(k === 'ring' ? 'Yurii' : 'Gaïkin'), 1500); } else say(n[0].toUpperCase() + n.slice(1) + ' ' + m.got.length + '/' + L.length + ' !', 2); }); });
 }
-function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille, le nid et Plumette
+function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille, le nid et Plume
   if (!postOn() || IN.on) return; const T = time;
   [['ring', RINGS], ['fea', FEATHERS]].forEach(([k, L]) => { const m = post[k]; if (!m || m.done) return;
     L.forEach((q, i) => { if (m.got.includes(i)) return; items.push({ y: q[1] + 400, draw() { const y = q[1] - 52 + Math.sin(T * 2 + i) * 3;
