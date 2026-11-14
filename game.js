@@ -3139,6 +3139,11 @@ function vetAct() { const v = vetNear(); if (!v) return false; return careStart(
    4) l'animal guérit (cœurs, étoile). */
 const MYS = new Image(); MYS.src = 'assets/myah_soin.png';
 let CARE = null;
+const CK_VB = new Image(); CK_VB.src = 'assets/cook/fx/vbar.png'; const CK_HB = new Image(); CK_HB.src = 'assets/cook/fx/bar.png';   // les jauges en bois du jeu de cuisine
+function careHBar(x, y, w, p, col) {   // jauge horizontale en bois (comme en cuisine), remplie à p
+  const h = w * 69 / 420; if (CK_HB.complete && CK_HB.naturalWidth) ctx.drawImage(CK_HB, x - w / 2, y - h / 2, w, h); else { ctx.fillStyle = '#8a5a2a'; ctx.fillRect(x - w / 2, y - h / 2, w, h); }
+  const ix = x - w / 2 + w * .058, iw = w * .884, iy = y - h / 2 + h * .21, ih = h * .56; if (p > 0) { ctx.fillStyle = col || '#6fd16f'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(ix, iy, iw * Math.min(1, p), ih, ih / 2) : ctx.rect(ix, iy, iw * Math.min(1, p), ih); ctx.fill(); }
+}
 const careOn = () => !!CARE;
 const CARE_GEST = { cuillere: 'pour', tisane: 'pour', pipette: 'pour', brosse: 'brush', couverture: 'drag', baume: 'rub', gelule: 'time' };
 const CARE_HELP = { pour: 'Garde le doigt appuyé pour verser… et lâche quand c\'est dans le vert !', brush: 'Brosse-le doucement : fais glisser ton doigt de gauche à droite sur lui !', drag: 'Fais glisser la couverture jusque sur son dos !', rub: 'Masse doucement : fais des petits ronds sur lui avec ton doigt !', time: 'Attends qu\'il ouvre la bouche… et touche-le à ce moment-là !' };
@@ -3160,8 +3165,8 @@ function careBtn(on) {
   if (!b) { b = document.createElement('button'); b.id = 'careX'; b.textContent = 'Arrêter le soin'; b.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;padding:9px 18px;border-radius:20px;border:2px solid #fff;background:#c8973e;color:#fff;font:700 15px system-ui;box-shadow:0 3px 10px rgba(0,0,0,.3);display:none'; document.body.appendChild(b); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); careStop(); }); }
   b.style.display = on ? 'block' : 'none';
 }
-const careBubbles = c => { const ks = TOOLS.map(t => t.k).filter(k => k !== 'thermo'), n = ks.length, cx = (IN.x + c.p.x) / 2, cy = Math.min(IN.y, c.p.y) - 92, R = 44;
-  return ks.map((k, i) => { const a = Math.PI * (1.08 + .84 * i / (n - 1)); return { k, x: cx + Math.cos(a) * R * 1.25, y: cy + Math.sin(a) * R * .9 + 18 }; }); };
+const careBubbles = c => { const ks = TOOLS.map(t => t.k).filter(k => k !== 'thermo'), n = ks.length, cx = (IN.x + c.p.x) / 2, cy = Math.min(IN.y, c.p.y) - 78, gap = 26;   // en arc, espacées de 26 : elles ne se touchent jamais (rayon 11)
+  return ks.map((k, i) => { const row = i < 4 ? 0 : 1, m = row ? n - 4 : 4, u = (row ? i - 4 : i) - (m - 1) / 2; return { k, x: cx + u * gap, y: cy - 13 + row * 27 }; }); };   // 2 rangées (4 + 3)
 const careLocked = (c, k) => !!REMK[k] && !c.v.koala && vetShowAll !== 1 && !(kobRx[REMK[k]] > 0);
 function careWorld(e) { const r = cv.getBoundingClientRect(), v = IN.view; if (!v) return [0, 0]; return [(e.clientX - r.left - v.ox) / v.s, (e.clientY - r.top - v.oy) / v.s]; }
 function careDown(e) {
@@ -3235,10 +3240,10 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
   ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const ring = (x, y, r, p, col) => { ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + TAU * p); ctx.stroke(); };
   if (c.step === 'thermo') { const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(255,230,120,' + (.5 + .4 * a) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, ay, ah * .75 + 3 * a, 0, TAU); ctx.stroke(); }
-  if (c.step === 'temp' || c.step === 'choose') {   // le thermomètre au-dessus de l'animal
+  if (c.step === 'temp') {   // le thermomètre au-dessus de l'animal (il disparaît quand la mallette s'ouvre : pas de chevauchement)
     const tv = (VET_TEMP[c.v.k] || [38.6])[0], u = c.step === 'temp' ? Math.min(1, c.t / 1.4) : 1, pc = Math.max(.05, Math.min(1, (tv - 36) / 5)) * u, x = ax, y = c.p.y - ah - 30;
     ctx.fillStyle = 'rgba(255,250,240,.95)'; ctx.strokeStyle = '#b07a3a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 34, y - 12, 68, 24, 8) : ctx.rect(x - 34, y - 12, 68, 24); ctx.fill(); ctx.stroke();
-    const g = ctx.createLinearGradient(x - 28, 0, x + 28, 0); g.addColorStop(0, '#5fb4ff'); g.addColorStop(.5, '#6fd16f'); g.addColorStop(1, '#ff5a4a'); ctx.fillStyle = '#e8ddd0'; ctx.fillRect(x - 28, y + 3, 56, 5); ctx.fillStyle = g; ctx.fillRect(x - 28, y + 3, 56 * pc, 5);
+    careHBar(x, y + 5, 60, pc, pc > .7 ? '#ff6a4a' : pc > .45 ? '#ffc23d' : '#5fb4ff');
     ctx.fillStyle = '#5a3a1e'; ctx.font = '700 9px system-ui'; ctx.fillText(u < 1 ? '…' : String(tv).replace('.', ',') + ' °C', x, y - 4);
   }
   if (c.step === 'choose') careBubbles(c).forEach((b, i) => {   // les objets de la mallette, en bulles
@@ -3248,10 +3253,13 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
     ctx.globalAlpha = 1; if (REMK[b.k] && !c.v.koala) { const n = kobRx[REMK[b.k]] || 0; ctx.fillStyle = n ? '#2e9e6b' : '#b23'; ctx.beginPath(); ctx.arc(b.x + 8, b.y + bob - 8, 4.5, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '700 6px system-ui'; ctx.fillText(String(n), b.x + 8, b.y + bob - 7.6); }
   });
   if (c.step === 'gest') { const g = c.g;
-    if (g.kind === 'pour') { const x = IN.x + c.side * -22, y = IN.y - 52, H = 40; ctx.fillStyle = 'rgba(255,250,240,.95)'; ctx.strokeStyle = '#b07a3a'; ctx.lineWidth = 1.5; ctx.fillRect(x - 5, y - H, 10, H); ctx.strokeRect(x - 5, y - H, 10, H);
-      ctx.fillStyle = 'rgba(80,200,110,.45)'; ctx.fillRect(x - 5, y - H * .86, 10, H * .24); ctx.fillStyle = c.tool === 'tisane' ? '#c98a3a' : c.tool === 'pipette' ? '#7cc4f0' : '#8a3a2a'; ctx.fillRect(x - 4, y - H * Math.min(1, g.lvl), 8, H * Math.min(1, g.lvl));
+    if (g.kind === 'pour') { const H = 46, Wb = H * 98 / 351, x = IN.x + c.side * -22, y = IN.y - 50, top = y - H + H * .05, ih = H * .9, Y = u => top + ih * (1 - u);   // la jauge verticale en bois du jeu de cuisine
+      if (CK_VB.complete && CK_VB.naturalWidth) ctx.drawImage(CK_VB, x - Wb / 2, y - H, Wb, H);
+      const zx = x - Wb * .28, zw = Wb * .56; ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.strokeStyle = '#3ddc5a'; ctx.lineWidth = 1.4; ctx.shadowColor = '#7dff8a'; ctx.shadowBlur = 4; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(zx, Y(.86), zw, Y(.62) - Y(.86), 2) : ctx.rect(zx, Y(.86), zw, Y(.62) - Y(.86)); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+      const my = Y(Math.min(1, g.lvl)); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#7a4b24'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - Wb * .78, my - 1.6, Wb * 1.56, 3.2, 1.5) : ctx.rect(x - Wb * .78, my - 1.6, Wb * 1.56, 3.2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = c.tool === 'tisane' ? '#c98a3a' : c.tool === 'pipette' ? '#7cc4f0' : '#8a3a2a';
       if (g.pouring) for (let i = 0; i < 3; i++) { ctx.fillStyle = ctx.fillStyle; ctx.beginPath(); ctx.arc(ax + (Math.random() - .5) * 6, ay - 6 + ((T * 60 + i * 9) % 14), 1.4, 0, TAU); ctx.fill(); } }
-    if (g.kind === 'brush' || g.kind === 'rub') { ring(ax, c.p.y - ah - 12, 7, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
+    if (g.kind === 'brush' || g.kind === 'rub') { careHBar(ax, c.p.y - ah - 12, 46, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
     if (g.kind === 'drag') { const m = careToolM('couverture'), hh = 16, ww = hh * m[2] / m[3]; ctx.globalAlpha = .95; if (KANI.complete) ctx.drawImage(KANI, m[0], m[1], m[2], m[3], g.bx - ww / 2, g.by - hh / 2, ww, hh); ctx.globalAlpha = 1; const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(111,209,111,' + (.4 + .5 * a) + ')'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax, ay, Math.max(14, ah * .6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
     if (g.kind === 'time') { const open = careMouth(); ctx.strokeStyle = open ? '#6fd16f' : 'rgba(255,255,255,.7)'; ctx.lineWidth = open ? 3 : 1.5; ctx.beginPath(); ctx.arc(ax, ay, ah * .7 + (open ? 3 : 0), 0, TAU); ctx.stroke(); if (open) { ctx.fillStyle = '#2e7d4a'; ctx.font = '800 8px system-ui'; ctx.fillText('Maintenant !', ax, c.p.y - ah - 10); } }
   }
