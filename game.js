@@ -507,7 +507,7 @@ function save(force) {   // force : sauvegarde demandée à la main ; sinon seul
   if (!force && !autoSv) return;
   try {
     const pos = savePos() || lastPos; lastPos = pos; saveTs = Date.now();
-    const js = JSON.stringify({ dayT, inv, qState, opened, bonusStar, level, phase, mountUnlocked, introSeen, endingSeen, coll, pos, outfit, mini, garden: gd, kob: { p: kobPick, n: kobNew, q: kobQ, k: kobKoa, v: vetS, a: vetAdv, x: kobRx, d: kobD }, name: playerName, ts: saveTs });
+    const js = JSON.stringify({ dayT, inv, qState, opened, bonusStar, level, phase, mountUnlocked, introSeen, endingSeen, coll, pos, outfit, mini, garden: gd, kob: { p: kobPick, n: kobNew, q: kobQ, k: kobKoa, v: vetS, a: vetAdv, x: kobRx, d: kobD }, name: playerName, ts: saveTs, post });
     try { const prev = localStorage.getItem(slotKey(slot)), bt = +localStorage.getItem(slotKey(slot) + '-baktime') || 0; if (prev && Date.now() - bt > 180000 && JSON.parse(prev)) { localStorage.setItem(slotKey(slot) + '-bak', prev); localStorage.setItem(slotKey(slot) + '-baktime', String(Date.now())); idbPut(slotKey(slot) + '-bak', prev); } } catch (e) {}   // version précédente gardée (au moins 3 min d'écart)
     localStorage.setItem(slotKey(slot), js); idbPut(slotKey(slot), js);   // copie de secours dans IndexedDB
     localStorage.setItem(SAVE_KEY + '-active', String(slot));
@@ -527,7 +527,7 @@ function load(n) {
   resetState(); const s = readSlot(n); if (!s) return false;
   if (isFinite(s.dayT)) dayT = s.dayT; Object.assign(inv, s.inv); Object.assign(qState, s.qState); Object.assign(opened, s.opened || {}); Object.assign(bonusStar, s.bonusStar || {}); setLevel(s.level || 'aventure'); Object.assign(coll, s.coll || {});
   phase = s.phase === 'reveal' ? 'appeared' : (s.phase || 'quests'); mountUnlocked = !!s.mountUnlocked; introSeen = !!s.introSeen; endingSeen = !!s.endingSeen; rideT = 0;
-  lastPos = s.pos || null; saveTs = s.ts || 0; playerName = typeof s.name === 'string' ? s.name.slice(0, 16) : ''; setOutfit(s.outfit); Object.assign(mini, { fire: 0, wish: 0, rico: 0, neck: 0 }, s.mini || {});
+  if (s.post) post = Object.assign({ day: -1, reqs: [], nd: 0, ring: null, fea: null, mus: {}, egg: 0, eggDay: 0, stk: [] }, s.post); else post = { day: -1, reqs: [], nd: 0, ring: null, fea: null, mus: {}, egg: 0, eggDay: 0, stk: [] }; lastPos = s.pos || null; saveTs = s.ts || 0; playerName = typeof s.name === 'string' ? s.name.slice(0, 16) : ''; setOutfit(s.outfit); Object.assign(mini, { fire: 0, wish: 0, rico: 0, neck: 0 }, s.mini || {});
   if (Array.isArray(s.garden)) gd = gdEmpty().map((e, i) => { const o = s.garden[i] || {}; return { c: Number.isInteger(o.c) && o.c >= 0 && o.c < 6 ? o.c : -1, w: +o.w ? 1 : 0, e: isFinite(o.e) ? Math.max(0, +o.e) : (o.w > 1 ? Math.min(240, (Date.now() - o.w) / 1000) : 0), v: (o.v | 0) & 3 }; });
   if (s.kob) { kobPick = s.kob.p || {}; kobNew = s.kob.n || {}; kobQ = s.kob.q | 0; vetS = s.kob.v || {}; vetAdv = s.kob.a || {}; kobRx = s.kob.x || {}; kobD = Object.assign({ acc: {}, done: {}, fr: {}, fi: {}, st: 0, rw: 0 }, s.kob.d || {}); kobKoa = s.kob.k || {}; kobSick = !(kobQ >= 5); if (KOB_PLT.every(p => kobPick[p.k]) && kobQ === 1) kobQ = 2; if (kobQ === 6) try { vetNext(); } catch (e) {} }
   try { paintLoadHung(); } catch (e) {}
@@ -1820,6 +1820,7 @@ function doAction() {
   if (player.state === 'fishing') { fishPress(); return; }
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
+  if (postAct()) return;
 
   if (storyOn() && qState.toto === 'done' && !handsFull() && boatTapNear()) { askBoatChoice(); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
@@ -1836,6 +1837,7 @@ function doAction() {
   if (target && (target.kind === 'npc' || target.kind === 'extra')) (target.q || target.e).lastTalk = time;
   if (perchVisible() && !perchAway() && !handsFull()) { const sp = swanSpot(), ds = dist(sp[0], sp[1], player.x, player.y); if (ds < R_SWAN && ds < bd) { bd = ds; target = { kind: 'swan' }; } }
   { const dA = !handsFull() && doorAt(); if (dA && target && target.kind !== 'chest' && dist(dA.door[0], dA.door[1], player.x, player.y) < bd) target = null; }   // sur le halo d'une porte : on entre, même si un habitant est juste à côté
+  if (target && (target.kind === 'npc' || target.kind === 'extra') && postTalk(target.q || target.e)) return;
   if (target && target.kind === 'extra' && target.e.key === 'kykah') return kykahTalk(target.e);
   if (target && target.kind === 'extra' && (target.e.kid || target.e.chal)) return kidTalk(target.e);
   if (target && (target.kind === 'npc' || target.kind === 'extra') && miniDeliver(target)) return;
@@ -2247,6 +2249,103 @@ function endParty() {
   try { const w = nearestWalk(player.x, player.y); player.x = w[0]; player.y = w[1]; } catch (e) {}   // Myah repart d'un endroit où elle peut marcher
 }
 
+/* ================= après la fin : de nouvelles missions sur l'île du Cygne =================
+   demandes du jour (2 habitants par jour), anneaux de nuages (Yurii, à dos de Gaïkin), plumes perdues (Gaïkin),
+   collection du musée (Yulia), et une petite histoire : l'œuf de cygne. Récompenses : stickers pour la tenue et trésors rares. */
+let post = { day: -1, reqs: [], nd: 0, ring: null, fea: null, mus: {}, egg: 0, eggDay: 0, stk: [] };
+const postOn = () => phase === 'returned' && (endingSeen || !storyOn()) && !party;
+const pKey = o => o.npc || o.key;
+const POST_REQ = {
+  maman: [{ need: { coconut: 3 }, txt: 'Ma chérie, je refais la boisson de coco de la fête : tu me rapportes 3 noix de coco ? 🥥' }, { need: { gmangue: 1 }, txt: 'Tout le monde me réclame ton gâteau ! Tu nous refais un Maïmaïa ? 🍰' }],
+  pecheur: [{ need: { fish: 3 }, txt: 'Ho ho ! Avec l\'eau claire, les poissons sont revenus. Tu m\'en pêches 3 pour mon étal ? 🐟' }],
+  soigneuse: [{ need: { flower: 4 }, txt: 'Je voudrais un bouquet pour le poste de soin. Tu me cueilles 4 fleurs ? 🌸' }],
+  frere: [{ need: { butterfly: 2 }, txt: 'Myah ! Tu m\'attrapes 2 papillons ? Je veux les dessiner, et après on les relâche ! 🦋' }],
+  kykah: [{ need: { shell: 3 }, txt: 'J\'ai plein de commandes de colliers ! Tu me trouves 3 coquillages sur la plage ? 🐚' }],
+  poggi: [{ need: { banana: 4 }, txt: 'Les bananiers croulent sous les fruits ! Tu m\'aides à en récolter 4 ? 🍌' }],
+  kahn: [{ need: { mango: 3 }, txt: 'Ma grande, il me faudrait 3 mangues pour le marché de demain. 🥭' }],
+  lila: [{ need: { crab: 2 }, txt: 'Pour mon carnet de sciences, tu m\'attrapes 2 crabes ? Je les observe à la loupe et je les relâche ! 🦀' }],
+  romi: [{ need: { fish: 2 }, txt: 'Yo Myah ! Tu me pêches 2 poissons ? On fait un barbecue sur la plage ce soir. 😎' }],
+};
+const POST_STK = [{ id: 'swfly0', k: 'swfly0', n: 'Gaïkin en vol' }, { id: 'bfly1', k: 'bfly1', n: 'Papillon vert' }, { id: 'bfly3', k: 'bfly3', n: 'Papillon violet' }, { id: 'fishA1', k: 'fishA1', n: 'Poisson jaune' }, { id: 'fish4', k: 'fish4', n: 'Poisson-clown' }, { id: 'flower2', k: 'flower2', trim: .2, n: 'Orchidée' }, { id: 'flower7', k: 'flower7', trim: .2, n: 'Fleur dorée' }, { id: 'swan1', k: 'swan1', trim: .2, n: 'Petit cygne' }];
+const RINGS = [[210, 160], [420, 115], [640, 95], [790, 250], [560, 385]], FEATHERS = [[770, 70], [140, 300], [880, 430]];
+const MUS_CAT = [['fleurs', 'fleurs'], ['coquillages', 'coquillages'], ['poissons', 'poissons'], ['nuit', 'créatures de la nuit']];
+function postReward(who) {   // un sticker pour la tenue, et parfois un trésor rare pour décorer les murs
+  const s = POST_STK.find(d => !post.stk.includes(d.id)), t = (post.nd + post.stk.length) % 2 === 0 ? COLL.find(c => c.cat === 'tresors' && !coll[c.id]) : null;
+  if (s) post.stk.push(s.id); if (t) coll[t.id] = true; save();
+  const parts = []; if (s) parts.push('le sticker « ' + s.n + ' » pour ta tenue (vestiaire)'); if (t) parts.push('un trésor rare : ' + t.name + ' (à accrocher au mur)');
+  setTimeout(() => { sfx.star && sfx.star(); say('🎁 ' + (who ? nm1(who) + ' t\'offre ' : 'Tu gagnes ') + (parts.length ? parts.join(' et ') : 'une étoile') + ' !', 6); }, 600);
+}
+function postNewDay() {   // chaque jour, deux habitants ont un petit service à demander
+  const dn = mini.dayNo || 0; if (post.day === dn) return; post.day = dn;
+  const ks = Object.keys(POST_REQ).sort(() => Math.random() - .5).slice(0, 2);
+  post.reqs = ks.map(k => { const L = POST_REQ[k]; return Object.assign({ k, done: false }, L[Math.floor(Math.random() * L.length)]); }); save();
+}
+const postReq = o => postOn() && post.reqs.find(r => r.k === pKey(o) && !r.done);
+function postMark(o) {   // petite bulle au-dessus des habitants qui ont une mission
+  if (!postOn()) return; const k = pKey(o), h = (o.h || (o.sprite && o.sprite.h) || 40);
+  const has = postReq(o) || (k === 'gardien' && !post.ring) || (k === 'juliana' && MUS_CAT.some(([c]) => musFull(c) && !post.mus[c])) || (k === 'soigneuse' && post.egg === 2);
+  if (has) marker(o.x, o.y - h - 10, '★', '#7fd4ff');
+}
+const musFull = c => COLL.filter(o => o.cat === c).every(o => coll[o.id]);
+const musLeft = c => COLL.filter(o => o.cat === c && !coll[o.id]).length;
+function postTalk(o) {   // retourne true si une mission prend la discussion
+  if (!postOn()) return false; const k = pKey(o), who = o.who, por = o.portrait, free = () => { player.state = 'free'; };
+  faceTo(o.x); player.state = 'talk'; setAnim('idle');
+  const r = postReq(o);
+  if (r) {
+    const okHave = Object.entries(r.need).every(([i, n]) => (inv[i] || 0) >= n);
+    if (!okHave) { openDialog(who, [r.txt, 'Reviens me voir quand tu as tout ! (' + Object.entries(r.need).map(([i, n]) => n + ' ' + (ICON[i] || i)).join(', ') + ')'], free, por); return true; }
+    handIn({ who, need: r.need }, () => giveAnim(r.need, () => { Object.entries(r.need).forEach(([i, n]) => { inv[i] -= n; }); r.done = true; post.nd++; renderHud(); save();
+      openDialog(who, ['Merci, Myah ! Tu es la meilleure ! 💛'], () => { free(); if (post.nd % 2 === 0) postReward(who); else say('Mission du jour réussie ! Encore une, et tu gagnes un cadeau. ⭐', 4); if (post.nd >= 3 && !post.egg) setTimeout(() => say('Gaïkin a l\'air de vouloir te dire quelque chose… Va le voir au lac ! 🦢', 6), 3500); }, por); }), free);
+    return true;
+  }
+  if (k === 'gardien' && !post.ring) { openDialog(who, ['Myah ! Depuis l\'observatoire, j\'ai vu des anneaux de nuages dorés au-dessus de l\'île. ☁️', 'Ce sont les chemins du vent des grands cygnes. Monte sur le dos de Gaïkin et vole à travers les 5 anneaux !'], () => { post.ring = { got: [] }; save(); free(); say('Appelle Gaïkin (bouton Cygne) et traverse les 5 anneaux dorés en vol !', 6); }, por); return true; }
+  if (k === 'gardien' && post.ring && !post.ring.done) { openDialog(who, ['Encore ' + (RINGS.length - post.ring.got.length) + ' anneau(x) de nuages à traverser, à dos de Gaïkin ! ☁️'], free, por); return true; }
+  if (k === 'juliana') { const c = MUS_CAT.find(([c]) => musFull(c) && !post.mus[c]);
+    if (c) { post.mus[c[0]] = true; save(); openDialog(who, ['Oh ! Tu as trouvé toutes les ' + c[1] + ' de l\'île ! 📖', 'J\'en fais une vitrine au musée, avec ton nom dessus. Merci, Myah !'], () => { free(); postReward(who); }, por); return true; }
+    if (Math.random() < .5) { const L = MUS_CAT.filter(([c]) => !post.mus[c]); if (L.length) { openDialog(who, ['Pour le musée, je rêve d\'une collection complète !', L.map(([c, n]) => n + ' : encore ' + musLeft(c)).join(' · ')], free, por); return true; } }
+  }
+  if (k === 'soigneuse' && post.egg === 2) { const need = { flower: 5, coconut: 2 };
+    if (!Object.entries(need).every(([i, n]) => (inv[i] || 0) >= n)) { openDialog(who, ['Un œuf de cygne ! Il lui faut un nid bien douillet. 🪺', 'Rapporte-moi 5 fleurs 🌸 et 2 noix de coco 🥥 (pour la fibre) : on lui fera un nid.'], free, por); return true; }
+    handIn({ who, need }, () => giveAnim(need, () => { Object.entries(need).forEach(([i, n]) => { inv[i] -= n; }); post.egg = 3; post.eggDay = mini.dayNo || 0; renderHud(); save();
+      openDialog(who, ['Voilà un nid tout doux ! Je le pose au bord du lac, près de Gaïkin. 🪺', 'Maintenant, il faut attendre une nuit. Va dormir, et reviens voir Gaïkin demain !'], free, por); }), free); return true; }
+  player.state = 'free'; return false;
+}
+function postSwan() {   // Gaïkin : plumes perdues et histoire de l'œuf
+  if (!postOn() || player.mount) return false; const free = () => { player.state = 'free'; };
+  if (post.nd >= 3 && !post.egg) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Myah… cette nuit, j\'ai entendu un tout petit bruit dans les roseaux, au bord du lac. 🦢', 'Il y a un œuf là-bas ! Un œuf de cygne, tout seul. Peux-tu le trouver ? Cherche ce qui scintille près de l\'eau.'], () => { post.egg = 1; save(); free(); }, LP()); return true; }
+  if (post.egg === 3 && (mini.dayNo || 0) > post.eggDay) { player.state = 'talk'; post.egg = 4; save(); sfx.star && sfx.star(); confetti();
+    openDialog('Gaïkin, le grand Cygne', ['Regarde, Myah ! L\'œuf craque… 🥚', 'Un bébé cygne ! Il te regarde comme si tu étais sa maman. 🤍', 'Il s\'appellera Plumette. Elle nagera près de moi sur le lac. Merci d\'avoir pris soin d\'elle !'], () => { free(); postReward('Gaïkin'); }, LP()); return true; }
+  if (post.egg === 3) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['L\'œuf est bien au chaud dans son nid. Il faut attendre une nuit… va dormir ! 🌙'], free, LP()); return true; }
+  if (post.nd >= 1 && !post.fea) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Pendant que je volais, trois de mes plumes se sont envolées au loin. 🪶', 'Viens sur mon dos, on va les chercher ! Elles brillent : passe juste au-dessus en volant.'], () => { post.fea = { got: [] }; save(); free(); }, LP()); return true; }
+  return false;
+}
+const eggSpot = () => (post._es = post._es || nearestWalk(430, 300));
+function postAct() {   // ramasser l'œuf
+  if (!postOn() || post.egg !== 1 || player.mount) return false; const e = eggSpot(); if (dist(player.x, player.y, e[0], e[1]) > 24) return false;
+  post.egg = 2; save(); sfx.chest && sfx.chest(); burst(e[0], e[1] - 6, 14, ['#fff', '#d9f2ff', '#ffe27a'], true);
+  player.state = 'talk'; openDialog('Myah', ['Un œuf de cygne, tout tiède ! 🥚', 'Lulia saura comment lui faire un nid. Je vais la voir au poste de soin !'], () => { player.state = 'free'; }); return true;
+}
+function postUpdate() {
+  if (!postOn()) return; postNewDay();
+  const p = player, fly = p.mount === 'fly';
+  [['ring', RINGS, 'anneau'], ['fea', FEATHERS, 'plume']].forEach(([k, L, n]) => { const m = post[k]; if (!m || m.done || !fly) return;
+    L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
+      if (m.got.length >= L.length) { m.done = true; save(); say(k === 'ring' ? 'Les 5 anneaux ! Va raconter ça à Yurii !' : 'Toutes les plumes sont retrouvées ! Merci, Myah ! 🪶', 4); setTimeout(() => postReward(k === 'ring' ? 'Yurii' : 'Gaïkin'), 1500); } else say(n[0].toUpperCase() + n.slice(1) + ' ' + m.got.length + '/' + L.length + ' !', 2); }); });
+}
+function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille, le nid et Plumette
+  if (!postOn() || IN.on) return; const T = time;
+  [['ring', RINGS], ['fea', FEATHERS]].forEach(([k, L]) => { const m = post[k]; if (!m || m.done) return;
+    L.forEach((q, i) => { if (m.got.includes(i)) return; items.push({ y: q[1] + 400, draw() { const y = q[1] - 52 + Math.sin(T * 2 + i) * 3;
+      ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(q[0], q[1], 10, 3, 0, 0, TAU); ctx.fill();
+      if (k === 'ring') { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(q[0], y, 14, 18, 0, 0, TAU); ctx.stroke(); ctx.strokeStyle = '#f5c842'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      else if (PLUME.complete && PLUME.naturalWidth) { const h = 18, w = h * PLUME.naturalWidth / PLUME.naturalHeight; ctx.globalAlpha = .7 + .3 * Math.sin(T * 4 + i); ctx.drawImage(PLUME, q[0] - w / 2, y - h / 2, w, h); }
+      ctx.restore(); } }); }); });
+  if (post.egg === 1) { const e = eggSpot(); items.push({ y: e[1], draw() { const a = .5 + .5 * Math.sin(T * 4); ctx.save(); ctx.fillStyle = 'rgba(255,240,170,' + (.25 + .3 * a) + ')'; ctx.beginPath(); ctx.arc(e[0], e[1] - 4, 9 + 2 * a, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.strokeStyle = '#b8a888'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(e[0], e[1] - 4, 3.6, 4.8, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); } }); }
+  if (post.egg >= 3 && swanLake()) { const x = SW_LAKE[0] - 34, y = SW_LAKE[1] + 14; items.push({ y, draw() {
+    if (post.egg === 3) { ctx.save(); ctx.fillStyle = '#9a7a4a'; ctx.beginPath(); ctx.ellipse(x, y, 9, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.beginPath(); ctx.ellipse(x, y - 3, 3.6, 4.6, 0, 0, TAU); ctx.fill(); ctx.restore(); }
+    else sprDraw('swan0', x + Math.sin(T * .5) * 8, y + Math.sin(T * 1.7) * 1, .45, Math.cos(T * .5) < 0, 1); } }); }
+}
 /* ================= cinématiques et Cygne légendaire ================= */
 let cine = null;
 let swanAlt = 0, swanSparkle = 0, swanFeathers = 0;
@@ -2289,7 +2388,8 @@ function updateCine(dt) {
   }
 }
 function talkSwan() {
-  if (handsFull()) return;   // filet, panier ou canne en main : Gaïkin ne propose rien
+  if (handsFull()) return;
+  if (postSwan()) return;   // filet, panier ou canne en main : Gaïkin ne propose rien
   if (swanLake()) { if (bedPickOpen() || player.mount) return; bedAsk = 'swan'; player.mvx = player.mvy = 0; bedBtns(); $('#bedPickT').textContent = 'Gaïkin'; $('#bedPickP').textContent = 'Veux-tu voler avec Gaïkin ?'; $('#bedPick').style.display = 'grid'; return; }
   player.state = 'talk'; setAnim('idle');
   const free = () => { player.state = 'free'; };
@@ -3157,6 +3257,7 @@ function careStart(v, p) {
   if (!p) return false;
   const side = IN.x < p.x ? -1 : 1;   // Myah reste où elle est (à côté de l'animal)
   CARE = { v, p: { x: p.x, y: p.y }, step: 'thermo', t: 0, wrong: 0, off: {}, tool: null, hold: 0, shake: 0, g: {}, side };
+  if (Math.abs(IN.x - p.x) < 34) { IN.x = p.x + side * 36; IN.y = p.y + 2; }   // un peu de place entre Myah et l'animal : rien ne se chevauche
   player.mvx = player.mvy = 0; setAnim('idle'); actQueued = false;
   careBtn(true); sfx.pick && sfx.pick();
   say(v.mal + ' Touche ' + (v.koala ? 'le koala' : 'l\'animal') + ' pour prendre sa température.', 5);
@@ -3244,7 +3345,7 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
   const ring = (x, y, r, p, col) => { ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + TAU * p); ctx.stroke(); };
   if (c.step === 'thermo') { const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(255,230,120,' + (.5 + .4 * a) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, ay, ah * .75 + 3 * a, 0, TAU); ctx.stroke(); }
   if (c.step === 'temp') {   // le thermomètre au-dessus de l'animal (il disparaît quand la mallette s'ouvre : pas de chevauchement)
-    const tv = (VET_TEMP[c.v.k] || [38.6])[0], u = c.step === 'temp' ? Math.min(1, c.t / 1.4) : 1, pc = Math.max(.05, Math.min(1, (tv - 36) / 5)) * u, x = ax, y = c.p.y - ah - 30;
+    const tv = (VET_TEMP[c.v.k] || [38.6])[0], u = c.step === 'temp' ? Math.min(1, c.t / 1.4) : 1, pc = Math.max(.05, Math.min(1, (tv - 36) / 5)) * u, x = (IN.x + ax) / 2 + (ax - IN.x) * .35, y = Math.min(c.p.y - ah - 30, IN.y - 70);   // au-dessus des têtes, jamais derrière Myah
     ctx.fillStyle = 'rgba(255,250,240,.95)'; ctx.strokeStyle = '#b07a3a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 34, y - 12, 68, 24, 8) : ctx.rect(x - 34, y - 12, 68, 24); ctx.fill(); ctx.stroke();
     careHBar(x, y + 5, 60, pc, pc > .7 ? '#ff6a4a' : pc > .45 ? '#ffc23d' : '#5fb4ff');
     ctx.fillStyle = '#5a3a1e'; ctx.font = '700 9px system-ui'; ctx.fillText(u < 1 ? '…' : String(tv).replace('.', ',') + ' °C', x, y - 4);
@@ -3591,7 +3692,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
     const pl = kobPlantNear(), fr = kobFruitNear();
     if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
   } else if (tool === 'fish') {
-    if (kobFishNear()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
+    if (kobFishNear() && !CARE) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
   }
 }
 function kobFxDraw() {
@@ -3618,7 +3719,7 @@ function kobDefiDraw() {
   const bub = (x, y, k, h) => { const m = KD_M[k], w = h * m[2] / m[3], by = y - 34 - Math.abs(Math.sin(time * 4)) * 4; ctx.save(); ctx.globalAlpha = .95; ctx.drawImage(KDI, m[0], m[1], m[2], m[3], x - w / 2, by - h / 2, w, h); ctx.restore(); };
   if (kobD.acc.fruit) KFRU.forEach(f => { if (kobD.fr[f.k]) return; const m = KD_M['fr_' + f.k], h = 22, w = h * m[2] / m[3], bob = Math.sin(time * 2.5 + f.x) * 1.5;
     ctx.save(); ctx.globalAlpha = .28; ctx.fillStyle = '#fff6b0'; ctx.beginPath(); ctx.arc(f.x, f.y - h / 2, h * .75 + Math.sin(time * 3) * 2, 0, TAU); ctx.fill(); ctx.globalAlpha = KD_A; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(f.x, f.y, w * .4, 3, 0, 0, TAU); ctx.fill(); ctx.drawImage(KDI, m[0], m[1], m[2], m[3], f.x - w / 2, f.y - h + bob, w, h); ctx.restore(); });
-  if ((kobQ >= 5 || level === 'balade') && kobD.acc.fish) bub(FISH_SPOT[0], FISH_SPOT[1], 'ic_fish', 26);
+  if ((kobQ >= 5 || level === 'balade') && kobD.acc.fish && !CARE) bub(FISH_SPOT[0], FISH_SPOT[1], 'ic_fish', 26);
   if (RACE) { bub(RB[0], RB[1], 'ic_race', 30); ctx.save(); ctx.globalAlpha = .5; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(RA[0] - 6, RA[1] - 22); ctx.lineTo(RA[0] - 6, RA[1] + 34); ctx.stroke(); ctx.beginPath(); ctx.moveTo(RB[0], RB[1] - 22); ctx.lineTo(RB[0], RB[1] + 34); ctx.stroke(); ctx.restore(); }
 }
 function kobBeachFishDraw() {
@@ -5134,15 +5235,15 @@ function wdBagUi() {
 }
 function wdFillStickers() {
   const gL = $('#wdStkL'), gR = $('#wdStkR'); gL.innerHTML = ''; gR.innerHTML = '';
-  STK.forEach((d, si) => { const g = si < 8 ? gL : gR; const b = document.createElement('button'); b.title = d.n; const c = document.createElement('canvas'); c.width = 64; c.height = 64; b.appendChild(c);
+  STK.filter(d => !d.lock || post.stk.includes(d.id)).forEach((d, si) => { const g = si < 8 ? gL : gR; const b = document.createElement('button'); b.title = d.n; const c = document.createElement('canvas'); c.width = 64; c.height = 64; b.appendChild(c);
     const draw = () => { const sc = stickerCanvas(d.id); if (!sc) { setTimeout(draw, 300); return; } const cx = c.getContext('2d'), k = Math.min(60 / sc.width, 60 / sc.height); cx.clearRect(0, 0, 64, 64); cx.drawImage(sc, (64 - sc.width * k) / 2, (64 - sc.height * k) / 2, sc.width * k, sc.height * k); }; draw();
     b.addEventListener('click', () => { if (wd.o.stickers.length >= 8) return; const slot = [[.5, .6], [.28, 1.25], [.72, 1.25], [.28, 1.85], [.72, 1.85], [.5, 1.55], [.5, .2], [.5, 2.0]][wd.o.stickers.length % 8]; wd.o.stickers.push({ id: d.id, u: slot[0], v: slot[1], w: .42, tint: null }); wd.sel = wd.o.stickers.length - 1; wdDraw(); });
     g.appendChild(b); });
 }
 function openWardrobe() {
   wd.o = JSON.parse(JSON.stringify(outfit)); wd.sel = -1; wd.part = 'overall'; wd.hist = []; wd.redo = []; wd.last = undefined; wd.lastChange = 0; wd.undoing = false; $('#wardrobe').style.display = 'grid';
-  if (!$('#wdStkL').children.length) {
-    wdFillStickers();
+  wdFillStickers();
+  if (!$('#wdSwP').children.length) {
     const fill = (sel, list) => { const sw = $(sel); list.forEach(c => { const i = document.createElement('i'); i.style.background = 'hsl(' + c[0] + ',' + Math.round(c[1] * 100) + '%,' + Math.round(c[2] * 100) + '%)'; i.addEventListener('click', () => { const t = wdTarget(); if (!t && wd.part === 'stickers' && wd.sel < 0) return; wdSetTarget({ h: c[0], s: c[1], l: wd.part === 'bag' ? Math.max(c[2], .7) : c[2] }); wdDraw(); }); sw.appendChild(i); }); };
     fill('#wdSwP', WD_PASTEL); fill('#wdSw', WD_SW.map(c => [c[0], c[1], c[2] === .5 || c[2] === .15 || c[2] === .95 ? c[2] : .5]));
   }
@@ -5746,6 +5847,7 @@ function renderInterior(vw, vh) {
 }
 
 function update(dt) {
+  try { postUpdate(); } catch (e) {}
   if (IN.busy) return;
   chalTick(dt); kitoGreet(dt);
   if (IN.on) { updateInterior(dt); return; }
@@ -6060,6 +6162,7 @@ const STK = [   // stickers : objets de l'île (trim = part du bas retirée : te
   { id: 'fish5', k: 'fish5', n: 'Poisson ange' }, { id: 'fishrb', k: 'fishrb', n: 'Poisson arc-en-ciel' }, { id: 'bouquet', k: 'bouquet', trim: .14, n: 'Plumes' },
 ];
 const STK_BY = {}; STK.forEach(d => STK_BY[d.id] = d);
+POST_STK.forEach(d => { if (!STK_BY[d.id]) { d.lock = true; STK.push(d); STK_BY[d.id] = d; } });   // stickers gagnés avec les missions d'après la fin
 const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
 let outfit = outfitEmpty(), outSheet = {}, outfitDirty = false;
 const isDefaultOutfit = o => !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
@@ -6485,14 +6588,14 @@ function render() {
     } });
     items.push({ y: q.y, draw() {
       shadow(q.x, q.y, q.h * .26);
-      ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(q), q.x, q.y, time, false); ctx.restore();
+      ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(q), q.x, q.y, time, false); ctx.restore(); postMark(q);
       const st = qState[q.id]; if (level === 'balade' || !unlocked(q) || (st === 'done')) return;
       if (st === 'new' && storyOn() && q !== QUESTS.find(o => qState[o.id] !== 'done')) return;   // '!' seulement pour la prochaine quête, dans l'ordre
       const ready = st === 'active' && hasAll(q);
       marker(q.x, q.y - q.h - 10, ready ? '✔' : (st === 'new' ? '!' : '…'), ready ? '#47b84a' : '#ffc83d');
     } });
   });
-  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); if (e.key === 'kito') drawKitoParrot(e.x, e.y); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
+  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); if (e.key === 'kito') drawKitoParrot(e.x, e.y); postMark(e); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
   if (!IN.on && inV(GX, GY - 40) && gd.some(p => p.c >= 0) && gd.every(p => p.c < 0 || gStage(p) === 4)) items.push({ y: GY + 400, draw() { const bob = Math.sin(time * 3) * 2.2, cx = GX + 3, cy = GY - 32 + bob; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 4; ctx.fillStyle = '#3fbf5a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(cx - 4.5, cy + .4); ctx.lineTo(cx - 1.2, cy + 3.8); ctx.lineTo(cx + 5, cy - 3.3); ctx.stroke(); ctx.restore(); } });
   for (const j of jarsL()) { if (j.at === 'bag' || j.at === 'tbl') continue; const n = ALLNPC().find(o => npcKeyOf(o) === j.at); if (!n || !(n.hx > 0) || !inV(n.hx + 16, n.hy)) continue; items.push({ y: n.hy + 3, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(n.hx + 16, n.hy + 2, 6, 2.2, 0, 0, 7); ctx.fill(); ctx.translate(n.hx + 16 - 9, n.hy + 2 - 22); jarDraw(ctx, j, 18, 22, time); ctx.restore(); } }); }
   butterflies.forEach(b => b.alive && inV(b.x, b.y) && items.push({ y: b.y + 30, draw() {
@@ -6504,6 +6607,7 @@ function render() {
     const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers });
   } });
   if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
+  postDraw(items);
   MI.animals.forEach(a => items.push({ y: a.y, draw() { drawAnimal(a); } }));
   MI.items.forEach(it => it.kind === 'shell' && items.push({ y: it.y - 10, draw() { drawMiniItem(it, 1); } }));   // coquillages triés avec Myah : elle passe devant
   if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); } });
