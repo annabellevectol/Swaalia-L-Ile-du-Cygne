@@ -3007,7 +3007,7 @@ const KOB_SPOT = [690, 530], KOB_EXIT = [222, 640];
 const KOB_IMG = {};   // les 5 cartes de l'île Kobhak (même cycle jour / nuit que l'île du Cygne), chargées au premier voyage
 function kobLoad() {
   if (!KOB_IMG.map) [['map', 'midi'], ['mapx_apm', 'apm'], ['mapx_coucher', 'coucher'], ['mapx_nuit', 'nuit'], ['mapx_lever', 'lever']].forEach(([k, f]) => { const i = new Image(); i.src = 'assets/kobhak_' + f + '.jpg'; KOB_IMG[k] = i; });
-  [[KOB_ATLAS, 'assets/kob_npcs.png?v=43'], [KOB_KOA, 'assets/kob_koalas.png'], [KOB_PIMG, 'assets/kob_plantes.png'], [KANI, SOI], [KDI, KD_U]].forEach(([im, src]) => { if (!im.src) im.src = src; });
+  [[KOB_ATLAS, 'assets/kob_npcs.png?v=45'], [KOB_KOA, 'assets/kob_koalas.png'], [KOB_PIMG, 'assets/kob_plantes.png'], [KANI, SOI], [KDI, KD_U]].forEach(([im, src]) => { if (!im.src) im.src = src; });
 }
 const SC_KOBHAK = Object.assign({}, SC_BOAT, {
   img: { complete: false, naturalWidth: 0 }, W: 1375, H: 768, K: 1.4, chroma: false, uw: null, npc: null, spd: 1.1, holes: [], polys: [], sky: [0, 0, 1, 1, 0, 0, 1, 1], kob: true,
@@ -3163,7 +3163,7 @@ const nearPl = () => SC === SC_KOBHAK ? KOB_PL.find(q => dist(IN.x, IN.y, q.spot
 function askDisp(force, q) { q = q || nearPl(); if (!q || bedPickOpen() || IN.busy || (!force && IN.askD && IN.t < IN.askD)) return; if (q.eve && !isEve()) { say(q.eve, 3.4); IN.askD = IN.t + 12; return; } if (q.closed && isEve()) { say(q.closed, 3.6); IN.askD = IN.t + 12; return; } KOB_CUR = q; bedAsk = 'disp'; $('#bedPickT').textContent = 'Entrer'; $('#bedPickP').textContent = 'Veux-tu entrer dans ' + q.txt + ' ?'; $('#bedPick').style.display = 'grid'; }
 /* ----- les habitants de Kobhak (mi-humains, mi-koalas) : planche découpée dans assets/kob_npcs.png ----- */
 const KOB_ATLAS = new Image();
-const KOB_META = {"okai": {"f": [0, 0, 156, 240], "s": [158, 0, 117, 240], "u": [276, 0, 144, 240]}, "bimba": {"f": [422, 0, 148, 240], "s": [571, 0, 134, 240]}, "tobi": {"f": [707, 0, 169, 240], "s": [878, 0, 154, 240], "u": [1033, 0, 169, 240]}, "maia": {"f": [1203, 0, 140, 240], "s": [1345, 0, 110, 240], "u": [1456, 0, 139, 240]}, "tomba": {"f": [0, 242, 166, 240], "s": [167, 242, 127, 240], "u": [296, 242, 162, 240]}, "koki": {"f": [460, 242, 150, 240], "s": [611, 242, 98, 240], "u": [710, 242, 149, 240]}, "nuna": {"f": [861, 242, 152, 240], "s": [1014, 242, 110, 240], "u": [1126, 242, 147, 240]}};
+const KOB_META = {"okai": {"f": [0, 0, 156, 240], "s": [158, 0, 117, 240], "u": [116, 484, 125, 240]}, "bimba": {"f": [422, 0, 148, 240], "s": [571, 0, 134, 240], "u": [0, 484, 114, 240]}, "tobi": {"f": [707, 0, 169, 240], "s": [878, 0, 154, 240], "u": [1033, 0, 169, 240]}, "maia": {"f": [1203, 0, 140, 240], "s": [1345, 0, 110, 240], "u": [1456, 0, 139, 240]}, "tomba": {"f": [0, 242, 166, 240], "s": [167, 242, 127, 240], "u": [296, 242, 162, 240]}, "koki": {"f": [460, 242, 150, 240], "s": [611, 242, 98, 240], "u": [710, 242, 149, 240]}, "nuna": {"f": [861, 242, 152, 240], "s": [1014, 242, 110, 240], "u": [1126, 242, 147, 240]}};
 const KOB_H = { okai: 56, bimba: 52, tobi: 41, maia: 52, tomba: 54, koki: 56, nuna: 52 };
 const KOB_FACE = { okai: 'l', bimba: 'l', tobi: 'r', maia: 'l', tomba: 'l', koki: 'l', nuna: 'r' };   // sens du profil sur la planche
 const KOB_TALK = {
