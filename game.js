@@ -1820,7 +1820,7 @@ function doAction() {
   if (player.state === 'fishing') { fishPress(); return; }
   if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
-  if (postAct()) return;
+  if (postAct() || tamaAct()) return;
 
   if (storyOn() && qState.toto === 'done' && !handsFull() && boatTapNear()) { askBoatChoice(); return; }
   if (crabAction()) return;   // le crabe passe avant les interactions alentours
@@ -2308,15 +2308,16 @@ function postTalk(o) {   // retourne true si une mission prend la discussion
   if (k === 'soigneuse' && post.egg === 2) { const need = { flower: 5, coconut: 2 };
     if (!Object.entries(need).every(([i, n]) => (inv[i] || 0) >= n)) { openDialog(who, ['Un œuf de cygne ! Il lui faut un nid bien douillet. 🪺', 'Rapporte-moi 5 fleurs 🌸 et 2 noix de coco 🥥 (pour la fibre) : on lui fera un nid.'], free, por); return true; }
     handIn({ who, need }, () => giveAnim(need, () => { Object.entries(need).forEach(([i, n]) => { inv[i] -= n; }); post.egg = 3; post.eggDay = mini.dayNo || 0; renderHud(); save();
-      openDialog(who, ['Voilà un nid tout doux ! Je le pose au bord du lac, près de Gaïkin. 🪺', 'Maintenant, il faut attendre une nuit. Va dormir, et reviens voir Gaïkin demain !'], free, por); }), free); return true; }
+      if (!babies().length) babies().push(babyNew(0)); babies()[0].warm = 1; save(); openDialog(who, ['Voilà un nid tout doux ! Je le pose sur la plage, au bord de l\'eau. 🪺', 'Maintenant, il faut attendre une nuit. Va dormir, et reviens voir Gaïkin demain !'], free, por); }), free); return true; }
   player.state = 'free'; return false;
 }
 function postSwan() {   // Gaïkin : plumes perdues et histoire de l'œuf
   if (!postOn() || player.mount) return false; const free = () => { player.state = 'free'; };
   if (post.nd >= 3 && !post.egg) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Myah… cette nuit, j\'ai entendu un tout petit bruit dans les roseaux, au bord du lac. 🦢', 'Il y a un œuf là-bas ! Un œuf de cygne, tout seul. Peux-tu le trouver ? Cherche ce qui scintille près de l\'eau.'], () => { post.egg = 1; save(); free(); }, LP()); return true; }
   if (post.egg === 3 && (mini.dayNo || 0) > post.eggDay) { player.state = 'talk'; post.egg = 4; save(); sfx.star && sfx.star(); confetti();
-    openDialog('Gaïkin, le grand Cygne', ['Regarde, Myah ! L\'œuf craque… 🥚', 'Un bébé cygne ! Il te regarde comme si tu étais sa maman. 🤍', 'Il s\'appellera Plume. Elle nagera près de moi sur le lac. Merci d\'avoir pris soin d\'elle !'], () => { free(); postReward('Gaïkin'); }, LP()); return true; }
+    openDialog('Gaïkin, le grand Cygne', ['Regarde, Myah ! L\'œuf craque… 🥚', 'Un bébé cygne ! Il te regarde comme si tu étais sa maman. 🤍', 'Elle s\'appellera Plume. Elle vivra dans son nid, sur la plage. Nourris-la, lave-la, joue avec elle et fais-lui plein de câlins !'], () => { free(); if (babies()[0]) { babies()[0].st = 'baby'; babies()[0].warm = 0; } save(); postReward('Gaïkin'); say('Va voir Plume dans son nid, sur la plage ! 🪺', 5); }, LP()); return true; }
   if (post.egg === 3) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['L\'œuf est bien au chaud dans son nid. Il faut attendre une nuit… va dormir ! 🌙'], free, LP()); return true; }
+  if (tamaGaikin()) return true;
   if (post.nd >= 1 && !post.fea) { player.state = 'talk'; openDialog('Gaïkin, le grand Cygne', ['Pendant que je volais, trois de mes plumes se sont envolées au loin. 🪶', 'Viens sur mon dos, on va les chercher ! Elles brillent : passe juste au-dessus en volant.'], () => { post.fea = { got: [] }; save(); free(); }, LP()); return true; }
   return false;
 }
@@ -2327,14 +2328,14 @@ function postAct() {   // ramasser l'œuf
   player.state = 'talk'; openDialog('Myah', ['Un œuf de cygne, tout tiède ! 🥚', 'Lulia saura comment lui faire un nid. Je vais la voir au poste de soin !'], () => { player.state = 'free'; }); return true;
 }
 function postUpdate() {
-  if (!postOn()) return; postNewDay();
+  if (!postOn()) return; postNewDay(); tamaUpdate();
   const p = player, fly = p.mount === 'fly';
   [['ring', RINGS, 'anneau'], ['fea', FEATHERS, 'plume']].forEach(([k, L, n]) => { const m = post[k]; if (!m || m.done || !fly) return;
     L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
       if (m.got.length >= L.length) { m.done = true; save(); say(k === 'ring' ? 'Les 5 anneaux ! Va raconter ça à Yurii !' : 'Toutes les plumes sont retrouvées ! Merci, Myah ! 🪶', 4); setTimeout(() => postReward(k === 'ring' ? 'Yurii' : 'Gaïkin'), 1500); } else say(n[0].toUpperCase() + n.slice(1) + ' ' + m.got.length + '/' + L.length + ' !', 2); }); });
 }
-function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille, le nid et Plume
-  if (!postOn() || IN.on) return; const T = time;
+function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille
+  if (!postOn() || IN.on) return; const T = time; tamaDraw(items);
   [['ring', RINGS], ['fea', FEATHERS]].forEach(([k, L]) => { const m = post[k]; if (!m || m.done) return;
     L.forEach((q, i) => { if (m.got.includes(i)) return; items.push({ y: q[1] + 400, draw() { const y = q[1] - 52 + Math.sin(T * 2 + i) * 3;
       ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(q[0], q[1], 10, 3, 0, 0, TAU); ctx.fill();
@@ -2342,9 +2343,88 @@ function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille, le nid et
       else if (PLUME.complete && PLUME.naturalWidth) { const h = 18, w = h * PLUME.naturalWidth / PLUME.naturalHeight; ctx.globalAlpha = .7 + .3 * Math.sin(T * 4 + i); ctx.drawImage(PLUME, q[0] - w / 2, y - h / 2, w, h); }
       ctx.restore(); } }); }); });
   if (post.egg === 1) { const e = eggSpot(); items.push({ y: e[1], draw() { const a = .5 + .5 * Math.sin(T * 4); ctx.save(); ctx.fillStyle = 'rgba(255,240,170,' + (.25 + .3 * a) + ')'; ctx.beginPath(); ctx.arc(e[0], e[1] - 4, 9 + 2 * a, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.strokeStyle = '#b8a888'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(e[0], e[1] - 4, 3.6, 4.8, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); } }); }
-  if (post.egg >= 3 && swanLake()) { const x = SW_LAKE[0] - 34, y = SW_LAKE[1] + 14; items.push({ y, draw() {
+  if (false) { const x = SW_LAKE[0] - 34, y = SW_LAKE[1] + 14; items.push({ y, draw() {
     if (post.egg === 3) { ctx.save(); ctx.fillStyle = '#9a7a4a'; ctx.beginPath(); ctx.ellipse(x, y, 9, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.beginPath(); ctx.ellipse(x, y - 3, 3.6, 4.6, 0, 0, TAU); ctx.fill(); ctx.restore(); }
     else sprDraw('swan0', x + Math.sin(T * .5) * 8, y + Math.sin(T * 1.7) * 1, .45, Math.cos(T * .5) < 0, 1); } }); }
+}
+/* ================= les bébés de Gaïkin (façon Tamagotchi) : Plume, Miko, Lalou =================
+   un œuf dans le nid de la plage, puis un bébé à nourrir, laver, faire jouer et câliner ; après 3 bonnes journées il devient « ado »
+   et se promène sur la plage ; Gaïkin confie alors un nouvel œuf (3 au maximum). */
+const TAMA_URL = 'assets/tama.png?v=40', TAMA_W = 1050, TAMA_H = 675, TM = {"t_walk":[0,0,167,165],"tub":[169,0,190,162],"t_wings":[360,0,226,158],"t_idle":[587,0,158,149],"nest_egg":[746,0,178,148],"t_swim":[0,166,207,147],"hatched":[208,166,164,142],"bath":[374,166,174,140],"sleep":[549,166,118,136],"egg_hatch":[668,166,98,132],"joy":[768,166,122,130],"cuddle":[0,315,194,130],"egg_crack":[196,315,100,127],"egg":[298,315,98,126],"caress":[398,315,225,126],"dirty":[624,315,124,122],"play":[749,315,164,122],"mud":[0,446,209,119],"happy":[211,446,124,118],"hungry":[336,446,124,118],"sad":[462,446,124,117],"seeds":[587,446,215,113],"t_sleep":[804,446,191,110],"feed":[0,567,142,108],"drop":[144,567,100,105],"nest":[245,567,177,104],"feed_hand":[424,567,108,71],"think":[533,567,58,48]};
+const TAMA_IMG = new Image(); TAMA_IMG.src = TAMA_URL;
+const BABY_NAMES = ['Plume', 'Miko', 'Lalou'], BABY_HUE = [0, 200, 45];   // lilas, bleu ciel, rose doré
+const NEST = () => (post._nest = post._nest || nearestWalk(410, 446));
+const TEEN_SPOTS = [[[300, 452], [360, 456]], [[455, 448], [500, 440]], [[230, 470], [290, 476], 'swim']];
+const tmSpr = (k, h, hue) => spr(TAMA_URL, TAMA_W, TAMA_H, TM[k], h, '').replace('style="', 'style="display:inline-block;filter:hue-rotate(' + (hue || 0) + 'deg);');
+const babies = () => (post.babies = post.babies || []);
+const nestBaby = () => babies().find(b => b.st !== 'teen');
+const NEED_K = [['faim', 'Faim', 'seeds'], ['prop', 'Propreté', 'drop'], ['jeu', 'Jeu', 'play'], ['calin', 'Câlins', 'caress']];
+function babyNew(n) { return { name: BABY_NAMES[n], hue: BABY_HUE[n], st: 'egg', faim: 80, prop: 80, jeu: 80, calin: 80, good: 0, warm: 0 }; }
+function babyMood(b) {
+  if (b.st === 'egg') return b.warm > 0 ? 'egg_crack' : 'egg';
+  if (b.st === 'teen') return isEve() && dayT > .7 ? 't_sleep' : 't_idle';
+  if (isEve() && dayT > .72) return 'sleep';
+  if (b.faim < 35) return 'hungry'; if (b.prop < 35) return 'dirty'; if (b.jeu < 35 || b.calin < 35) return 'sad';
+  return Math.min(b.faim, b.prop, b.jeu, b.calin) > 75 ? 'joy' : 'happy';
+}
+let tamaLastT = null, tamaDay = null;
+function tamaUpdate() {   // les besoins baissent doucement avec le temps du jeu (pas la nuit, il dort)
+  if (!postOn()) return; const t = dayT, dn = mini.dayNo || 0;
+  if (tamaLastT != null) { let dt = t - tamaLastT; if (dt < 0) dt += 1; if (dt > 0 && dt < .2 && !(isEve() && dayT > .72)) babies().forEach(b => { if (b.st !== 'baby') return; const h = dt * 24; b.faim = Math.max(0, b.faim - h * 6); b.prop = Math.max(0, b.prop - h * 4); b.jeu = Math.max(0, b.jeu - h * 5); b.calin = Math.max(0, b.calin - h * 4); }); }
+  tamaLastT = t;
+  if (tamaDay != null && dn !== tamaDay) babies().forEach(b => {   // un nouveau jour
+    if (b.st === 'egg' && b.warm > 0 && (post.egg >= 4 || babies().indexOf(b) > 0)) { b.st = 'baby'; b.warm = 0; say('🥚 L\'œuf a éclos ! ' + b.name + ' t\'attend dans son nid, sur la plage !', 6); }
+    else if (b.st === 'egg') b.warm = 0;
+    else if (b.st === 'baby') { if ((b.faim + b.prop + b.jeu + b.calin) / 4 >= 50) b.good++; if (b.good >= 3) { b.st = 'teen'; say('🦢 ' + b.name + ' a grandi ! Elle se promène maintenant sur la plage.', 6); setTimeout(() => postReward('Gaïkin'), 1500); } }
+    save(); });
+  tamaDay = dn;
+}
+const nearNest = () => postOn() && !IN.on && !player.mount && nestBaby() && dist(player.x, player.y, NEST()[0], NEST()[1]) < 30;
+const nearTeen = () => postOn() && !IN.on && !player.mount && babies().find((b, i) => b.st === 'teen' && dist(player.x, player.y, teenPos(i)[0], teenPos(i)[1]) < 26);
+function teenPos(i) { const s = TEEN_SPOTS[i % 3], u = (Math.sin(time * .12 + i * 2) + 1) / 2, a = s[0], c = s[1]; return [a[0] + (c[0] - a[0]) * u, a[1] + (c[1] - a[1]) * u, s[2] === 'swim', Math.cos(time * .12 + i * 2) > 0]; }
+function tamaDraw(items) {   // le nid (avec l'œuf ou le bébé) et les ados sur la plage
+  if (!postOn() || IN.on || !TAMA_IMG.complete || !TAMA_IMG.naturalWidth) return;
+  const d = (k, x, y, h, hue, flip) => { const m = TM[k], w = h * m[2] / m[3]; ctx.save(); if (hue) ctx.filter = 'hue-rotate(' + hue + 'deg)'; ctx.translate(x, y); if (flip) ctx.scale(-1, 1); ctx.drawImage(TAMA_IMG, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); };
+  const b = nestBaby();
+  if (b || babies().length) { const [nx, ny] = NEST(); items.push({ y: ny, draw() {
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(nx, ny, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.restore();
+    if (b && b.st === 'egg') d('nest_egg', nx, ny + 2, 20, b.hue, false);
+    else { d('nest', nx, ny + 2, 12, 0, false); if (b) d(babyMood(b), nx, ny - 4 - (babyMood(b) === 'joy' ? Math.abs(Math.sin(time * 6)) * 2 : 0), 15, b.hue, false); }
+    if (b && b.st === 'baby' && Math.min(b.faim, b.prop, b.jeu, b.calin) < 35 && !(isEve() && dayT > .72)) marker(nx, ny - 26, '!', '#ff9ec7');
+  } }); }
+  babies().forEach((t, i) => { if (t.st !== 'teen') return; const [x, y, sw, fl] = teenPos(i); items.push({ y, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(x, y, 10, 3, 0, 0, TAU); ctx.fill(); ctx.restore(); d(isEve() && dayT > .72 ? 't_sleep' : sw ? 't_swim' : 't_walk', x, y + (sw ? 3 : 0), 24, t.hue, !fl); } }); });
+}
+function tamaOpen(b) {   // l'écran façon Tamagotchi
+  b = b || nestBaby(); if (!b) return; player.state = 'talk'; player.mvx = player.mvy = 0; setAnim('idle');
+  let o = document.getElementById('tamaOv'); if (!o) { o = document.createElement('div'); o.id = 'tamaOv'; document.body.appendChild(o);
+    const st = document.createElement('style'); st.textContent = '#tamaOv{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(30,20,50,.45);font-family:"Trebuchet MS",system-ui,sans-serif}#tamaOv .tc{width:min(360px,92vw);background:linear-gradient(#fffaf0,#f6e7cf);border:4px solid #c8973e;border-radius:28px;padding:14px 14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative;text-align:center}#tamaOv h3{margin:0 0 2px;color:#7a4b24;font-size:22px}#tamaOv .sub{color:#a07a50;font-size:13px;margin-bottom:6px}#tamaOv .scr{height:190px;border-radius:20px;background:radial-gradient(#fff,#e9f6ff);border:3px solid #e0c9a0;display:flex;align-items:flex-end;justify-content:center;position:relative;overflow:hidden;padding-bottom:10px}#tamaOv .scr .fx{position:absolute;inset:0;pointer-events:none}#tamaOv .g{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin:10px 4px 8px;font-size:13px;color:#7a4b24;font-weight:700;text-align:left}#tamaOv .bar{height:18px;background:url(assets/cook/fx/bar.png) 0 0/100% 100% no-repeat;position:relative}#tamaOv .bar i{position:absolute;left:5.8%;top:21%;bottom:23%;border-radius:9px;background:#6fd16f;max-width:88.4%}#tamaOv .bt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#tamaOv .bt button{border:2px solid #e0a63a;background:#fffaf0;border-radius:14px;padding:4px 2px;font:700 12px system-ui;color:#7a4b24;display:flex;flex-direction:column;align-items:center;gap:2px}#tamaOv .bt button:disabled{opacity:.4}#tamaOv .x{position:absolute;right:-10px;top:-10px;width:40px;height:40px;border-radius:50%;border:3px solid #fff;background:#e85a9a;color:#fff;font:900 20px system-ui}#tamaOv .tabs{display:flex;gap:6px;justify-content:center;margin-bottom:6px}#tamaOv .tabs button{border:2px solid #e0c9a0;background:#fff;border-radius:12px;padding:2px 10px;font:700 12px system-ui;color:#7a4b24}#tamaOv .tabs .on{background:#ffe9b8;border-color:#e0a63a}@keyframes tmHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}#tamaOv .hop{animation:tmHop .5s ease-in-out 3}@keyframes tmUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-70px);opacity:0}}#tamaOv .ht{position:absolute;font-size:22px;animation:tmUp 1.4s ease-out forwards}';
+    document.head.appendChild(st); o.addEventListener('pointerdown', e => e.stopPropagation()); }
+  const busy = { on: false };
+  const draw = (act) => {
+    const all = babies(), stg = { egg: 'œuf', baby: 'bébé', teen: 'ado' }[b.st], mood = act || babyMood(b), sleeping = mood === 'sleep' || mood === 't_sleep';
+    o.innerHTML = '<div class="tc"><button class="x" id="tmX">✕</button>' + (all.length > 1 ? '<div class="tabs">' + all.map((c, i) => '<button data-i="' + i + '" class="' + (c === b ? 'on' : '') + '">' + c.name + '</button>').join('') + '</div>' : '') +
+      '<h3>' + b.name + '</h3><div class="sub">' + (b.st === 'egg' ? 'Un œuf tout tiède… fais-lui un câlin chaque jour pour qu\'il éclose !' : b.st === 'teen' ? 'C\'est maintenant un jeune cygne : il se promène sur la plage.' : sleeping ? 'Chut… il dort. Reviens demain matin !' : 'Bébé cygne · bonnes journées : ' + b.good + '/3') + '</div>' +
+      '<div class="scr"><span id="tmPic" class="' + (act ? 'hop' : '') + '">' + (act === 'feed' ? tmSpr('feed_hand', 60, 0) : '') + tmSpr(mood, act === 'bath' || act === 'cuddle' || act === 'play' ? 150 : b.st === 'teen' ? 165 : 150, b.hue) + '</span>' + (mood === 'hungry' ? '<span style="position:absolute;right:18%;top:12%">' + tmSpr('think', 46, 0) + '</span>' : '') + '<div class="fx" id="tmFx"></div></div>' +
+      (b.st === 'baby' ? '<div class="g">' + NEED_K.map(([k, n]) => '<span>' + n + '</span><div class="bar"><i style="width:' + (b[k] * .884).toFixed(1) + '%;background:' + (b[k] < 35 ? '#ff7a5a' : b[k] < 65 ? '#ffc23d' : '#6fd16f') + '"></i></div>').join('') + '</div>' : '<div style="height:10px"></div>') +
+      '<div class="bt">' + (b.st === 'baby' ? [['feed', 'Nourrir', 'seeds'], ['bath', 'Laver', 'tub'], ['play', 'Jouer', 'play'], ['cuddle', 'Câlin', 'caress']] : [['cuddle', b.st === 'egg' ? 'Réchauffer' : 'Câlin', 'caress']]).map(([a, n, ic]) => '<button data-a="' + a + '"' + (sleeping || (b.st === 'egg' && b.warm > 0) ? ' disabled' : '') + '>' + tmSpr(ic, 34, 0) + n + '</button>').join('') + '</div></div>';
+    o.style.display = 'flex';
+    o.querySelector('#tmX').onclick = () => { o.style.display = 'none'; player.state = 'free'; actBlock = time + .5; };
+    o.querySelectorAll('.tabs button').forEach(t => t.onclick = () => { b = babies()[+t.dataset.i]; draw(); });
+    o.querySelectorAll('.bt button').forEach(t => t.onclick = () => { if (busy.on) return; busy.on = true; const a = t.dataset.a; sfx.pick && sfx.pick();
+      if (b.st === 'egg') { b.warm = 1; save(); draw('egg_crack'); hearts(); setTimeout(() => { busy.on = false; say('L\'œuf est bien au chaud. Demain matin, il éclora peut-être…', 4); draw(); }, 1500); return; }
+      const key = { feed: 'faim', bath: 'prop', play: 'jeu', cuddle: 'calin' }[a]; if (b.st === 'baby') b[key] = Math.min(100, b[key] + 40); save(); draw(b.st === 'teen' ? 't_wings' : a); hearts(); sfx.star && sfx.star();
+      setTimeout(() => { busy.on = false; draw(); }, 1600); });
+  };
+  const hearts = () => { const fx = o.querySelector('#tmFx'); if (!fx) return; for (let i = 0; i < 5; i++) { const h = document.createElement('span'); h.className = 'ht'; h.textContent = ['💗', '✨', '💗', '⭐', '💕'][i]; h.style.left = (25 + i * 12) + '%'; h.style.top = (55 + (i % 2) * 10) + '%'; h.style.animationDelay = (i * .12) + 's'; fx.appendChild(h); } };
+  draw();
+}
+const tamaOpenNow = () => { const o = document.getElementById('tamaOv'); return !!o && o.style.display === 'flex'; };
+function tamaAct() { if (!postOn() || player.mount) return false; if (nearNest()) { tamaOpen(nestBaby()); return true; } const t = nearTeen(); if (t) { tamaOpen(t); return true; } return false; }
+function tamaGaikin() {   // Gaïkin confie un nouvel œuf quand le dernier bébé est devenu ado
+  const B = babies(); if (!postOn() || !B.length || B.length >= 3 || B.some(b => b.st !== 'teen')) return false;
+  player.state = 'talk'; const n = B.length;
+  openDialog('Gaïkin, le grand Cygne', ['Myah… ' + B[n - 1].name + ' est devenu un beau jeune cygne grâce à toi. 🦢', 'J\'ai un nouvel œuf à te confier. Je le pose dans le nid, sur la plage. Il s\'appellera ' + BABY_NAMES[n] + '. Prends-en soin !'], () => { B.push(babyNew(n)); save(); player.state = 'free'; say('Un nouvel œuf t\'attend dans le nid, sur la plage ! 🥚', 5); }, LP());
+  return true;
 }
 /* ================= cinématiques et Cygne légendaire ================= */
 let cine = null;
