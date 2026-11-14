@@ -3306,15 +3306,24 @@ const KA_HH = { wallaby: 22, kookaburra: 17, quokka: 19, echidne: 15, roussette:
 function vetDraw() {
   if (SC !== SC_KOBHAK || !KANI.complete || !KANI.naturalWidth) return;
   VET.forEach(v => {
-    const p = vetShowAll ? v.sp[0] : (vetS[v.k] === 1 || (vetS[v.k] === 3 && vetDone())) && vetPos(v); if (!p) return; const cr = CARE && CARE.v.k === v.k, sk = vetShowAll === 2 || (!vetShowAll && vetS[v.k] === 3), m = KA_M[v.k + (cr && CARE.step === 'heal' ? '_h' : sk ? '_i' : '_s')], h = KA_HH[v.k] || 20, w = h * m[2] / m[3];
+    const p = vetShowAll ? v.sp[0] : (vetS[v.k] === 1 || (vetS[v.k] === 3 && vetDone())) && vetPos(v); if (!p) return; const cr = CARE && CARE.v.k === v.k, sk = vetShowAll === 2 || (!vetShowAll && vetS[v.k] === 3), m0 = KA_M[v.k + (cr && CARE.step === 'heal' ? '_h' : sk ? '_i' : '_s')], h = KA_HH[v.k] || 20;
+    const wd = sk && !cr && !vetShowAll && KWALK[v.k + '_f'] && KWI.complete && KWI.naturalWidth ? kobWander(v, p) : null, m = wd ? wd.m : m0, w = h * m[2] / m[3], IMG = wd ? KWI : KANI, fl = wd && wd.fl;   // l'animal guéri se promène
     const shx = cr && time < CARE.shake ? Math.sin(time * 40) * 1.6 : 0, hop = cr && CARE.step === 'heal' ? Math.abs(Math.sin(time * 7)) * 3 : cr && CARE.step === 'gest' && CARE.g.kind === 'time' && careMouth() ? 1.5 : 0;
-    ctx.save(); ctx.globalAlpha = KD_A; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .4, 3.5, 0, 0, TAU); ctx.fill(); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], p.x - w / 2 + shx, p.y - h + 2 - hop, w, h); ctx.restore();
+    ctx.save(); ctx.globalAlpha = KD_A; ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .4, 3.5, 0, 0, TAU); ctx.fill(); const dx = wd ? wd.dx : 0; if (fl) { ctx.translate(p.x + dx, 0); ctx.scale(-1, 1); ctx.translate(-(p.x + dx), 0); } ctx.drawImage(IMG, m[0], m[1], m[2], m[3], p.x + dx - w / 2 + shx, p.y - h + 2 - hop - (wd ? wd.hop : 0), w, h); ctx.restore();
     if (kobFeedT[v.k] > time) { const kk = 1 - (kobFeedT[v.k] - time) / 2.6; ctx.save(); ctx.globalAlpha = Math.min(1, (1 - kk) * 2.2); ctx.fillStyle = '#ff7eb6'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center'; ctx.fillText('♥', p.x - 6, p.y - h - 4 - kk * 14); ctx.fillText('♥', p.x + 7, p.y - h - 1 - kk * 18); ctx.restore(); }
     if (!cr && (vetShowAll === 1 || (!vetShowAll && vetS[v.k] === 1))) redBang(p.x, p.y - h - 11 - Math.abs(Math.sin(time * 4)) * 4); });
   if (kobQ === 4) KOB_N.filter(n => n.ko && !kobKoa[n.k]).forEach(n => redBang(n.x, n.y - KOB_KH[n.k] - 11 - Math.abs(Math.sin(time * 4)) * 4));
 }
 const vetOvOpen = () => $('#vetOv').style.display === 'grid', remOvOpen = () => $('#remOv').style.display === 'grid';
 const kobOvOpen = () => kobBkOpen() || vetOvOpen() || remOvOpen() || mgOvOpen() || wmOpen() || (typeof careOn === 'function' && careOn());
+const KWALK = {"wallaby_f": [0, 0, 117, 160], "kookaburra_f": [119, 0, 149, 160], "quokka_f": [270, 0, 125, 160], "echidne_f": [397, 0, 175, 160], "wallaby_s": [574, 0, 152, 160], "kookaburra_s": [728, 0, 148, 160], "quokka_s": [878, 0, 120, 160], "echidne_s": [1000, 0, 193, 160], "wallaby_u": [1195, 0, 150, 160], "kookaburra_u": [0, 162, 123, 160], "quokka_u": [125, 162, 115, 160], "echidne_u": [242, 162, 182, 160]}, KWI = new Image(); KWI.src = 'assets/kob_walk.png?v=46';
+function kobWander(v, p) {   // va-et-vient tranquille : pause de face, marche de profil, demi-tour
+  const u = (time * .22 + (v.k.length * .37)) % 4, D = 24, ph = Math.floor(u), f = u - ph, hopK = v.k === 'wallaby' || v.k === 'quokka';
+  if (ph === 0) return { m: KWALK[v.k + '_f'], dx: 0, fl: false, hop: 0 };
+  if (ph === 2) return { m: KWALK[v.k + '_f'], dx: D, fl: false, hop: 0 };
+  const e = f * f * (3 - 2 * f), hop = hopK ? Math.abs(Math.sin(f * Math.PI * 4)) * 2.5 : 0;
+  return ph === 1 ? { m: KWALK[v.k + '_s'], dx: D * e, fl: false, hop } : { m: KWALK[v.k + '_s'], dx: D * (1 - e), fl: true, hop };
+}
 function vetAct() { const v = vetNear(); if (!v) return false; return careStart(v, vetShowAll === 1 ? v.sp[0] : vetPos(v)); }
 /* ================= soins sur l'île (Kobhak) : le mini-jeu se joue sur la carte, comme la pêche =================
    1) thermomètre : on touche l'animal ; 2) les objets de la mallette apparaissent en bulles ; 3) un geste par soin ;
