@@ -4461,7 +4461,7 @@ const MG_FILES = {
   puz2: ['cygne', 'colibri'].flatMap(k => ['assets/puzzle/' + k + '_sheet.png', 'assets/puzzle/' + k + '_ghost.jpg']),
   paint: ['assets/color/palette.png'],
   tet: ['assets/tetris/board.png', 'assets/tetris/blocks.png', 'assets/tetris/ui.png', 'assets/tetris/bg.jpg'],
-  cook: ['menu_intro', 'd_cake', 'd_banane', 'peel_m', 'cut_m', 'cup_f', 'cup_s', 'bowl', 'mix_m', 'pour', 'oven', 'peel_b', 'cut_b', 'mix_b', 'gz_g0', 'gz_g1', 'gz_p0', 'gz_p1', 'd_burnt', 'd_burnt_b'].map(n => 'assets/cook/' + n + '.jpg').concat(['knife', 'hand_knife', 'hand_peel_b', 'hand_peel_f', 'hand_pinch', 'hand_whisk', 'eggs', 'peel', 'spice', 'cubes2', 'rounds', 'milk', 'steam', 'bar', 'vbar'].map(n => 'assets/cook/fx/' + n + '.png')),
+  cook: ['menu_intro', 'd_cake', 'd_banane', 'peel_m', 'cut_m', 'cup_f', 'cup_s', 'bowl', 'mix_m', 'pour', 'oven', 'peel_b', 'cut_b', 'mix_b', 'gz_g0', 'gz_g1', 'gz_p0', 'gz_p1', 'd_burnt', 'd_burnt_b'].map(n => 'assets/cook/' + n + '.jpg').concat(['hand_knife', 'hand_peel_b', 'hand_peel_f', 'hand_pinch', 'hand_whisk', 'eggs', 'peel', 'spice', 'cubes2', 'rounds', 'milk', 'steam', 'bar', 'vbar'].map(n => 'assets/cook/fx/' + n + '.png')),
 };
 let mgIdleOn = false;
 function mgIdle() {   // une fois la partie lancée : on charge tranquillement les mini-jeux, du plus léger au plus lourd
