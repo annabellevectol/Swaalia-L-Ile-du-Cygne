@@ -3140,6 +3140,8 @@ function vetAct() { const v = vetNear(); if (!v) return false; return careStart(
 const MYS = new Image(); MYS.src = 'assets/myah_soin.png';
 let CARE = null;
 const CK_SP = ['hb0', 'hb1', 'hb2'].map(n => { const i = new Image(); i.src = 'assets/cook/' + n + '.png?v=37'; return i; }), HB_TIP = [[55, 257], [93, 257], [96, 254]];   // la main qui étale le baume du bout des doigts (et où sont les doigts sur chaque image)
+const HG = ['hg0', 'hg1', 'hg2'].map(n => { const i = new Image(); i.src = 'assets/cook/' + n + '.png?v=38'; return i; }), HG_TIP = [[57, 306], [67, 322], [150, 390]];   // la main qui donne la gélule (point d'ancrage : la gélule)
+function careGelHand(f, x, y) { const im = HG[f]; if (!im.complete || !im.naturalWidth) return; const k = 30 / 330; ctx.drawImage(im, x - HG_TIP[f][0] * k, y - HG_TIP[f][1] * k, im.naturalWidth * k, im.naturalHeight * k); }
 const CK_VB = new Image(); CK_VB.src = 'assets/cook/fx/vbar.png'; const CK_HB = new Image(); CK_HB.src = 'assets/cook/fx/bar.png';   // les jauges en bois du jeu de cuisine
 function careHBar(x, y, w, p, col) {   // jauge horizontale en bois (comme en cuisine), remplie à p
   const h = w * 69 / 420; if (CK_HB.complete && CK_HB.naturalWidth) ctx.drawImage(CK_HB, x - w / 2, y - h / 2, w, h); else { ctx.fillStyle = '#8a5a2a'; ctx.fillRect(x - w / 2, y - h / 2, w, h); }
@@ -3268,8 +3270,9 @@ function careDraw() {   // tout ce qui s'affiche sur la carte pendant le soin (a
     }
     if (g.kind === 'brush') { careHBar((IN.x + ax) / 2, Math.min(IN.y - 64, c.p.y - ah - 14), 46, g.prog, '#6fd16f'); if (c.down) { const m = careToolM(c.tool), [px, py] = [c.down.x, c.down.y]; if (m && KANI.complete) { const hh = 16, ww = hh * m[2] / m[3]; ctx.drawImage(KANI, m[0], m[1], m[2], m[3], (g.lx || px) - ww / 2, py - hh / 2, ww, hh); } } }
     if (g.kind === 'drag') { const m = careToolM('couverture'), hh = 22, ww = hh * m[2] / m[3]; ctx.globalAlpha = .95; if (KANI.complete) ctx.drawImage(KANI, m[0], m[1], m[2], m[3], g.bx - ww / 2, g.by - hh / 2, ww, hh); ctx.globalAlpha = 1; const a = .5 + .5 * Math.sin(T * 5); ctx.strokeStyle = 'rgba(111,209,111,' + (.4 + .5 * a) + ')'; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ax, ay, Math.max(14, ah * .6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
-    if (g.kind === 'time') { const open = careMouth(); ctx.strokeStyle = open ? '#6fd16f' : 'rgba(255,255,255,.7)'; ctx.lineWidth = open ? 3 : 1.5; ctx.beginPath(); ctx.arc(ax, ay, ah * .7 + (open ? 3 : 0), 0, TAU); ctx.stroke(); if (open) { ctx.fillStyle = '#2e7d4a'; ctx.font = '800 8px system-ui'; ctx.fillText('Maintenant !', ax, c.p.y - ah - 10); } }
+    if (g.kind === 'time') { const open = careMouth(); careGelHand(open ? 1 : 0, ax + 2, ay - 8 - (open ? 0 : 3 + Math.sin(T * 3.7) * 1.5)); ctx.strokeStyle = open ? '#6fd16f' : 'rgba(255,255,255,.7)'; ctx.lineWidth = open ? 3 : 1.5; ctx.beginPath(); ctx.arc(ax, ay, ah * .7 + (open ? 3 : 0), 0, TAU); ctx.stroke(); if (open) { ctx.fillStyle = '#2e7d4a'; ctx.font = '800 8px system-ui'; ctx.fillText('Maintenant !', ax, c.p.y - ah - 10); } }
   }
+  if (c.step === 'heal' && c.tool === 'gelule' && c.t < 1.2) { ctx.globalAlpha = Math.min(1, (1.2 - c.t) * 2.5); careGelHand(2, ax + 2, ay - 4 + Math.min(1, c.t * 3) * 6); ctx.globalAlpha = 1; }
   if (c.step === 'heal') for (let i = 0; i < 5; i++) { const u = (c.t * .7 + i / 5) % 1; ctx.globalAlpha = 1 - u; ctx.fillStyle = '#ff7eb6'; ctx.font = 'bold ' + (9 + i % 3 * 2) + 'px system-ui'; ctx.fillText('♥', ax + Math.sin(i * 2.3 + c.t * 2) * 12, ay - 6 - u * 34); }
   ctx.restore();
 }
