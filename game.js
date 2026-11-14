@@ -2331,17 +2331,19 @@ function postUpdate() {
   if (!postOn()) return; postNewDay(); tamaUpdate();
   const p = player, fly = p.mount === 'fly';
   [['ring', RINGS, 'anneau'], ['fea', FEATHERS, 'plume']].forEach(([k, L, n]) => { const m = post[k]; if (!m || m.done || !fly) return;
-    L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
+    L.forEach((q, i) => { if (m.got.includes(i) || dist(p.x, p.y, q[0], q[1]) > 26) return; m.got.push(i); if (k === 'ring') ringPop.push([q[0], q[1] - 52, time]); sfx.reveal && sfx.reveal(m.got.length); burst(q[0], q[1] - 52, 12, ['#ffe27a', '#fff'], true);
       if (m.got.length >= L.length) { m.done = true; save(); say(k === 'ring' ? 'Les 5 anneaux ! Va raconter ça à Yurii !' : 'Toutes les plumes sont retrouvées ! Merci, Myah ! 🪶', 4); setTimeout(() => postReward(k === 'ring' ? 'Yurii' : 'Gaïkin'), 1500); } else say(n[0].toUpperCase() + n.slice(1) + ' ' + m.got.length + '/' + L.length + ' !', 2); }); });
 }
+const RINGI = ['ring0', 'ring1', 'ring2'].map(n => { const i = new Image(); i.src = 'assets/spr/' + n + '.png?v=51'; return i; }), ringPop = [];   // anneaux de nuages : calme, qui brille, qui éclate
 function postDraw(items) {   // anneaux, plumes, l'œuf qui scintille
   if (!postOn() || IN.on) return; const T = time; tamaDraw(items);
   [['ring', RINGS], ['fea', FEATHERS]].forEach(([k, L]) => { const m = post[k]; if (!m || m.done) return;
     L.forEach((q, i) => { if (m.got.includes(i)) return; items.push({ y: q[1] + 400, draw() { const y = q[1] - 52 + Math.sin(T * 2 + i) * 3;
       ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.beginPath(); ctx.ellipse(q[0], q[1], 10, 3, 0, 0, TAU); ctx.fill();
-      if (k === 'ring') { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(q[0], y, 14, 18, 0, 0, TAU); ctx.stroke(); ctx.strokeStyle = '#f5c842'; ctx.lineWidth = 2.5; ctx.stroke(); }
+      if (k === 'ring') { const near = player.mount === 'fly' && dist(player.x, player.y, q[0], q[1]) < 90, im = RINGI[near ? 1 : 0]; if (im.complete && im.naturalWidth) { const h = 44, w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, q[0] - w / 2, y - h / 2, w, h); } }
       else if (PLUME.complete && PLUME.naturalWidth) { const h = 18, w = h * PLUME.naturalWidth / PLUME.naturalHeight; ctx.globalAlpha = .7 + .3 * Math.sin(T * 4 + i); ctx.drawImage(PLUME, q[0] - w / 2, y - h / 2, w, h); }
       ctx.restore(); } }); }); });
+  for (let i = ringPop.length - 1; i >= 0; i--) { const [x, y, t0] = ringPop[i], u = (time - t0) / .9; if (u > 1) { ringPop.splice(i, 1); continue; } items.push({ y: y + 452, draw() { const im = RINGI[2]; if (!im.complete || !im.naturalWidth) return; const h = 44 * (1 + u * .6), w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = 1 - u; ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.restore(); } }); }
   if (post.egg === 1) { const e = eggSpot(); items.push({ y: e[1], draw() { const a = .5 + .5 * Math.sin(T * 4); ctx.save(); ctx.fillStyle = 'rgba(255,240,170,' + (.25 + .3 * a) + ')'; ctx.beginPath(); ctx.arc(e[0], e[1] - 4, 9 + 2 * a, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.strokeStyle = '#b8a888'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(e[0], e[1] - 4, 3.6, 4.8, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.restore(); } }); }
   if (false) { const x = SW_LAKE[0] - 34, y = SW_LAKE[1] + 14; items.push({ y, draw() {
     if (post.egg === 3) { ctx.save(); ctx.fillStyle = '#9a7a4a'; ctx.beginPath(); ctx.ellipse(x, y, 9, 4, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#fbf6ea'; ctx.beginPath(); ctx.ellipse(x, y - 3, 3.6, 4.6, 0, 0, TAU); ctx.fill(); ctx.restore(); }
