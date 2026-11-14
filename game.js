@@ -2617,7 +2617,7 @@ function kitoGreet(dt) {   // quand Kito voit Myah, il gazouille tout seul
   const k = IN.on ? ((SC === SC_UKAI || SC === SC_HOME) ? SC.npcs().find(n => n.follow) : null) : EXTRAS.find(e => e.key === 'kito' && !e._away);
   if (!k) return; if (k.hi) { k.hi.t -= dt; if (k.hi.t <= 0) k.hi = null; }
   const px = IN.on ? IN.x : player.x, py = IN.on ? IN.y : player.y;
-  if (!k.hi && !dlg.open && (k.hiAt || 0) <= (IN.on ? IN.t : time) && dist(k.x, k.y, px, py) < 85) { k.hi = { t: 2.6, txt: Math.random() < .5 ? 'Mymy !' : 'Coucou !' }; k.hiAt = (IN.on ? IN.t : time) + 16; }
+  if (false && !k.hi && !dlg.open && (k.hiAt || 0) <= (IN.on ? IN.t : time) && dist(k.x, k.y, px, py) < 85) { k.hi = { t: 2.6, txt: Math.random() < .5 ? 'Mymy !' : 'Coucou !' }; k.hiAt = (IN.on ? IN.t : time) + 16; }
 }
 function syncKids() {   // Lila et Romi vont de la plage au musée ou à la maison Ukaï ; Kito reste collé à sa maman
   const ky = EXTRAS.find(e => e.key === 'kykah');
