@@ -3798,26 +3798,30 @@ const nearHelm = () => SC === SC_BOAT && IN.floor === 0 && dist(IN.x, IN.y, KOB_
 const kobhakOpen = () => !storyOn() || endingSeen;   // l'île Kobhak s'ouvre à la fin de l'histoire (Aventure, Défi), et tout de suite en mode libre (Balade)
 function askHelm(force) { if (!kobhakOpen() || bedPickOpen() || IN.busy || (!force && IN.askV && IN.t < IN.askV)) return; bedAsk = 'voyage'; $('#bedPickT').textContent = 'Voyage'; $('#bedPickP').textContent = 'Veux-tu partir pour l\'île Kobhak, l\'île du koala ?'; $('#bedPick').style.display = 'grid'; }
 const VOY_FILE = { map: 'midi', mapx_apm: 'apm', mapx_coucher: 'coucher', mapx_nuit: 'nuit', mapx_lever: 'lever' };
+let voyBusy = false;
 function voyage(dest) {   // fondu, traversée illustrée (selon l'heure du jeu), puis arrivée
+  if (voyBusy) return; voyBusy = true;   // un double appui ne lance pas deux traversées
   const ov = document.getElementById('voyOv') || (() => { const d = document.createElement('div'); d.id = 'voyOv'; d.style.cssText = 'position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:#2fb3c4;overflow:hidden;color:#fff;font:700 24px system-ui;text-shadow:0 2px 8px rgba(0,0,0,.55);text-align:center;padding:0 20px 11vh'; const im = document.createElement('img'); im.id = 'voyImg'; im.alt = ''; im.style.cssText = 'position:absolute;top:0;left:0;height:100%;width:auto;min-width:100%;max-width:none;will-change:transform;z-index:-1;pointer-events:none'; d.appendChild(im); const t = document.createElement('span'); t.id = 'voyTxt'; t.style.cssText = 'position:relative'; d.appendChild(t); document.body.appendChild(d); const st = document.createElement('style'); st.textContent = '@keyframes voyGo{from{transform:translate3d(0,0,0)}to{transform:translate3d(var(--voyd),0,0)}}'; document.head.appendChild(st); return d; })();
   if (dest === SC_KOBHAK) kobLoad();
   const ds = dayState(), key = VOY_FILE[(ds.u > .5 ? ds.B : ds.A).n] || 'midi', url = 'assets/' + (dest === SC_KOBHAK ? 'traversee_' : 'retour_') + key + '.jpg';
-  const pre = new Image(); pre.src = url; const ready = pre.decode ? pre.decode().catch(() => {}) : Promise.resolve();
+  const pre = new Image(); pre.src = url; const ready = Promise.race([pre.decode ? pre.decode().catch(() => {}) : Promise.resolve(), new Promise(r => setTimeout(r, 4000))]);   // réseau lent : on n'attend pas l'image plus de 4 s
   IN.askV = IN.askT = IN.t + 90;   // pas de nouvelle question pendant la traversée
   const t0 = performance.now();
-  ready.then(() => swapScene(() => {
+  const depart = () => { if (IN.busy) return setTimeout(depart, 150); swapScene(() => {
     const im = document.getElementById('voyImg'); im.style.animation = 'none'; im.src = url; im.style.transform = 'translate3d(0,0,0)';
     const vw = innerWidth, vh = innerHeight, iw = Math.max(vw, vh * 1376 / 768), d = Math.max(0, iw - vw);   // l'image défile d'un bord à l'autre
     ov.style.setProperty('--voyd', (-d) + 'px'); void im.offsetWidth; im.style.animation = 'voyGo 6s ease-in-out forwards';
     document.getElementById('voyTxt').textContent = dest === SC_KOBHAK ? 'En route vers l\'île Kobhak…' : 'On rentre à l\'île du Cygne…';
     ov.style.display = 'flex'; window.__voyOn = true;
-  }));
-  setTimeout(() => swapScene(() => {
+    setTimeout(arrive, 6000);   // l'arrivée part de l'affichage de la traversée (et non du clic) : plus de traversée bloquée quand l'image tarde
+  }); };
+  ready.then(depart);
+  const arrive = () => { if (IN.busy) return setTimeout(arrive, 150); swapScene(() => {
     window.__voyOn = false; ov.style.display = 'none'; setScene(dest); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.exitArmed = false; IN.cool = 1; player.dir4 = 'up';
     if (dest === SC_KOBHAK) { IN.x = 275; IN.y = 612; IN.exitOk = IN.t + 30; IN.askT = IN.t + 8; setTimeout(() => say('Terre en vue ! Bienvenue sur l\'île Kobhak, l\'île du koala !', 4), 900); }
     else { IN.x = KOB_SPOT[0]; IN.y = KOB_SPOT[1] + 50; IN.askV = IN.t + 20; IN.askH = IN.t + 60; }
-    sfx.hop && sfx.hop();
-  }), 6500);
+    sfx.hop && sfx.hop(); voyBusy = false;
+  }); };
 }
 /* ----- coffres d'intérieur : certains coffres sont cachés dans le musée, l'observatoire et la cale du bateau ----- */
 const CHIN = {};
