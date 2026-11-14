@@ -349,7 +349,24 @@ const CHAT = {
   ],
 };
 const chatLast = {};
+/* ----- après le retour de Gaïkin : les habitants parlent du lac redevenu clair, des poissons et de la fête ----- */
+const CHAT_END = {
+  maman: [['Depuis que Gaïkin est revenu, l\'eau du bassin est si claire que je vois mon reflet ! 💧'], ['Tout le monde parle encore de ton gâteau à la fête, ma chérie. Tu me donneras ta recette ? 🍰'], ['Ta grand-mère avait raison : Gaïkin a choisi un cœur généreux. Le tien. 💛']],
+  kahn: [['Mes légumes n\'ont jamais été aussi beaux ! L\'eau du lac nourrit à nouveau la terre. 🥕'], ['Je suis tellement fier de toi, ma grande. Toute l\'île te doit beaucoup.']],
+  frere: [['Myah ! Il y a plein de papillons partout maintenant ! 🦋 Je les compte, mais il y en a trop !'], ['Quand je serai grand, moi aussi je volerai sur le dos de Gaïkin, comme toi ! 🦢']],
+  soigneuse: [['Les fleurs ont retrouvé toutes leurs couleurs. Je n\'ai plus besoin de les soigner ! 🌸'], ['L\'eau propre, c\'est la meilleure médecine pour toute l\'île. Merci, Myah.']],
+  pecheur: [['Ho ho ! Les poissons sont revenus dans le lac ! Ma pêche n\'a jamais été aussi belle. 🐟'], ['Les pirates peuvent bien revenir : Gaïkin n\'est plus seul, il a toute l\'île avec lui ! ⚓']],
+  juliana: [['J\'ai ajouté une page au vieux livre de la légende : celle d\'une petite fille appelée Myah. 📖'], ['Au musée, on prépare une vitrine pour raconter le retour de Gaïkin. Tu en seras la vedette ! ✨']],
+  maima: [['Grâce à toi, Myah, l\'île respire de nouveau. Je suis fière d\'être ta cheffe… et ton amie. 🌺'], ['Chaque année, nous fêterons ce jour sur la plage. Ce sera la fête de Myah et de Gaïkin !']],
+  poggi: [['Les cocotiers donnent des noix plus grosses que jamais ! C\'est l\'eau du lac, j\'en suis sûr. 🥥'], ['Quelle fête sur la plage, hein ? J\'ai encore mal aux pieds d\'avoir tant dansé ! 💃']],
+  kito: [['Gaaa ! Cy-gne ! 🦢'], ['Mymy ! Mymy ! 💛']],
+  lila: [['Avec ma loupe, je regarde les petits poissons dans l\'eau claire. On voit même leurs écailles ! 🔍'], ['Tu m\'apprendras à voler sur Gaïkin, dis ? Juste un tout petit tour ?']],
+  romi: [['Franchement, Myah… ce que tu as fait, c\'est trop stylé. 😎'], ['Avec l\'eau claire, je peux enfin skater jusqu\'au ponton sans glisser dans la boue !']],
+  kykah: [['Les plus beaux coquillages reviennent sur la plage depuis que l\'eau est propre ! 🐚'], ['J\'ai fait un collier en souvenir de la fête. Il brille comme les plumes de Gaïkin !']],
+  gardien: [['Je vois Gaïkin voler tous les soirs dans ma longue-vue. Quel spectacle ! 🔭'], ['Les oiseaux chantent de nouveau au-dessus du lac. Mon carnet n\'a plus assez de pages ! 🐦']],
+};
 function chatter(key) {
+  if (phase === 'returned' && storyOn() && CHAT_END[key] && Math.random() < .6) { const e = CHAT_END[key]; let j; do { j = Math.floor(Math.random() * e.length); } while (e.length > 1 && j === chatLast['e_' + key]); chatLast['e_' + key] = j; return e[j]; }   // après la fin : surtout des phrases sur le retour de Gaïkin
   const a = CHAT[key]; if (!a) return ['Belle journée sur l\'île, n\'est-ce pas ? ☀️'];
   const choices = level === 'balade' ? a.filter(lines => !lines.some(line => /\bplumes?\b/i.test(line))) : a;
   if (!choices.length) return ['Belle journée sur l\'île, n\'est-ce pas ? ☀️'];
@@ -883,6 +900,11 @@ function npcBake(sp, nk = NK, slot = 'baked') {
   while (w / 2 > tw) { w = Math.round(w / 2); h = Math.round(h / 2); const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, w, h); src = c; }
   const c = document.createElement('canvas'); c.width = tw; c.height = th; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.filter = sp.key === 'kito' ? 'contrast(1.14) saturate(1.22)' : 'contrast(1.06)'; g.drawImage(src, 0, 0, tw, th); g.filter = 'none'; matchSkin(c, sp.key); solidWings(c); opaqueAll(c);
   return (sp[slot] = c);
+}
+const PARROT = new Image(); PARROT.src = 'assets/npc3/perroquet_kito.png?v=32';
+function drawKitoParrot(x, y) {   // le petit perroquet rouge de Kito, posé à côté de lui (il sautille un peu)
+  if (!PARROT.complete || !PARROT.naturalWidth) return; const h = 10, w = h * PARROT.naturalWidth / PARROT.naturalHeight, hop = Math.max(0, Math.sin(time * 3.1)) * 1.6;
+  ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x + 13, y, 4, 1.4, 0, 0, TAU); ctx.fill(); ctx.drawImage(PARROT, x + 13 - w / 2, y - h - hop, w, h); ctx.restore();
 }
 const NPC_SX = {};   // (nouvelles images : plus besoin de corriger la largeur)
 function drawNpcSprite(sp, x, y, t, flip, hi) {
@@ -2974,11 +2996,15 @@ const KOB_N = [
   { k: 'okai', x: 582, y: 452, r: 40, wp: [[582, 452], [600, 458], [570, 446]] },   // Okaï, le vieux gardien : dehors, près des jardinières
 ].map(n => Object.assign(n, { wi: 0, wait: 3 + Math.random() * 4, fl: false, walk: false, get: () => n, sprite: null }));
 const KOB_D = [{ k: 'maia', x: 735, y: 565, r: 40, wp: [[735, 565], [770, 585], [700, 560], [745, 590]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }];   // Docteur Tarah, dans le dispensaire
+function dispList() {   // une fois les plantes cueillies, le docteur Tarah s'écarte du plan de travail : préparer les remèdes ne se chevauche plus avec la discussion
+  const t = KOB_D[0]; if (kobQ >= 2 && !t.away) { t.away = true; t.x = 960; t.y = 650; t.wp = [[960, 650], [985, 662], [940, 640]]; t.wi = 0; t.walk = false; }
+  return KOB_D;
+}
 const mkInh = (k, x, y, wp) => ({ k, x, y, r: 40, wp, wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null });
 const KOB_G = [mkInh('tomba', 350, 700, [[350, 700], [385, 722], [322, 690]])], KOB_S = [mkInh('koki', 900, 650, [[900, 650], [850, 690], [950, 640]])], KOB_T = [mkInh('nuna', 700, 650, [[700, 650], [760, 690], [800, 660]])];
 const KOB_OK_HOME = { k: 'okai', x: 330, y: 850, r: 40, wp: [[330, 850]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null };   // le soir, Okaï rentre chez lui (la maison à gauche du dispensaire)
 const KOB_NIGHT = [{ k: 'maia', x: 790, y: 682 }, { k: 'tobi', x: 850, y: 672 }].map(o => Object.assign(mkInh(o.k, o.x, o.y, [[o.x, o.y]]), { k: o.k }));   // la nuit, le docteur Tarah et Kobi rentrent dans la maison dans l'arbre
-const kobList = () => SC === SC_KOBHAK ? (isEve() ? KOB_N.filter(n => n.k !== 'tobi' && n.k !== 'okai') : KOB_N) : SC === SC_DISP ? (isEve() ? [] : KOB_D) : SC === SC_MK1 ? (isEve() ? [KOB_OK_HOME] : []) : SC === SC_MK3 ? KOB_G : SC === SC_MK5 ? KOB_S : SC === SC_MK2 ? (isEve() ? KOB_T.concat(KOB_NIGHT) : KOB_T) : [];
+const kobList = () => SC === SC_KOBHAK ? (isEve() ? KOB_N.filter(n => n.k !== 'tobi' && n.k !== 'okai') : KOB_N) : SC === SC_DISP ? (isEve() ? [] : dispList()) : SC === SC_MK1 ? (isEve() ? [KOB_OK_HOME] : []) : SC === SC_MK3 ? KOB_G : SC === SC_MK5 ? KOB_S : SC === SC_MK2 ? (isEve() ? KOB_T.concat(KOB_NIGHT) : KOB_T) : [];
 const kobScene = () => SC === SC_KOBHAK || KOB_PL.some(q => q.sc === SC);
 const KOB_EXCL = [492, 290];   // le point d'exclamation au-dessus du dispensaire : c'est là qu'il faut aller d'abord
 const KOB_KOA = new Image();
@@ -3597,10 +3623,10 @@ function vetCare(v) {   // 1) Myah ouvre sa mallette et prend le thermomètre, 2
   $('#vetOv').style.display = 'grid';
 }
 function vetChoose(v) {
-  const ch = [v.tool].concat(TOOLS.map(t => t.k).filter(k => k !== v.tool && k !== 'thermo').sort(() => Math.random() - .5).slice(0, 3)); if (kobKit && kobKit !== 'thermo' && !ch.includes(kobKit)) ch[ch.length - 1] = kobKit; ch.sort(() => Math.random() - .5); let wrong = 0, busy = false;
+  const ch = TOOLS.map(t => t.k).filter(k => k !== 'thermo'); let wrong = 0, busy = false;   // tout le contenu de la mallette, toujours dans le même ordre
   const lab = k => TOOLS.find(t => t.k === k).n + (REMK[k] ? ' ×' + (kobRx[REMK[k]] || 0) : '');
-  $('#vetBody').innerHTML = '<div class="kvH">Quel soin choisis-tu ?</div><div class="kvScene"><div id="kvMy">' + sprHeld('thermo', 150) + '</div><div id="kvAn" class="kvPic">' + vetImg(v, 's', 130) + '</div></div><div class="kvMsg" id="kvMsg">' + v.mal + '</div>'
-    + '<div class="kvTools">' + ch.map(k => '<button class="kvTool' + (k === kobKit ? ' kvPre' : '') + '" data-k="' + k + '">' + toolIcon(k, 62) + '<span>' + lab(k) + '</span></button>').join('') + '</div><div class="kvBtns"><button class="kvBtn alt" id="kvBack">Revoir la fiche</button></div>';
+  $('#vetBody').innerHTML = '<div class="kvH">Ta mallette : quel soin choisis-tu ?</div><div class="kvScene"><div id="kvMy">' + sprHeld('thermo', 150) + '</div><div id="kvAn" class="kvPic">' + vetImg(v, 's', 130) + '</div></div><div class="kvMsg" id="kvMsg">' + v.mal + '</div>'
+    + '<div class="kvTools kit">' + ch.map(k => '<button class="kvTool' + (REMK[k] && !v.koala && !(kobRx[REMK[k]] > 0) ? ' lock' : '') + '" data-k="' + k + '">' + toolIcon(k, 44) + '<span>' + lab(k) + '</span></button>').join('') + '</div><div class="kvBtns"><button class="kvBtn alt" id="kvBack">Revoir la fiche</button></div>';
   $('#kvBack').onclick = () => vetFiche(v);
   document.querySelectorAll('.kvTool').forEach(b => b.onclick = () => {
     if (busy || b.classList.contains('off')) return; busy = true; const k = b.dataset.k, rk = REMK[k], stock = !rk || v.koala || vetShowAll === 1 || kobRx[rk] > 0;
@@ -3626,12 +3652,11 @@ function vetChoose(v) {
 // --- la mallette (bouton en bas, comme les outils du jeu principal) : on choisit à l'avance l'objet ou le remède qui servira
 let kobKit = null;
 function kobKitIcon() { const kb = $('#kitB'); if (!kb) return; const k = kobKit; kb.innerHTML = '<span class="ico">' + (k ? toolIcon(k, 46) : sprMal(54)) + '</span><span class="lbl">' + (k ? TOOLS.find(t => t.k === k).n : 'Mallette') + '</span>'; kb.classList.toggle('sel', !!k); }
-function kobKitOpen() {
-  const items = TOOLS.map(t => t.k);
-  $('#remBody').innerHTML = '<div class="kvH">Ta mallette</div><p class="kvMsg">Choisis ce que Myah prend avec elle. Les remèdes préparés sont dans ton sac.</p><div class="kvTools kit">' + items.map(k => { const rk = REMK[k], n = rk ? (kobRx[rk] || 0) : 1, on = kobKit === k; return '<button class="kvTool' + (on ? ' sel' : '') + (rk && !n ? ' lock' : '') + '" data-k="' + k + '">' + toolIcon(k, 42) + '<span>' + TOOLS.find(t => t.k === k).n + (rk ? ' ×' + n : '') + '</span></button>'; }).join('') + '</div><div class="kvBtns"><button class="kvBtn alt" id="kitNone">Rien</button><button class="kvBtn" id="kitOk">Fermer</button></div>';
+function kobKitOpen() {   // la mallette : on y voit ce que Myah emporte pour soigner (les remèdes se préparent au dispensaire)
+  kobKit = null; const items = TOOLS.map(t => t.k);
+  $('#remBody').innerHTML = '<div class="kvH">Ta mallette</div><p class="kvMsg">Quand tu soignes un animal, tu choisis le soin dans ta mallette. Le sirop, la tisane, le baume et les gélules se préparent au plan de travail du dispensaire.</p><div class="kvTools kit">' + items.map(k => { const rk = REMK[k], n = rk ? (kobRx[rk] || 0) : 1; return '<button class="kvTool' + (rk && !n ? ' lock' : '') + '" data-k="' + k + '">' + toolIcon(k, 42) + '<span>' + TOOLS.find(t => t.k === k).n + (rk ? ' ×' + n : '') + '</span></button>'; }).join('') + '</div><div class="kvBtns"><button class="kvBtn" id="kitOk">Fermer</button></div>';
   $('#remOv').style.display = 'grid';
-  document.querySelectorAll('#remBody .kvTool').forEach(b => b.onclick = () => { kobKit = kobKit === b.dataset.k ? null : b.dataset.k; sfx.pick && sfx.pick(); kobKitOpen(); kobKitIcon(); });
-  $('#kitNone').onclick = () => { kobKit = null; $('#remOv').style.display = 'none'; kobKitIcon(); kobHud(); };
+  document.querySelectorAll('#remBody .kvTool').forEach(b => b.onclick = () => { const k = b.dataset.k, rk = REMK[k]; $('#remBody .kvMsg').innerHTML = rk && !(kobRx[rk] > 0) ? 'Tu n\'as plus de ' + TOOLS.find(t => t.k === k).n.toLowerCase() + ' : prépare-en au plan de travail du dispensaire !' : TOOLS.find(t => t.k === k).n + ' : prêt à servir. Touche un animal malade pour le soigner.'; sfx.pick && sfx.pick(); });
   $('#kitOk').onclick = () => { $('#remOv').style.display = 'none'; kobHud(); };
 }
 function vetCured(v) {
@@ -6322,7 +6347,7 @@ function render() {
       marker(q.x, q.y - q.h - 10, ready ? '✔' : (st === 'new' ? '!' : '…'), ready ? '#47b84a' : '#ffc83d');
     } });
   });
-  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
+  EXTRAS.forEach(e => inV(e.x, e.y) && items.push({ y: e.y, draw() { shadow(e.x, e.y, e.sprite.h * .26); ctx.save(); ctx.globalAlpha = 1; drawNpcSprite(npcPick(e), e.x, e.y, time, false); ctx.restore(); if (e.key === 'kito') drawKitoParrot(e.x, e.y); if (e.key === 'kahn' && e.y < 373) stallFront(); if (e.hi) npcPill(e.hi.txt, e.x, e.y - e.sprite.h - 8, 12 / cam.z); } }));
   if (!IN.on && inV(GX, GY - 40) && gd.some(p => p.c >= 0) && gd.every(p => p.c < 0 || gStage(p) === 4)) items.push({ y: GY + 400, draw() { const bob = Math.sin(time * 3) * 2.2, cx = GX + 3, cy = GY - 32 + bob; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 4; ctx.fillStyle = '#3fbf5a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 7); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(cx - 4.5, cy + .4); ctx.lineTo(cx - 1.2, cy + 3.8); ctx.lineTo(cx + 5, cy - 3.3); ctx.stroke(); ctx.restore(); } });
   for (const j of jarsL()) { if (j.at === 'bag' || j.at === 'tbl') continue; const n = ALLNPC().find(o => npcKeyOf(o) === j.at); if (!n || !(n.hx > 0) || !inV(n.hx + 16, n.hy)) continue; items.push({ y: n.hy + 3, draw() { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(n.hx + 16, n.hy + 2, 6, 2.2, 0, 0, 7); ctx.fill(); ctx.translate(n.hx + 16 - 9, n.hy + 2 - 22); jarDraw(ctx, j, 18, 22, time); ctx.restore(); } }); }
   butterflies.forEach(b => b.alive && inV(b.x, b.y) && items.push({ y: b.y + 30, draw() {
