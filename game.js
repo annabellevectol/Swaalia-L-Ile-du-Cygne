@@ -205,10 +205,10 @@ const FCOLOR = [['#ff7eb6', '#ffd6e8'], ['#4aa3ff', '#cfe6ff'], ['#ffd23d', '#ff
 const FNAME = ['rose', 'bleue', 'dorée', 'turquoise', 'violette'];
 
 const QUESTS = [
-  { id: 'rose', npc: 'maman', spot: 'rose', who: 'Miraaï, ta maman', need: { coconut: 4 }, title: '4 noix de coco pour Miraaï', tool: 'basket', fe: 0,
-    start: ['Myah, ma chérie ! Bientôt, c\'est la fête du Cygne. 🦢 Chaque année, on prépare un grand repas pour dire : « Reviens, Gaïkin ! »', 'Peux-tu me rapporter 4 noix de coco 🥥 pour la boisson de la fête ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Avant de partir, Gaïkin m\'a confié un coffre avec une de ses plumes. Je ne dois la donner qu\'à quelqu\'un de confiance… et pour moi, c\'est toi ! 💛'],
-    remind: ['Il me faut encore des noix de coco 🥥 pour la fête ! Regarde sous les cocotiers.'],
-    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites ! 🥥', 'Tu m\'as aidée sans rien demander : c\'est exactement ce que Gaïkin attendait. Mon coffre est caché dans le buisson qui scintille ✨ devant la maison, à gauche de la porte. La plume est pour toi !'] },
+  { id: 'rose', npc: 'maman', spot: 'rose', who: 'Miraaï, ta maman', need: { coconut: 4, gmangue: 1 }, title: '4 noix de coco et un gâteau pour Miraaï', tool: 'basket', fe: 0,
+    start: ['Myah, ma chérie ! Bientôt, c\'est la fête du Cygne. 🦢 Chaque année, on prépare un grand repas pour dire : « Reviens, Gaïkin ! »', 'Peux-tu me rapporter 4 noix de coco 🥥 pour la boisson de la fête ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Et pour la table de la fête, prépare un Maïmaïa 🍰, le gâteau de maïs à la mangue ! Cueille 2 mangues 🥭 près du musée, puis cuisine-le dans notre cuisine, à la maison.', 'Avant de partir, Gaïkin m\'a confié un coffre avec une de ses plumes. Je ne dois la donner qu\'à quelqu\'un de confiance… et pour moi, c\'est toi ! 💛'],
+    remind: ['Pour la fête, il me faut 4 noix de coco 🥥 et un Maïmaïa 🍰. Les mangues 🥭 sont près du musée, et on cuisine à la maison !'],
+    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰 Je le garde pour la table de la fête.', 'Tu m\'as aidée sans rien demander : c\'est exactement ce que Gaïkin attendait. Mon coffre est caché dans le buisson qui scintille ✨ devant la maison, à gauche de la porte. La plume est pour toi !'] },
   { id: 'bleu', where: 'du petit jardin sur la falaise', npc: 'frere', spot: 'gauche', who: 'Nijan, ton petit frère', need: { butterfly: 3 }, title: '3 papillons pour Nijan', tool: 'net', fe: 1,
     start: ['Myah ! Myah ! Tu sais quoi ? Il y a de moins en moins de papillons… 🦋', 'Maman dit que c\'est parce que l\'eau du lac devient trouble. Tu peux m\'en attraper 3 avec ton filet [filet] ? Je veux les regarder de près ! Avance doucement : ils se posent sur les fleurs.', 'J\'ai un coffre secret avec une plume de Gaïkin. Je te la donne si tu m\'aides ! Promis ! 🤞'],
     remind: ['Il m\'en faut encore, des papillons 🦋 ! Approche-toi doucement avec ton filet !'],
@@ -220,9 +220,9 @@ const QUESTS = [
   { id: 'toto', npc: 'pecheur', spot: 'sud', who: 'Zyno, le vieux pêcheur', need: { fish: 3, crab: 2 }, title: '3 poissons et 2 crabes pour Zyno', tool: 'fish', fe: 3,
     start: ['Ho ho, Myah ! Pour le grand repas de la fête, il me faut du poisson et des crabes ! 🐟🦀 Mais il y a moins de poissons qu\'avant : l\'eau est moins claire.', 'Pêche 3 poissons avec ta canne [canne], depuis la plage : l\'eau du lac est trop trouble en ce moment. Et attrape 2 crabes rouges avec ton panier [panier], sur le sable !', 'Je garde une plume de Gaïkin dans mon coffre. Des pirates la voulaient, mais je n\'ai rien dit ! Toi, tu es de confiance. ⚓'],
     remind: ['Il me faut encore du poisson 🐟 et des crabes 🦀 pour le festin. Les poissons sont près de l\'eau, les crabes sur le sable !'],
-    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon coffre est caché dans la cale de mon bateau, sous une couverture ✨ La plume t\'attend !'] },
+    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon coffre est caché dans la cale de mon bateau, devant le lit ✨ La plume t\'attend !'] },
   { id: 'plume', npc: 'juliana', spot: 'obs', who: 'Yulia, la directrice du musée', need: { mango: 5, banana: 6 }, title: 'La fête : 5🥭 6🍌', tool: null, final: true, fe: 4,
-    start: ['Myah ! Ce soir, nous allons essayer de faire revenir Gaïkin, le grand Cygne ! 🎉', 'Pour le festin, il me faut : 5 mangues 🥭 et 6 bananes 🍌. Les manguiers près du musée et de l\'escalier de l\'observatoire, et les bananiers du jardin, en sont pleins !', 'Le dernier coffre est dans l\'observatoire : Yurii le garde. Il contient un très vieux livre sur la légende de Gaïkin. Il t\'y attend !'],
+    start: ['Myah ! Ce soir, nous allons essayer de faire revenir Gaïkin, le grand Cygne ! 🎉', 'Pour le festin, il me faut : 5 mangues 🥭 et 6 bananes 🍌. Les manguiers près du musée et de l\'escalier de l\'observatoire, et les bananiers du jardin, en sont pleins !', 'Le dernier coffre est dans l\'observatoire : Yurii le garde. Il contient un très vieux livre sur la légende de Gaïkin. Quand tu auras fini, va voir Yurii à l\'observatoire !'],
     remind: ['Pour le festin, il me faut : 5 mangues 🥭 et 6 bananes 🍌 !'],
     locked: ['Reviens me voir quand tu auras aidé Miraaï, Nijan, Lulia et Zyno ! Le dernier coffre vient à la fin.'],
     done: ['Hourra ! Le festin sera délicieux !', 'Le coffre est caché à l\'intérieur de l\'observatoire, derrière les plantes ✨ C\'est le dernier coffre !'] },
@@ -344,7 +344,7 @@ const CHAT = {
     ['Les perroquets de l\'île se reconnaissent à leur cri. Écoute bien : celui-là dit « Myah » ! 🦜'],
     ['Depuis l\'observatoire, je note chaque oiseau qui passe dans mon carnet. Ma femme Yulia dit que j\'en ai trop ! 😄'],
     ['Quand Gaïkin volait au-dessus du lac, tous les oiseaux se taisaient un instant. C\'est magique. 🪶'],
-    ['Avec la longue-vue, tu peux les voir passer : essaie le soir ! 🔭'],
+    ['Avec la longue-vue, tu peux les voir passer : le jour pour les colibris, le soir pour les chouettes ! 🔭'],
     ['Les pirates venaient de partout pour les plumes de Gaïkin. Heureusement, il a pu s\'échapper. 🏴‍☠️'],
   ],
 };
@@ -369,10 +369,10 @@ const hasAll = q => Object.entries(q.need).every(([k, n]) => inv[k] >= n);
 const needStr = q => Object.entries(q.need).map(([k, n]) => `${ICON[k]}${Math.min(inv[k], n)}/${n}`).join(' ');
 const FREE_QUEST_TEXT = {
   rose: {
-    title: 'Noix de coco pour Miraaï',
-    start: ['Myah, ma chérie ! Je prépare un goûter pour la famille. 🥥', 'Peux-tu me rapporter 4 noix de coco ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !'],
-    remind: ['Il me faut encore des noix de coco 🥥 pour le goûter ! Regarde sous les cocotiers.'],
-    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites ! 🥥', 'Un petit coffre t’attend dans le buisson qui scintille ✨ devant la maison, à gauche de la porte.']
+    title: 'Noix de coco et gâteau pour Miraaï',
+    start: ['Myah, ma chérie ! Je prépare un goûter pour la famille. 🥥', 'Peux-tu me rapporter 4 noix de coco ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Et prépare aussi un Maïmaïa 🍰, le gâteau à la mangue : 2 mangues 🥭 près du musée, puis direction la cuisine de la maison !'],
+    remind: ['Pour le goûter, il me faut 4 noix de coco 🥥 et un Maïmaïa 🍰 !'],
+    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰', 'Un petit coffre t’attend dans le buisson qui scintille ✨ devant la maison, à gauche de la porte.']
   },
   bleu: {
     title: 'Papillons pour Nijan',
@@ -390,11 +390,11 @@ const FREE_QUEST_TEXT = {
     title: 'Poissons et crabes pour Zyno',
     start: ['Ho ho, Myah ! Je prépare un repas de la plage et il me faut du poisson et des crabes ! 🐟🦀', 'Pêche 3 poissons avec ta canne [canne], depuis la plage, et attrape 2 crabes rouges avec ton panier [panier], sur le sable !'],
     remind: ['Il me faut encore du poisson 🐟 et des crabes 🦀 pour le repas. Les poissons sont près de l’eau, les crabes sur le sable !'],
-    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon petit coffre est caché dans la cale de mon bateau, sous une couverture ✨']
+    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon petit coffre est caché dans la cale de mon bateau, devant le lit ✨']
   },
   plume: {
     title: 'Fruits pour le musée',
-    start: ['Myah ! Je prépare un goûter au musée. 🎉', 'Peux-tu apporter 5 mangues 🥭 et 6 bananes 🍌 ? Les manguiers près du musée et de l’escalier de l’observatoire, et les bananiers du jardin, en sont pleins !', 'Un petit coffre se trouve dans l’observatoire : Yurii t’y attend !'],
+    start: ['Myah ! Je prépare un goûter au musée. 🎉', 'Peux-tu apporter 5 mangues 🥭 et 6 bananes 🍌 ? Les manguiers près du musée et de l’escalier de l’observatoire, et les bananiers du jardin, en sont pleins !', 'Un petit coffre se trouve dans l’observatoire : quand tu auras fini, va voir Yurii là-bas !'],
     remind: ['Pour le goûter, il me faut 5 mangues 🥭 et 6 bananes 🍌 !'],
     done: ['Hourra ! Le goûter sera délicieux !', 'Le petit coffre est à l’intérieur de l’observatoire, derrière les plantes ✨']
   }
@@ -840,7 +840,7 @@ const NP = window.NPCS, npcImg = {};
 Object.keys(NP).forEach(k => { const i = new Image(); i.src = NP[k].src; npcImg[k] = i; });
 const NPC_K = .76;
 function npcSprite(key) {
-  const m = NP[key], sc = NPC_K * (m.sc || m.H / (m.feet - m.head)) * (m.H >= 50 ? .87 : 1);        // taille selon l'âge, pas selon l'image d'origine
+  const m = NP[key], sc = NPC_K * (m.sc || m.H / (m.feet - m.head)) ;        // taille selon l'âge, pas selon l'image d'origine
   return { key, m, sc, h: m.H * NPC_K, portrait: null };
 }
 function npcPortrait(sp) {
@@ -884,12 +884,13 @@ function npcBake(sp, nk = NK, slot = 'baked') {
   const c = document.createElement('canvas'); c.width = tw; c.height = th; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.filter = sp.key === 'kito' ? 'contrast(1.14) saturate(1.22)' : 'contrast(1.06)'; g.drawImage(src, 0, 0, tw, th); g.filter = 'none'; matchSkin(c, sp.key); solidWings(c); opaqueAll(c);
   return (sp[slot] = c);
 }
+const NPC_SX = {};   // (nouvelles images : plus besoin de corriger la largeur)
 function drawNpcSprite(sp, x, y, t, flip, hi) {
   const c = hi ? (sp.bakedHi || npcBake(sp, 9, 'bakedHi')) : (sp.baked || npcBake(sp)); if (!c) return;
   const m = sp.m, s = sp.sc, br = 1;   // pas d'effet grand/petit
   const fr = sp.key === 'frere';   // le petit frère : plus fin (il paraissait trop large à côté de Myah) et un peu transparent comme elle
   ctx.save(); ctx.translate(x, y - (sp.bob || 0)); ctx.scale(flip ? -1 : 1, 1); ctx.globalAlpha = 1;
-  const sx = /^romi/.test(sp.key) ? 1.2 : 1;   // l'ado : un peu plus épais que Myah
+  const sx = NPC_SX[sp.key.replace(/_[lru]$/, '')] || 1;   // largeur corrigée : les plus trapus un peu affinés, l'ado un peu étoffé   // l'ado : un peu plus épais que Myah
   ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .7; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.globalAlpha = .6; ctx.drawImage(c, -m.cx * s * sx, -m.feet * s, m.w * s * sx, m.h * s); ctx.restore();   // PNJ : ailes translucides renforcées (3 passes)
 }
 QUESTS.forEach(q => {
@@ -1812,6 +1813,7 @@ function doAction() {
   if (target && tool === 'fish' && target.kind !== 'swan' && bd > 20 && waterNear()) target = null;   // canne en main au bord de l'eau : on pêche, sans être interrompue par un PNJ qui passe à côté
   if (target && (target.kind === 'npc' || target.kind === 'extra')) (target.q || target.e).lastTalk = time;
   if (perchVisible() && !perchAway() && !handsFull()) { const sp = swanSpot(), ds = dist(sp[0], sp[1], player.x, player.y); if (ds < R_SWAN && ds < bd) { bd = ds; target = { kind: 'swan' }; } }
+  { const dA = !handsFull() && doorAt(); if (dA && target && target.kind !== 'chest' && dist(dA.door[0], dA.door[1], player.x, player.y) < bd) target = null; }   // sur le halo d'une porte : on entre, même si un habitant est juste à côté
   if (target && target.kind === 'extra' && target.e.key === 'kykah') return kykahTalk(target.e);
   if (target && target.kind === 'extra' && (target.e.kid || target.e.chal)) return kidTalk(target.e);
   if (target && (target.kind === 'npc' || target.kind === 'extra') && miniDeliver(target)) return;
@@ -1944,7 +1946,9 @@ function talkTo0(q) {
   if (hasAll(q)) {
     handIn(q, () => giveAnim(q.need, () => {   // petit panneau d'inventaire : on choisit les objets et la quantité demandée
       Object.entries(q.need).forEach(([k, n]) => { inv[k] -= n; });
-      qState[q.id] = 'done'; if (level !== 'balade') bonusStar[q.id] = true; save(); renderHud();
+      qState[q.id] = 'done'; if (level !== 'balade') bonusStar[q.id] = true;
+      if (q.final && storyOn() && (!dayAuto || dayT < .5 || dayT >= .92)) { dayAuto = true; dayT = .5; try { setDayTxt(); savePrefs(); } catch (e) {} }   // fin de la quête de Yulia : le soleil se couche, puis vient la nuit
+      save(); renderHud();
       openDialog(q.who, questText(q, 'done'), () => {
         free0(); sfx.unlock(); burst(q.cx, q.cy - 14, 22, ['#ffe27a', '#fff', '#ffc83d'], true);
         questGift(q);
@@ -2105,8 +2109,8 @@ function finishChest(q) {
     ['Une plume de Gaïkin ! 🪶 (1/4)', 'Elle brille doucement. Les habitants la gardaient en secret, pour que les pirates ne la volent pas.'],
     ['Deux plumes ! 🪶🪶 (2/4)', 'Quand une plume de Gaïkin touche l\'eau, elle la nettoie, comme un engrais naturel qui garde l\'eau pure. Sans elles, l\'eau du lac devient trouble.'],
     ['Trois plumes ! 🪶🪶🪶 (3/4)', 'Il y a des années, des pirates sont venus du monde entier pour lui arracher ses plumes. Gaïkin a eu très peur : il s\'est enfui.'],
-    ['Quatre plumes ! 🪶🪶🪶🪶 (4/4)', 'Ce sont les quatre plumes les plus spéciales. La légende dit : « Avec quatre plumes en main, Gaïkin reviendra. » Il reste un dernier coffre, chez Yulia et Yurii.']],
-    lines = q.final ? ['Tu as les quatre plumes ! Quelque chose brille du côté de l\'étang… Gaïkin t\'attend peut-être !'] : CL[Math.min(3, Math.max(0, nf - 1))];
+    ['Quatre plumes ! 🪶🪶🪶🪶 (4/4)', 'Ce sont les quatre plumes les plus spéciales. La légende dit : « Avec quatre plumes en main, Gaïkin reviendra. » Il reste un dernier coffre, dans l\'observatoire de Yurii.']],
+    lines = q.final ? ['Tu as les quatre plumes ! Quelque chose brille au bord du lac… Gaïkin t\'attend peut-être !'] : CL[Math.min(3, Math.max(0, nf - 1))];
   const MG = ['La plume murmure : « Merci, Myah. Grâce à toi, l\'île commence à reprendre des forces. »', 'La plume murmure : « Mes plumes nourrissent l\'eau et la terre. Prends-en bien soin. »', 'La plume murmure : « Tu vois ? Le lac redevient un peu plus clair depuis que tu as trouvé mes plumes. »', 'La plume murmure : « L\'île est presque guérie. Je t\'attends au bord du lac. »'];
   if (!q.final) { lines.push(MG[Math.min(3, Math.max(0, nf - 1))]); burst(player.x, player.y - 30, 30, ['#fff', '#d9c2ff', '#ffe27a', '#9fe8ff'], true); try { sfx.star(); } catch (e) {} }
   const dlgGo0 = () => openDialog(q.final ? 'Le livre de la légende' : 'Plume de Gaïkin', lines, () => { player.state = 'free'; if (n === QUESTS.length && phase === 'quests' && storyOn()) startReveal(); }, LP());
@@ -2164,10 +2168,68 @@ function startEnding() {
   ], null, false);
 }
 
+/* ----- la fête sur la plage : après le retour de Gaïkin, toute l'île se réunit autour de la table des desserts, puis viennent les images de fin ----- */
+const PARTY = {
+  T: [340, 408],          // la table (pied, au centre)
+  MY: [340, 432],         // Myah, devant la table
+  GK: [282, 447],         // Gaïkin, sur l'eau, au bord de la plage (à gauche de Myah)
+  at: { juliana: [262, 372], kahn: [292, 366], maman: [322, 364], gardien: [356, 365], poggi: [388, 372],
+        soigneuse: [268, 398], maima: [296, 410], kykah: [394, 400], kito: [326, 447],
+        pecheur: [312, 428], frere: [362, 434], lila: [384, 430], romi: [408, 424] }
+};
+const FETE_TBL = new Image(); FETE_TBL.src = 'assets/fete_table.png';   // image fournie plus tard (PNG transparent) ; en attendant, table dessinée par le jeu
+let party = null;
+const partyKey = n => n.npc || n.key;
+function drawPartyTable() {
+  const [x, y] = PARTY.T;
+  if (FETE_TBL.complete && FETE_TBL.naturalWidth) { const w = 76, h = w * FETE_TBL.naturalHeight / FETE_TBL.naturalWidth; ctx.drawImage(FETE_TBL, x - w / 2, y - h, w, h); return; }
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(x, y + 1, 40, 7, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#7a4b24'; [[-30, 0], [30, 0], [-24, -6], [24, -6]].forEach(([dx, dy]) => ctx.fillRect(x + dx - 1.5, y - 16 + dy, 3, 16));   // pieds
+  ctx.fillStyle = '#fff6ea'; ctx.beginPath(); ctx.moveTo(x - 38, y - 18); ctx.lineTo(x + 38, y - 18); ctx.lineTo(x + 34, y - 30); ctx.lineTo(x - 34, y - 30); ctx.closePath(); ctx.fill();   // nappe
+  ctx.fillStyle = '#ff9ec7'; ctx.fillRect(x - 38, y - 18, 76, 4);
+  for (let i = 0; i < 9; i++) { ctx.fillStyle = ['#ff6fa5', '#ffd84d', '#6fc4ff'][i % 3]; ctx.beginPath(); ctx.moveTo(x - 36 + i * 9, y - 14); ctx.lineTo(x - 31 + i * 9, y - 14); ctx.lineTo(x - 33.5 + i * 9, y - 9); ctx.fill(); }   // fanions
+  ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ['🥥', '🍰', '🧁', '🥭', '🍌'].forEach((e, i) => ctx.fillText(e, x - 26 + i * 13, y - 22 - (i % 2) * 3));
+  const gl = .55 + .25 * Math.sin(time * 3);   // deux lanternes
+  [[-46, -40], [46, -40]].forEach(([dx, dy]) => { ctx.fillStyle = '#5a3a1e'; ctx.fillRect(x + dx - 1, y + dy, 2, -dy); const g = ctx.createRadialGradient(x + dx, y + dy, 1, x + dx, y + dy, 14); g.addColorStop(0, 'rgba(255,220,130,' + gl + ')'); g.addColorStop(1, 'rgba(255,200,100,0)'); ctx.fillStyle = g; ctx.fillRect(x + dx - 14, y + dy - 14, 28, 28); ctx.fillStyle = '#ffd36b'; ctx.beginPath(); ctx.arc(x + dx, y + dy, 3, 0, TAU); ctx.fill(); });
+  ctx.restore();
+}
+function startParty() {
+  player.state = 'cine'; player.mvx = player.mvy = 0; setAnim('idle');
+  $('#veil').classList.add('on');
+  setTimeout(() => {
+    party = { t: 0, saved: ALLNPC().map(n => [n, { x: n.x, y: n.y, _in: n._in, _away: n._away, moving: n.moving }]) };
+    ALLNPC().forEach(n => { const q = PARTY.at[partyKey(n)]; if (!q) return; n.x = q[0]; n.y = q[1]; n._in = null; n._away = false; n._route = null; n._rt = null; n.moving = false; n.wait = 99; });
+    swanWait = PARTY.GK.slice(); swanSparkle = .5;
+    if (!dayAuto || dayT < .58 || dayT >= .9) { dayAuto = true; dayT = .62; try { setDayTxt(); savePrefs(); } catch (e) {} }   // la fête a lieu le soir
+    player.x = PARTY.MY[0]; player.y = PARTY.MY[1]; player.dir4 = 'down'; player.face = 1;
+    $('#veil').classList.remove('on'); player.state = 'talk';
+    const who = k => ALLNPC().find(n => partyKey(n) === k) || {};
+    const M = who('maima'), MA = who('maman');
+    setTimeout(() => {
+      confetti();
+      openDialog(M.who || 'Maïmaï', ['Ce soir, toute l\'île est réunie sur la plage pour fêter le retour de Gaïkin ! 🎉', 'Merci, Myah : grâce à toi, le lac est clair et notre grand cygne est revenu.'], () =>
+        openDialog(MA.who || 'Miraaï', ['Regarde la table, ma chérie : la boisson de coco et ton gâteau sont là ! 🥥🍰', 'Je suis tellement fière de toi. 💛'], () =>
+          openDialog('Gaïkin, le grand Cygne', ['Merci à vous tous d\'avoir gardé mes plumes en secret. Je veillerai sur l\'île pour toujours. 🦢✨'], () => {
+            confetti(); sfx.star && sfx.star();
+            setTimeout(() => { endParty(); startEnding(); }, 3500);
+          }, LP()), MA.portrait), M.portrait);
+    }, 700);
+  }, 650);
+}
+function endParty() {
+  if (!party) return;
+  party.saved.forEach(([n, o]) => { Object.assign(n, o); n._route = null; n._rt = null; n._go = 0; n._exitAt = 0; n.wait = rnd(2, 5); });
+  party = null; swanWait = null;
+  try { const w = nearestWalk(player.x, player.y); player.x = w[0]; player.y = w[1]; } catch (e) {}   // Myah repart d'un endroit où elle peut marcher
+}
+
 /* ================= cinématiques et Cygne légendaire ================= */
 let cine = null;
 let swanAlt = 0, swanSparkle = 0, swanFeathers = 0;
-const SW_PERCH = .46, SW_MOUNT = .45;
+const SW_PERCH = SW_SMALL * 4 / 3,   // première apparition : 1/3 plus grand que sur le lac (avant : .46, beaucoup trop grand)
+  SW_MOUNT = .45;
 
 function startReveal() {
   phase = 'reveal'; cine = { kind: 'reveal', t: 0, k: -1 }; swanAlt = 320; swanSparkle = 1; player.state = 'cine'; setAnim('idle');
@@ -2200,7 +2262,7 @@ function updateCine(dt) {
     swanSparkle = 1;
     if (c.t >= 4.2) {
       cine = null; phase = 'returned'; mountUnlocked = true; swanFeathers = 4; $('#veil').classList.remove('on'); save(); renderHud(); sfx.star(); confetti();
-      openDialog('Gaïkin, le grand Cygne', ['Mes plumes brillent de nouveau ! Merci, Myah ! ✨', 'Regarde : l\'eau du lac redevient claire ! Tu as sauvé l\'île, et je ne partirai plus.', 'Pour te remercier, voici ma surprise : sur mon dos, tu pourras voler au-dessus de l\'île, ou flotter sur le lac et sur l\'océan.', 'Et ce n\'est pas tout… voici de nouvelles ailes pour toi, des ailes de rêve pleines d\'étoiles ! ✨', 'Appuie sur le bouton Cygne (ou la touche C) pour m\'appeler. Saute (⤴ ou X) pour voler ou te poser sur l\'eau !'], () => { player.state = 'free'; swanSparkle = .3; if (storyOn()) say('Appelle Gaïkin avec le bouton Cygne : monte sur son dos et envole-toi !', 6); }, LP());
+      openDialog('Gaïkin, le grand Cygne', ['Mes plumes brillent de nouveau ! Merci, Myah ! ✨', 'Regarde : l\'eau du lac redevient claire ! Tu as sauvé l\'île, et je ne partirai plus.', 'Pour te remercier, voici ma surprise : sur mon dos, tu pourras voler au-dessus de l\'île, ou flotter sur le lac et sur l\'océan.', 'Et ce n\'est pas tout… voici de nouvelles ailes pour toi, des ailes de rêve pleines d\'étoiles ! ✨', 'Appuie sur le bouton Cygne (ou la touche C) pour m\'appeler. Saute (⤴ ou X) pour voler ou te poser sur l\'eau !'], () => { swanSparkle = .3; if (storyOn() && !endingSeen) return startParty(); player.state = 'free'; if (storyOn()) say('Appelle Gaïkin avec le bouton Cygne : monte sur son dos et envole-toi !', 6); }, LP());
     }
   }
 }
@@ -2465,6 +2527,7 @@ function commute(dt) {
   }
 }
 function updateNpcs(dt) {
+  if (party) { ALLNPC().forEach(n => { n.moving = false; n.sprite.bob = (Math.sin(time * 4 + (n.x || 0) * .37) * .5 + .5) * 1.6; }); return; }   // la fête : tout le monde reste autour de la table et danse un peu
   commute(dt);
   const all = ALLNPC(), p = player;
   for (const n of all) {
@@ -3760,7 +3823,7 @@ function voyage(dest) {   // fondu, traversée illustrée (selon l'heure du jeu)
 const CHIN = {};
 ['c0', 'c1', 'c2', 'h0', 'h1', 'h2'].forEach(n => { const i = new Image(); i.src = 'assets/chin/' + n + '.png'; CHIN[n] = i; });
 {
-  const spec = { bleu: { sc: SC_MUS, x: 405, y: 372, h: 'c0', fl: 1, where: 'en haut de l\'échelle, à l\'étage du musée' }, plume: { sc: SC_OBS, x: 560, y: 740, h: 'h1', where: 'dans l\'observatoire, derrière les plantes' }, toto: { sc: SC_CABIN, x: 820, y: 705, h: 'h0', where: 'dans la cale du bateau, sous une couverture' } };
+  const spec = { bleu: { sc: SC_MUS, x: 405, y: 372, h: 'c0', fl: 1, where: 'en haut de l\'échelle, à l\'étage du musée' }, plume: { sc: SC_OBS, x: 560, y: 740, h: 'h1', where: 'dans l\'observatoire, derrière les plantes' }, toto: { sc: SC_CABIN, x: 505, y: 548, h: 'h0', where: 'dans la cale du bateau, devant le lit' } };
   QUESTS.forEach(q => { const c = spec[q.id]; if (!c) return; q.inside = { scene: c.sc, x: c.x, y: c.y, h: c.h, fl: c.fl || 0, where: c.where }; q.cx = q.cy = -999; });
 }
 const icHere = () => QUESTS.find(q => q.inside && q.inside.scene === SC && IN.floor === q.inside.fl && (qState[q.id] === 'done' || q.id === 'bleu') && (!opened[q.id] || (q.vanishAt && time < q.vanishAt)));
@@ -4661,6 +4724,7 @@ const QUEST_HOUSES = { rose: 'home', soleil: 'care', plume: 'museum' };
 function denyHouseDuringQuest(h) {
   const q = storyOn() && QUESTS.find(o => qState[o.id] === 'active');
   if (!q || QUEST_HOUSES[q.id] === h.id) return false;
+  if (isEve() && (h.id === 'home' || h.id === 'obs')) return false;   // le soir, même en mission : on peut rentrer à la maison ou aller à l'observatoire
   say('Termine la quête de ' + String(q.who).split(',')[0].trim() + ' et remets-lui les objets avant de visiter un autre lieu.', 3.5);
   return true;
 }
@@ -5779,6 +5843,7 @@ function updateHint() {
     }
     for (const e of EXTRAS) { const d = dist(e.x, e.y, p.x, p.y); if (d < R_NPC && d < bd) { bd = d; near = '[a-parler]'; nearN = nm(e.who); nearP = [e.x, e.y]; } }
     if (perchVisible() && !perchAway() && !swanLake()) { const ds = dist(D.perch[0], D.perch[1], p.x, p.y); if (ds < R_SWAN && ds < bd) { bd = ds; near = phase === 'appeared' ? '[a-donner]' : '[a-parler]'; nearN = 'le Cygne'; nearP = [D.perch[0], D.perch[1]]; } }
+    { const dA = !handsFull() && doorAt(); if (dA && near !== null && !nearQ && dist(dA.door[0], dA.door[1], p.x, p.y) < bd) near = null; }   // sur le halo d'une porte, la porte passe avant l'habitant voisin
     if (near !== null && bd < 1e9) {
       tapT = nearP ? { x: nearP[0], y: nearP[1] - 20 } : nearQ ? { x: nearQ.cx, y: nearQ.cy } : null;
       if ((near === '[a-tresor]' || near === '[a-prendre]') && nearQ) hz = { x: nearQ.cx, y: nearQ.cy, r: 15 };   // buisson / coffre : halo, pas de bulle
@@ -6262,6 +6327,7 @@ function render() {
   if (perchVisible() && !perchAway()) items.push({ y: swanSpot()[1], draw() {
     const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers });
   } });
+  if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
   MI.animals.forEach(a => items.push({ y: a.y, draw() { drawAnimal(a); } }));
   MI.items.forEach(it => it.kind === 'shell' && items.push({ y: it.y - 10, draw() { drawMiniItem(it, 1); } }));   // coquillages triés avec Myah : elle passe devant
   if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); } });
@@ -6375,7 +6441,7 @@ function startGame(fresh) {
   const vw = cv.width / dpr, vh = cv.height / dpr, z = camZ(vw, vh); cam.x = clamp(player.x - vw / 2 / z, 0, Math.max(0, W - vw / z)); cam.y = clamp(player.y - vh / 2 / z, 0, Math.max(0, H - vh / z));
   if (!introSeen) { introSeen = true; player.state = 'talk'; save(true);
     { const h = HOUSES[0]; HOUSE = h; setScene(h.scene); IN.prevTool = 'none'; IN.on = true; IN.busy = false; IN.floor = 1; IN.camY = null; IN.dk = null; IN.x = 722; IN.y = 264; IN.cool = 2.5; player.dir4 = 'down'; player.x = h.exit[0]; player.y = h.exit[1]; document.body.classList.add('inside'); } if (storyOn()) whenLoaded(() => storyShow(INTRO_SLIDES, () => openDialog('La légende de l\'île', INTRO_MISSION, () => { player.state = 'free'; }, LP()), true)); else player.state = 'free'; }
-  else if (phase === 'appeared') say('Gaïkin t\'attend près de l\'étang !', 4);
+  else if (phase === 'appeared') say('Gaïkin t\'attend au bord du lac !', 4);
 }
 // ancienne sauvegarde unique -> emplacement 1
 try { const old = localStorage.getItem(SAVE_KEY); if (old && !localStorage.getItem(slotKey(1))) { localStorage.setItem(slotKey(1), old); } if (old) localStorage.removeItem(SAVE_KEY); } catch (e) {}
