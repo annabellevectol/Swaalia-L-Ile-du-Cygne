@@ -2090,10 +2090,10 @@ function touchChest(q) {
 const BKI = new Image(); BKI.src = 'assets/book/livre.png';
 const BK_SRC = { open: [0, 0, 1264, 848], turn: [0, 848, 1264, 848], cover: [0, 1696, 554, 620], chest: [640, 1696, 420, 434] };
 const BK_PAGES = [
-  ['Il y a très longtemps, un grand Cygne blanc veillait sur l\'île. Il s\'appelait Gaïkin. 🦢', 'Chaque fois qu\'une de ses plumes tombait dans le lac, l\'eau devenait plus claire, grâce aux fines particules de ses plumes. 💧'],
+  ['Il y a très longtemps, un grand Cygne blanc vivait sur l\'île. Il s\'appelait Gaïkin. 🦢', 'Chaque fois qu\'une de ses plumes tombait dans le lac, l\'eau devenait plus claire, grâce aux fines particules de ses plumes. 💧'],
   ['Grâce à lui, l\'eau était pure, les poissons nageaient joyeusement et les fleurs poussaient partout. Toute l\'île vivait de ses plumes.', 'Mais la nouvelle s\'est répandue très loin, et des pirates sont venus du monde entier pour les lui arracher. 🏴‍☠️'],
   ['Gaïkin a eu si peur qu\'il s\'est envolé. Avant de partir, il a confié quatre plumes très spéciales à des habitants de confiance. 🪶', 'Chacun en garde une seule, bien cachée, et n\'en parle à personne. Les pirates ne doivent jamais les trouver.'],
-  ['Depuis son départ, l\'eau du lac se trouble un peu plus chaque année. 😟 Sans les plumes, l\'île ne pourra pas vivre longtemps.', 'La légende dit : quand quelqu\'un de confiance réunira les quatre plumes, l\'eau du lac sera de nouveau pure, le grand Cygne reviendra et fera un très beau cadeau. 🌟']];
+  ['Depuis son départ, l\'eau du lac se trouble un peu plus chaque année. 😟 Sans les plumes, l\'île ne pourra pas vivre longtemps.', 'Gaïkin l\'a promis : quand quelqu\'un réunira ses quatre plumes, il reviendra les chercher. Ses plumes nourriront de nouveau le lac, et l\'eau redeviendra pure. 🌟']];
 function bookShow(done) {
   const old = document.getElementById('bkOv'); if (old) old.remove();
   const el = document.createElement('div'); el.id = 'bkOv';
@@ -2151,7 +2151,7 @@ const INTRO_SLIDES = [
   { img: 'promesse', text: 'Quelques jours plus tard, Gaïkin est revenu discrètement sur l\'île pour confier ses quatre plumes les plus précieuses à des habitants en qui il avait confiance. Chacun les a gardées bien cachées, et le cygne leur a fait une promesse avant de s\'envoler de nouveau : « Le jour où quelqu\'un de confiance les réunira, je reviendrai. »' },
   { img: 'trouble', text: 'Depuis, les années ont passé et l\'écosystème de l\'île s\'est affaibli sans la présence de Gaïkin.' },
   { img: 'fete_prep', text: 'Aujourd\'hui, la grande fête de l\'île approche à grands pas, et les préparatifs battent leur plein ! Myah décide de donner un coup de main à tout le village pour que la fête soit une réussite. En aidant les villageois au quotidien, Myah gagne peu à peu leur affection et leur respect. Et si, le soir de la fête, le cygne faisait enfin son grand retour ?' }];
-const INTRO_MISSION = ['Myah, ta mission est simple : gagne la confiance des habitants en les aidant au fil du jeu. À mesure qu\'ils te confieront leurs plumes, tu pourras progresser.', 'Quand tu les auras toutes réunies, rapporte-les au bord du lac. Peut-être que Gaïkin saura que tu es la personne digne de confiance qu\'il attendait et qu\'il reviendra sauver l\'île.', 'Pour commencer, descends l\'échelle : ta maman Miraaï a besoin de toi !'];
+const INTRO_MISSION = ['Myah, ta mission est simple : gagne la confiance des habitants en les aidant au fil du jeu. À mesure qu\'ils te confieront leurs plumes, tu pourras progresser.', 'Quand tu les auras toutes réunies, rapporte-les au bord du lac. Gaïkin a promis de revenir chercher ses plumes : avec lui, le lac et toute l\'île pourront revivre.', 'Pour commencer, descends l\'échelle : ta maman Miraaï a besoin de toi !'];
 function storyOn() { return level !== 'balade'; }   // l\'histoire (introduction, livre, fin) n\'existe qu\'en Aventure et en Défi : en Balade, on se promène librement
 const ST_IMG = {};
 function storyShow(slides, done, canSkip) {
