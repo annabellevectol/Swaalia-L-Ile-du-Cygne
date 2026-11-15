@@ -352,10 +352,10 @@ const chatLast = {};
 /* ----- après le retour de Gaïkin : les habitants parlent du lac redevenu clair, des poissons et de la fête ----- */
 const CHAT_END = {
   maman: [['Depuis que Gaïkin est revenu, l\'eau du bassin est si claire que je vois mon reflet ! 💧'], ['Tout le monde parle encore de ton gâteau à la fête, ma chérie. Tu me donneras ta recette ? 🍰'], ['Ta grand-mère serait si fière : tu as pris soin du lac, comme elle. 💛']],
-  kahn: [['Mes légumes n\'ont jamais été aussi beaux ! L\'eau du lac nourrit à nouveau la terre. 🥕'], ['Je suis tellement fier de toi, ma grande. Toute l\'île te doit beaucoup.']],
-  frere: [['Myah ! Il y a plein de papillons partout maintenant ! 🦋 Je les compte, mais il y en a trop !'], ['Quand je serai grand, moi aussi je volerai sur le dos de Gaïkin, comme toi ! 🦢']],
-  soigneuse: [['Les fleurs ont retrouvé toutes leurs couleurs. Je n\'ai plus besoin de les soigner ! 🌸'], ['L\'eau propre, c\'est la meilleure médecine pour toute l\'île. Merci, Myah.']],
-  pecheur: [['Ho ho ! Les poissons sont revenus dans le lac ! Ma pêche n\'a jamais été aussi belle. 🐟'], ['Les pirates peuvent bien revenir : Gaïkin n\'est plus seul, il a toute l\'île avec lui ! ⚓']],
+  kahn: [['J\'arrose mon potager avec l\'eau du lac, et mes tomates sont deux fois plus grosses ! 🍅'], ['Mes légumes n\'ont jamais été aussi beaux ! L\'eau du lac nourrit à nouveau la terre. 🥕'], ['Je suis tellement fier de toi, ma grande. Toute l\'île te doit beaucoup.']],
+  frere: [['J\'ai compté 27 papillons sur un seul buisson ! Avant, j\'en voyais deux ou trois. 🦋'], ['Myah ! Il y a plein de papillons partout maintenant ! 🦋 Je les compte, mais il y en a trop !'], ['Quand je serai grand, moi aussi je volerai sur le dos de Gaïkin, comme toi ! 🦢']],
+  soigneuse: [['Mes mesures sont formelles : les fleurs près du lac ont doublé de taille en un mois ! 📏🌺'], ['Les fleurs ont retrouvé toutes leurs couleurs. Je n\'ai plus besoin de les soigner ! 🌸'], ['L\'eau propre, c\'est la meilleure médecine pour toute l\'île. Merci, Myah.']],
+  pecheur: [['Ce matin, mes filets étaient si pleins que j\'ai dû appeler Poggi pour m\'aider à les remonter ! 🎣'], ['Ho ho ! Les poissons sont revenus dans le lac ! Ma pêche n\'a jamais été aussi belle. 🐟'], ['Les pirates peuvent bien revenir : Gaïkin n\'est plus seul, il a toute l\'île avec lui ! ⚓']],
   juliana: [['J\'ai ajouté une page au vieux livre de la légende : celle d\'une petite fille appelée Myah. 📖'], ['Au musée, on prépare une vitrine pour raconter le retour de Gaïkin. Tu en seras la vedette ! ✨']],
   maima: [['Grâce à toi, Myah, l\'île respire de nouveau. Je suis fière d\'être ta cheffe… et ton amie. 🌺'], ['Chaque année, nous fêterons ce jour sur la plage. Ce sera la fête de Myah et de Gaïkin !']],
   poggi: [['Les cocotiers donnent des noix plus grosses que jamais ! C\'est l\'eau du lac, j\'en suis sûr. 🥥'], ['Quelle fête sur la plage, hein ? J\'ai encore mal aux pieds d\'avoir tant dansé ! 💃']],
@@ -363,7 +363,7 @@ const CHAT_END = {
   lila: [['Avec ma loupe, je regarde les petits poissons dans l\'eau claire. On voit même leurs écailles ! 🔍'], ['Tu m\'apprendras à voler sur Gaïkin, dis ? Juste un tout petit tour ?']],
   romi: [['Franchement, Myah… ce que tu as fait, c\'est trop stylé. 😎'], ['Avec l\'eau claire, je peux enfin skater jusqu\'au ponton sans glisser dans la boue !']],
   kykah: [['Les plus beaux coquillages reviennent sur la plage depuis que l\'eau est propre ! 🐚'], ['J\'ai fait un collier en souvenir de la fête. Il brille comme les plumes de Gaïkin !']],
-  gardien: [['Je vois Gaïkin voler tous les soirs dans ma longue-vue. Quel spectacle ! 🔭'], ['Les oiseaux chantent de nouveau au-dessus du lac. Mon carnet n\'a plus assez de pages ! 🐦']],
+  gardien: [['J\'ai noté dans mon carnet : 14 espèces d\'oiseaux sont revenues au bord du lac cette saison. 📒'], ['Je vois Gaïkin voler tous les soirs dans ma longue-vue. Quel spectacle ! 🔭'], ['Les oiseaux chantent de nouveau au-dessus du lac. Mon carnet n\'a plus assez de pages ! 🐦']],
 };
 function chatter(key) {
   if (phase === 'returned' && storyOn() && CHAT_END[key] && Math.random() < .6) { const e = CHAT_END[key]; let j; do { j = Math.floor(Math.random() * e.length); } while (e.length > 1 && j === chatLast['e_' + key]); chatLast['e_' + key] = j; return e[j]; }   // après la fin : surtout des phrases sur le retour de Gaïkin
@@ -1691,6 +1691,11 @@ function bagItemsHtml() {
   return h;
 }
 let questTab = 'todo';
+const SCI = ['🐟 <b>Observation 1</b> : au bord du lac, les fines particules de la plume se déposent dans l\'eau. Un petit poisson est venu s\'en nourrir.',
+  '🌱 <b>Observation 2</b> : les plumes agissent comme un engrais naturel. Autour de la flaque, l\'herbe est plus verte qu\'ailleurs.',
+  '💧 <b>Observation 3</b> : les particules piègent la vase. Près de la rive, l\'eau est devenue plus transparente.',
+  '🪶 <b>Observation 4</b> : quatre plumes suffisent pour nettoyer le lac. Mais pour qu\'il reste propre, il faut les mues régulières de Gaïkin.',
+  '🦢 <b>Observation 5</b> : Gaïkin est revenu ! Plus de poissons, des fleurs qui repoussent, des papillons partout : tout le milieu naturel de l\'île se rétablit.'];
 function renderHud() {
   const no = nOpened();
   const collected = COLL.filter(item => coll[item.id]).length;
@@ -1719,9 +1724,12 @@ function renderHud() {
   };
   const doneQ = seen.filter(q => qState[q.id] === 'done' && opened[q.id]), todoQ = seen.filter(q => !(qState[q.id] === 'done' && opened[q.id]));
   const tabB = (id, lbl) => `<button class="qtab ${questTab === id ? 'sel' : ''}" data-qt="${id}">${lbl}</button>`;
-  t += `<div class="qtabs">${tabB('todo', '📜 En cours <small>' + todoQ.length + '</small>')}${tabB('done', '✔ Accomplies <small>' + doneQ.length + '/5</small>')}</div>`;
+  t += `<div class="qtabs">${tabB('todo', '📜 En cours <small>' + todoQ.length + '</small>')}${tabB('done', '✔ Accomplies <small>' + doneQ.length + '/5</small>')}${storyOn() ? tabB('sci', '🔬 Carnet') : ''}</div>`;
   if (questTab !== 'done') { const g = nextTarget(); if (g) t += '<div class="q guide"><span>Prochaine étape : ' + g.txt + '</span></div>'; }
-  if (questTab === 'done') { if (!doneQ.length) t += '<div class="q"><span>Aucune quête accomplie pour le moment : ouvre le coffre d\'une mission pour la ranger ici ✨</span></div>'; doneQ.forEach(q => { t += line(q); }); }
+  if (questTab === 'sci') {   // le carnet de science de Myah : une observation par plume, et une à la fin
+    const nf = QUESTS.filter(o => !o.final && opened[o.id]).length, L = SCI.slice(0, nf).concat(phase === 'returned' ? [SCI[4]] : []);
+    t += L.length ? L.map(x => '<div class="q"><span>' + x + '</span></div>').join('') : '<div class="q"><span>Ton carnet est encore vide. Chaque plume trouvée t\'apprendra quelque chose sur le lac 🔬</span></div>';
+  } else if (questTab === 'done') { if (!doneQ.length) t += '<div class="q"><span>Aucune quête accomplie pour le moment : ouvre le coffre d\'une mission pour la ranger ici ✨</span></div>'; doneQ.forEach(q => { t += line(q); }); }
   else { if (!seen.length) t += '<div class="q"><span>' + (storyOn() ? 'Va parler aux habitants de l\'île : chacun a besoin d\'un coup de main !' : 'Promène-toi à ton rythme : si un habitant a besoin d\'aide, tu peux l\'aider quand tu veux.') + '</span></div>'; todoQ.forEach(q => { t += line(q); }); }
   const sw = phase === 'quests' || phase === 'reveal';
   if (storyOn() && !sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''}"><span>🦢 Rendre les plumes au Cygne</span><span class="cnt">${phase === 'returned' ? '✔' : '! lac'}</span></div>`;
