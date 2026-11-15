@@ -4242,17 +4242,17 @@ function icTouch(q) {
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
 // la nuit, les habitants qui ont un lit dorment dedans : Miraaï et Kahn (grand lit) et Nijan (lit superposé) chez Myah, la famille Ukaï, Zyno dans sa cabine
-const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=60'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 153]};
+const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=62'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 153]};
 const sleepNow = () => isEve() && dayT > .72;
 {
   const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
   const inH = (o, h) => o && o._in === h;
   const SL = [   // [image, décor, x, y, largeur, angle, miroir, condition] — chaque dormeur à la taille de son lit, la tête sur l'oreiller
-    ['parents', SC_HOME, 530, 183, 135, -.35, 0, () => true],
-    ['frere', SC_HOME, 852, 92, 96, -.22, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 852, 192, 96, -.22, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
-    ['couple', SC_UKAI, 548, 182, 140, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
-    ['romi', SC_UKAI, 540, 455, 105, .72, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 852, 192, 92, -.22, 0, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 905, 252, 50, -.1, 1, () => inH(gx('kito'), 'ukai')],
-    ['pecheur', SC_CABIN, 745, 392, 210, .05, 0, () => inH(ZYN, 'boat')],
+    ['parents', SC_HOME, 530, 183, 233, -.35, 0, () => true],
+    ['frere', SC_HOME, 846, 88, 119, .3, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 846, 190, 119, .3, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
+    ['couple', SC_UKAI, 548, 182, 237, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
+    ['romi', SC_UKAI, 540, 455, 192, .72, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 846, 190, 154, .3, 0, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 905, 252, 77, -.1, 1, () => inH(gx('kito'), 'ukai')],
+    ['pecheur', SC_CABIN, 750, 395, 280, .05, 0, () => inH(ZYN, 'boat')],
   ];
   // le dessus des matelas (le dormeur ne dépasse pas du lit) et ce qui passe devant (rambarde, coffre), redessinés par-dessus
   const MAT = { big: [[452, 172], [555, 145], [665, 180], [662, 210], [560, 248], [455, 214]], bunkT: [[762, 112], [858, 98], [935, 122], [935, 150], [845, 168], [762, 142]], bunkB: [[762, 214], [858, 200], [935, 224], [935, 252], [845, 270], [762, 244]], low: [[840, 234], [940, 186], [1002, 196], [1002, 216], [880, 274], [840, 264]], cab: [[600, 330], [700, 300], [960, 420], [940, 470], [830, 500], [600, 380]] };
@@ -5726,7 +5726,7 @@ function renderInterior(vw, vh) {
   const isHome = SC === SC_HOME;
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (1 + .4 * dkz);   // plan rapproché dans tous les lieux : la caméra suit Myah
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .86 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
   const camX = IN.lie ? (IN.lie.kob ? KOB_BED.cam[0] : 700) : IN.x, camYt = IN.lie ? (IN.lie.kob ? KOB_BED.cam[1] : 200) : IN.y - 90 * dkz;
