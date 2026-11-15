@@ -4251,7 +4251,7 @@ const sleepNow = () => isEve() && dayT > .72;
     ['parents', SC_HOME, 530, 183, 135, -.35, 0, () => true],
     ['frere', SC_HOME, 852, 92, 96, -.22, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 852, 192, 96, -.22, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
     ['couple', SC_UKAI, 548, 182, 140, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
-    ['romi', SC_UKAI, 852, 192, 96, -.22, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 896, 258, 100, -.1, 1, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 850, 290, 40, 0, 0, () => inH(gx('kito'), 'ukai')],
+    ['romi', SC_UKAI, 540, 455, 105, .72, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 852, 192, 92, -.22, 0, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 905, 252, 50, -.1, 1, () => inH(gx('kito'), 'ukai')],
     ['pecheur', SC_CABIN, 745, 392, 210, .05, 0, () => inH(ZYN, 'boat')],
   ];
   // le dessus des matelas (le dormeur ne dépasse pas du lit) et ce qui passe devant (rambarde, coffre), redessinés par-dessus
@@ -4260,16 +4260,20 @@ const sleepNow = () => isEve() && dayT > .72;
   const poly = P => { ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); };
   const MK = {};
   const QC = {};   // la couette lilas reprend le motif du dessus-de-lit d'origine (ombres gardées), calculé une seule fois
-  function quilt(k, sc, x, y, w, h, a, m) {
-    const key = k + (sc === SC_HOME ? 'h' : 'u'); if (QC[key] !== undefined) return QC[key]; if (!sc.img.complete || !sc.img.naturalWidth) return null;
+  const QZ = {   // pour chaque dormeur : quels pixels sont sa couverture, et quel morceau du lit sert de motif
+    parents: { t: (r, g, b) => b > g + 25 && r > g + 5 && b > 110, p: [545, 170, 60, 28] }, couple: { t: (r, g, b) => b > g + 25 && r > g + 5 && b > 110, p: [545, 170, 60, 28] },
+    frere: { t: (r, g, b) => b > r + 25 && b > 100, p: [880, 200, 28, 10] }, romi: { t: (r, g, b) => g > r + 15 && b > r + 5, p: [535, 450, 35, 20] },
+    lila: { t: (r, g, b) => r > g + 45 && r > b + 5 && r + g + b < 600, p: [880, 200, 28, 10] }, pecheur: { t: (r, g, b) => r > 150 && g > 110 && b < 100 && r - b > 90, p: [700, 430, 40, 20] } };
+  function quilt(key, k, sc, x, y, w, h, a, m, fl) {
+    if (QC[key] !== undefined) return QC[key]; if (!sc.img.complete || !sc.img.naturalWidth) return null;
     try {
-      const W = sc.W, H = sc.H, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-      g.filter = 'brightness(.88) saturate(.9)'; g.translate(x, y); g.rotate(a); g.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); g.setTransform(1, 0, 0, 1, 0, 0); g.filter = 'none';
+      const W = sc.W, H = sc.H, IW = sc.img.naturalWidth ? W : W, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+      g.filter = 'brightness(.88) saturate(.9)'; g.translate(x, y); g.rotate(a); if (fl) g.scale(-1, 1); g.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); g.setTransform(1, 0, 0, 1, 0, 0); g.filter = 'none';
       const bg = document.createElement('canvas'); bg.width = W; bg.height = H; const bgc = bg.getContext('2d'); bgc.drawImage(sc.img, 0, 0, W, H);
       const P = g.getImageData(0, 0, W, H), B = bgc.getImageData(0, 0, W, H), d = P.data, e = B.data;
       // motif : un morceau du dessus-de-lit, répété
-      const sx = 545, sy = 170, sw = 60, sh = 28;
-      for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 30) continue; const r = d[i], gg = d[i + 1], b = d[i + 2]; if (!(b > gg + 25 && r > gg + 5 && b > 110)) continue;
+      const [sx, sy, sw, sh] = QZ[k].p, T = QZ[k].t;
+      for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 30) continue; const r = d[i], gg = d[i + 1], b = d[i + 2]; if (!T(r, gg, b)) continue;
         const px = (i >> 2) % W, py = (i >> 2) / W | 0, tx = sx + ((px % sw) + sw) % sw, ty = sy + ((py % sh) + sh) % sh, j = (ty * W + tx) * 4, l = Math.min(1.25, (r + gg + b) / 3 / 140);
         d[i] = Math.min(255, e[j] * l); d[i + 1] = Math.min(255, e[j + 1] * l); d[i + 2] = Math.min(255, e[j + 2] * l); }
       g.putImageData(P, 0, 0); return (QC[key] = c);
@@ -4277,7 +4281,7 @@ const sleepNow = () => isEve() && dayT > .72;
   }
   window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; let any = false;
     SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; any = true; const m = SLP_M[k], h = w * m[3] / m[2], mk = MK[k];
-      if (k === 'parents' || k === 'couple') { const c = quilt(k, sc, x, y, w, h, a, m); if (c) { ctx.drawImage(c, 0, 0); return; } }
+      if (QZ[k]) { const c = quilt(k + '_' + x + '_' + y, k, sc, x, y, w, h, a, m, fl); if (c) { ctx.drawImage(c, 0, 0); return; } }
       ctx.save(); if (mk) { poly(MAT[mk]); ctx.clip(); } ctx.filter = 'brightness(.88) saturate(.9)'; ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); });
     const fg = any && (SC === SC_HOME ? FG.home : SC === SC_UKAI ? FG.ukai : null); if (fg && SC.img.complete) fg.forEach(P => { ctx.save(); poly(P); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); }); };
   const SLK = ['maman', 'kahn', 'frere', 'kykah', 'poggi', 'kito', 'romi', 'lila'], kOf = n => { const o = n.get ? n.get() : n; return o && (o.npc || o.key); };
