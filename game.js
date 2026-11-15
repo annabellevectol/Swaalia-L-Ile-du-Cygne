@@ -4220,7 +4220,7 @@ function icTouch(q) {
   const N_LM = mk(420, 640, gx('lila'), 0, [[420, 640], [445, 660], [400, 630], [430, 680]]), N_RM = mk(372, 660, gx('romi'), 0, [[372, 660], [385, 640], [365, 685], [400, 650]]);
   const NJN = QUESTS.find(q => q.id === 'bleu'), N_NJ = mk(520, 650, NJN, 0, [[520, 650], [560, 690], [480, 620], [540, 600]]);
   const KAH = gx('kahn'), N_KH = mk(470, 612, KAH, 0, [[470, 612], [500, 640], [440, 640], [480, 585]]), N_MH = SC_HOME.npc;
-  const KITO_SOFA = [520, 585], N_KTH = mk(KITO_SOFA[0], KITO_SOFA[1], gx('kito'), 0, null);   // Kito est posé sur le canapé, à côté du coussin, toute la journée (Miraaï veille sur lui)
+  const KITO_SOFA = [520, 585], KS = [0, 1, 2].map(i => Object.assign(Object.create(gx('kito')), { sprite: npcSprite('kito_s' + i) })), N_KTH = Object.assign(mk(KITO_SOFA[0], KITO_SOFA[1], null, 0, null), { get: () => KS[[0, 0, 1, 0, 2, 2][Math.floor(time / 5) % 6]] });   // assis : sage, tape des mains, somnole   // Kito est posé sur le canapé, à côté du coussin, toute la journée (Miraaï veille sur lui)
   N_NJ.wp = null; N_KH.wp = null; const MH_WP = N_MH.wp, EVE_MH = [346, 572];   // le soir : toute la famille est fixe côté cuisine, le petit frère à gauche de maman, papa à droite
   SC_HOME.npcs = () => {
     const L = [N_MH], eve = NJN._in === 'home' || KAH._in === 'home';
