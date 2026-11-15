@@ -208,24 +208,24 @@ const QUESTS = [
   { id: 'rose', npc: 'maman', spot: 'rose', who: 'Miraaï, ta maman', need: { coconut: 4, gmangue: 1 }, title: '4 noix de coco et un gâteau pour Miraaï', tool: 'basket', fe: 0,
     start: ['Myah, ma chérie ! Bientôt, c\'est la fête du Cygne. 🦢 Chaque année, on prépare un grand repas pour dire : « Reviens, Gaïkin ! »', 'Peux-tu me rapporter 4 noix de coco 🥥 pour la boisson de la fête ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Et pour la table de la fête, prépare un Maïmaïa 🍰, le gâteau de maïs à la mangue ! Cueille 2 mangues 🥭 près du musée, puis cuisine-le dans notre cuisine, à la maison.', 'Avant de partir, Gaïkin m\'a confié un coffre avec une de ses plumes. Je ne dois la donner qu\'à quelqu\'un de confiance… et pour moi, c\'est toi ! 💛'],
     remind: ['Pour la fête, il me faut 4 noix de coco 🥥 et un Maïmaïa 🍰. Les mangues 🥭 sont près du musée, et on cuisine à la maison !'],
-    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰 Je le garde pour la table de la fête.', 'Tu m\'as aidée sans rien demander : c\'est exactement ce que Gaïkin attendait. Mon coffre est caché dans le buisson qui scintille ✨ devant la maison, à gauche de la porte. La plume est pour toi !'] },
+    done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰 Je le garde pour la table de la fête.', 'Ta grand-mère m\'a confié cette plume il y a longtemps. Je l\'ai gardée cachée pour que les pirates ne la trouvent pas. Maintenant, c\'est toi qui en prendras soin. Mon coffre est caché dans le buisson qui scintille ✨ devant la maison, à gauche de la porte. La plume est pour toi !'] },
   { id: 'bleu', where: 'du petit jardin sur la falaise', npc: 'frere', spot: 'gauche', who: 'Nijan, ton petit frère', need: { butterfly: 3 }, title: '3 papillons pour Nijan', tool: 'net', fe: 1,
     start: ['Myah ! Myah ! Tu sais quoi ? Il y a de moins en moins de papillons… 🦋', 'Maman dit que c\'est parce que l\'eau du lac devient trouble. Tu peux m\'en attraper 3 avec ton filet [filet] ? Je veux les regarder de près ! Avance doucement : ils se posent sur les fleurs.', 'J\'ai un coffre secret avec une plume de Gaïkin. Je te la donne si tu m\'aides ! Promis ! 🤞'],
     remind: ['Il m\'en faut encore, des papillons 🦋 ! Approche-toi doucement avec ton filet !'],
-    done: ['Waaaah ! Ils sont trop beaux ! Merci Myah, tu es la meilleure grande sœur !', 'Mon coffre est caché à l\'étage du musée, en haut de l\'échelle ✨ Va le chercher !'] },
+    done: ['Waaaah ! Ils sont trop beaux ! Merci Myah, tu es la meilleure grande sœur !', 'Les papillons aiment les fleurs du lac. Quand l\'eau était propre, il y en avait partout ! Ma plume, je l\'ai cachée dans ma boîte à trésors.', 'Mon coffre est caché à l\'étage du musée, en haut de l\'échelle ✨ Va le chercher !'] },
   { id: 'soleil', where: 'devant le poste de soin', npc: 'soigneuse', spot: 'haut2', who: 'Professeur Lulia', need: { flower: 5 }, title: '5 fleurs pour Lulia', tool: 'basket', fe: 2,
     start: ['Bonjour Myah ! Les fleurs de l\'île sont tristes ces temps-ci. Elles boivent l\'eau du lac, et l\'eau n\'est plus aussi claire qu\'avant. 🌼', 'Peux-tu cueillir 5 jolies fleurs 🌸 avec ton panier [panier] ? Je vais les soigner.', 'Gaïkin m\'a laissé une plume dans mon coffre. Il m\'a dit : « Donne-la à quelqu\'un en qui tu as confiance. » Je crois que c\'est toi !'],
     remind: ['Encore quelques fleurs 🌸, s\'il te plaît ! Elles poussent dans les petits jardins.'],
-    done: ['Quel beau bouquet ! Avec toi, l\'île a de l\'espoir. 🌸', 'Mon coffre est caché dans le buisson qui scintille ✨ devant le poste de soin. Fouille-le : la plume est à toi !'] },
+    done: ['Quel beau bouquet ! 🌸', 'J\'ai comparé les fleurs arrosées avec l\'eau du lac et celles arrosées avec l\'eau de pluie : ce sont les premières qui fanent. Avec ta plume, l\'eau du lac redeviendra bonne pour elles.', 'Mon coffre est caché dans le buisson qui scintille ✨ devant le poste de soin. Fouille-le : la plume est à toi !'] },
   { id: 'toto', npc: 'pecheur', spot: 'sud', who: 'Zyno, le vieux pêcheur', need: { fish: 3, crab: 2 }, title: '3 poissons et 2 crabes pour Zyno', tool: 'fish', fe: 3,
     start: ['Ho ho, Myah ! Pour le grand repas de la fête, il me faut du poisson et des crabes ! 🐟🦀 Mais il y a moins de poissons qu\'avant : l\'eau est moins claire.', 'Pêche 3 poissons avec ta canne [canne], depuis la plage : l\'eau du lac est trop trouble en ce moment. Et attrape 2 crabes rouges avec ton panier [panier], sur le sable !', 'Je garde une plume de Gaïkin dans mon coffre. Des pirates la voulaient, mais je n\'ai rien dit ! Toi, tu es de confiance. ⚓'],
     remind: ['Il me faut encore du poisson 🐟 et des crabes 🦀 pour le festin. Les poissons sont près de l\'eau, les crabes sur le sable !'],
-    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon coffre est caché dans la cale de mon bateau, devant le lit ✨ La plume t\'attend !'] },
+    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Avant, je remontais mes filets pleins. Moins de plumes dans l\'eau, c\'est moins de nourriture pour les poissons. Ma plume sera plus utile dans le lac que dans ma cale.', 'Mon coffre est caché dans la cale de mon bateau, devant le lit ✨ La plume t\'attend !'] },
   { id: 'plume', npc: 'juliana', spot: 'obs', who: 'Yulia, la directrice du musée', need: { mango: 5, banana: 6 }, title: 'La fête : 5🥭 6🍌', tool: null, final: true, fe: 4,
     start: ['Myah ! Ce soir, nous allons essayer de faire revenir Gaïkin, le grand Cygne ! 🎉', 'Pour le festin, il me faut : 5 mangues 🥭 et 6 bananes 🍌. Les manguiers près du musée et de l\'escalier de l\'observatoire, et les bananiers du jardin, en sont pleins !', 'Le dernier coffre est dans l\'observatoire : Yurii le garde. Il contient un très vieux livre sur la légende de Gaïkin. Quand tu auras fini, va voir Yurii à l\'observatoire !'],
     remind: ['Pour le festin, il me faut : 5 mangues 🥭 et 6 bananes 🍌 !'],
     locked: ['Reviens me voir quand tu auras aidé Miraaï, Nijan, Lulia et Zyno ! Le dernier coffre vient à la fin.'],
-    done: ['Hourra ! Le festin sera délicieux !', 'Le coffre est caché à l\'intérieur de l\'observatoire, derrière les plantes ✨ C\'est le dernier coffre !'] },
+    done: ['Hourra ! Le festin sera délicieux !', 'Ce repas, c\'est pour montrer à Gaïkin que toute l\'île l\'attend.', 'Le coffre est caché à l\'intérieur de l\'observatoire, derrière les plantes ✨ C\'est le dernier coffre !'] },
 ];
 
 /* ----- bavardages : les habitants parlent de leur vie sur l'île tant que ce n'est pas le tour de leur quête ----- */
@@ -237,7 +237,7 @@ const CHAT = {
     ['Quand le vent vient de la mer, le linge sèche en une heure. J\'adore cette île ! 🌬️'],
     ['Tu as bien mangé ce matin, Myah ? Un bon petit-déjeuner, ça donne des ailes !', 'Enfin... à toi, il t\'en faut peut-être un peu moins ! 😄'],
     ['J\'entends la mer depuis la cuisine. C\'est ma musique préférée pendant que je cuisine. 🎶'],
-    ['Ta grand-mère disait : « Gaïkin choisit toujours un cœur généreux. » 💛'],
+    ['Ta grand-mère disait : « Prends soin du lac, et le lac prendra soin de toi. » 💛'],
     ['Le lac était si clair qu\'on y voyait les nuages. J\'aimerais que Nijan voie ça un jour. 💧'],
   ],
   kahn: [
@@ -261,7 +261,7 @@ const CHAT = {
   soigneuse: [
     ['Les animaux de l\'île savent toujours quand on est triste. Ils viennent se blottir contre moi. 🐾'],
     ['Je prépare une tisane avec les herbes du jardin. Un peu de menthe, un peu de miel... 🍯'],
-    ['Si un jour tu te fais une petite bosse, viens me voir au poste de soin. J\'ai un baume magique ! 🩹'],
+    ['Si un jour tu te fais une petite bosse, viens me voir au poste de soin. J\'ai un baume aux plantes qui soigne très bien ! 🩹'],
     ['Hier, un oisillon est tombé du nid. Il va très bien maintenant, il pépie du matin au soir ! 🐦'],
     ['Tu savais que les fleurs de l\'île changent de couleur selon la saison ? Je les note dans mon carnet. 📖'],
     ['Je range mes flacons par couleur. C\'est joli et ça m\'évite de me tromper ! 🧴'],
@@ -284,7 +284,7 @@ const CHAT = {
     ['Mon mari Yurii passe ses journées à l\'observatoire, à compter les oiseaux. Moi, je préfère les vitrines ! 😄'],
     ['Si tu trouves un objet rare, apporte-le-moi : je lui trouverai une belle vitrine. ✨'],
     ['Je dessine aussi une carte de l\'île. Il me manque encore quelques recoins à explorer. 🗺️'],
-    ['Dans les vieux livres du musée, on lit que les plumes de Gaïkin nettoient l\'eau. Un vrai filtre magique ! 📚'],
+    ['Dans les vieux livres du musée, on lit que les plumes de Gaïkin nettoient l\'eau. Un vrai filtre naturel ! 📚'],
   ],
   maima: [
     ['Être la cheffe, c\'est surtout écouter tout le monde. Et boire beaucoup de thé ! 🍵'],
@@ -328,7 +328,7 @@ const CHAT = {
     ['Ma planche, c\'est comme les ailes : ça donne l\'impression de voler.'],
     ['Le soir, quand on rentre tous ensemble à la maison, c\'est mon moment préféré. Mais chut, ne le répète pas.'],
     ['Les crabes courent plus vite que moi. Mais je m\'entraîne !'],
-    ['Je connais les meilleurs coins de pêche. Le ponton, le matin, c\'est magique.'],
+    ['Je connais les meilleurs coins de pêche. Le ponton, le matin, c\'est superbe.'],
     ['Papa dit que je réparerai des bateaux comme lui. Moi, je préfère les rouler sur une planche.'],
     ['Si tu aimes les défis, reviens me voir un peu plus tard.'],
   ],
@@ -343,7 +343,7 @@ const CHAT = {
     ['Regarde ce colibri ! Ses ailes battent plus de cinquante fois par seconde. 🐦'],
     ['Les perroquets de l\'île se reconnaissent à leur cri. Écoute bien : celui-là dit « Myah » ! 🦜'],
     ['Depuis l\'observatoire, je note chaque oiseau qui passe dans mon carnet. Ma femme Yulia dit que j\'en ai trop ! 😄'],
-    ['Quand Gaïkin volait au-dessus du lac, tous les oiseaux se taisaient un instant. C\'est magique. 🪶'],
+    ['Quand Gaïkin volait au-dessus du lac, tous les oiseaux se taisaient un instant. C\'était impressionnant. 🪶'],
     ['Avec la longue-vue, tu peux les voir passer : le jour pour les colibris, le soir pour les chouettes ! 🔭'],
     ['Les pirates venaient de partout pour les plumes de Gaïkin. Heureusement, il a pu s\'échapper. 🏴‍☠️'],
   ],
@@ -351,7 +351,7 @@ const CHAT = {
 const chatLast = {};
 /* ----- après le retour de Gaïkin : les habitants parlent du lac redevenu clair, des poissons et de la fête ----- */
 const CHAT_END = {
-  maman: [['Depuis que Gaïkin est revenu, l\'eau du bassin est si claire que je vois mon reflet ! 💧'], ['Tout le monde parle encore de ton gâteau à la fête, ma chérie. Tu me donneras ta recette ? 🍰'], ['Ta grand-mère avait raison : Gaïkin a choisi un cœur généreux. Le tien. 💛']],
+  maman: [['Depuis que Gaïkin est revenu, l\'eau du bassin est si claire que je vois mon reflet ! 💧'], ['Tout le monde parle encore de ton gâteau à la fête, ma chérie. Tu me donneras ta recette ? 🍰'], ['Ta grand-mère serait si fière : tu as pris soin du lac, comme elle. 💛']],
   kahn: [['Mes légumes n\'ont jamais été aussi beaux ! L\'eau du lac nourrit à nouveau la terre. 🥕'], ['Je suis tellement fier de toi, ma grande. Toute l\'île te doit beaucoup.']],
   frere: [['Myah ! Il y a plein de papillons partout maintenant ! 🦋 Je les compte, mais il y en a trop !'], ['Quand je serai grand, moi aussi je volerai sur le dos de Gaïkin, comme toi ! 🦢']],
   soigneuse: [['Les fleurs ont retrouvé toutes leurs couleurs. Je n\'ai plus besoin de les soigner ! 🌸'], ['L\'eau propre, c\'est la meilleure médecine pour toute l\'île. Merci, Myah.']],
@@ -395,7 +395,7 @@ const FREE_QUEST_TEXT = {
     title: 'Papillons pour Nijan',
     start: ['Myah ! Myah ! Je voudrais observer des papillons de près ! 🦋', 'Peux-tu attraper 3 papillons avec ton filet [filet] ? Avance doucement : ils se posent sur les fleurs.'],
     remind: ['Il m’en faut encore, des papillons 🦋 ! Approche-toi doucement avec ton filet !'],
-    done: ['Waaaah ! Ils sont trop beaux ! Merci Myah, tu es la meilleure grande sœur !', 'Mon petit coffre est caché à l’étage du musée, en haut de l’échelle ✨ Va le chercher !']
+    done: ['Waaaah ! Ils sont trop beaux ! Merci Myah, tu es la meilleure grande sœur !', 'Les papillons aiment les fleurs du lac. Quand l\'eau était propre, il y en avait partout ! Ma plume, je l\'ai cachée dans ma boîte à trésors.', 'Mon petit coffre est caché à l’étage du musée, en haut de l’échelle ✨ Va le chercher !']
   },
   soleil: {
     title: 'Fleurs pour Lulia',
@@ -407,7 +407,7 @@ const FREE_QUEST_TEXT = {
     title: 'Poissons et crabes pour Zyno',
     start: ['Ho ho, Myah ! Je prépare un repas de la plage et il me faut du poisson et des crabes ! 🐟🦀', 'Pêche 3 poissons avec ta canne [canne], depuis la plage, et attrape 2 crabes rouges avec ton panier [panier], sur le sable !'],
     remind: ['Il me faut encore du poisson 🐟 et des crabes 🦀 pour le repas. Les poissons sont près de l’eau, les crabes sur le sable !'],
-    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Mon petit coffre est caché dans la cale de mon bateau, devant le lit ✨']
+    done: ['Quelle belle pêche, et quels beaux crabes ! Bravo Myah !', 'Avant, je remontais mes filets pleins. Moins de plumes dans l\'eau, c\'est moins de nourriture pour les poissons. Ma plume sera plus utile dans le lac que dans ma cale.', 'Mon petit coffre est caché dans la cale de mon bateau, devant le lit ✨']
   },
   plume: {
     title: 'Fruits pour le musée',
@@ -2090,10 +2090,10 @@ function touchChest(q) {
 const BKI = new Image(); BKI.src = 'assets/book/livre.png';
 const BK_SRC = { open: [0, 0, 1264, 848], turn: [0, 848, 1264, 848], cover: [0, 1696, 554, 620], chest: [640, 1696, 420, 434] };
 const BK_PAGES = [
-  ['Il y a très longtemps, un grand Cygne blanc veillait sur l\'île. Il s\'appelait Gaïkin. 🦢', 'Chaque fois qu\'une de ses plumes tombait dans le lac, l\'eau devenait plus claire, comme par magie. ✨'],
+  ['Il y a très longtemps, un grand Cygne blanc veillait sur l\'île. Il s\'appelait Gaïkin. 🦢', 'Chaque fois qu\'une de ses plumes tombait dans le lac, l\'eau devenait plus claire, grâce aux fines particules de ses plumes. 💧'],
   ['Grâce à lui, l\'eau était pure, les poissons nageaient joyeusement et les fleurs poussaient partout. Toute l\'île vivait de ses plumes.', 'Mais la nouvelle s\'est répandue très loin, et des pirates sont venus du monde entier pour les lui arracher. 🏴‍☠️'],
   ['Gaïkin a eu si peur qu\'il s\'est envolé. Avant de partir, il a confié quatre plumes très spéciales à des habitants de confiance. 🪶', 'Chacun en garde une seule, bien cachée, et n\'en parle à personne. Les pirates ne doivent jamais les trouver.'],
-  ['Depuis son départ, l\'eau du lac se trouble un peu plus chaque année. 😟 Sans les plumes, l\'île ne pourra pas vivre longtemps.', 'La légende dit : quand quelqu\'un de confiance réunira les quatre plumes, l\'eau du lac sera de nouveau pure, le grand Cygne reviendra et fera un cadeau magique. 🌟']];
+  ['Depuis son départ, l\'eau du lac se trouble un peu plus chaque année. 😟 Sans les plumes, l\'île ne pourra pas vivre longtemps.', 'La légende dit : quand quelqu\'un de confiance réunira les quatre plumes, l\'eau du lac sera de nouveau pure, le grand Cygne reviendra et fera un très beau cadeau. 🌟']];
 function bookShow(done) {
   const old = document.getElementById('bkOv'); if (old) old.remove();
   const el = document.createElement('div'); el.id = 'bkOv';
@@ -2134,9 +2134,9 @@ function finishChest(q) {
     ['Une plume de Gaïkin ! 🪶 (1/4)', 'Elle brille doucement. Les habitants la gardaient en secret, pour que les pirates ne la volent pas.'],
     ['Deux plumes ! 🪶🪶 (2/4)', 'Quand une plume de Gaïkin touche l\'eau, elle la nettoie, comme un engrais naturel qui garde l\'eau pure. Sans elles, l\'eau du lac devient trouble.'],
     ['Trois plumes ! 🪶🪶🪶 (3/4)', 'Il y a des années, des pirates sont venus du monde entier pour lui arracher ses plumes. Gaïkin a eu très peur : il s\'est enfui.'],
-    ['Quatre plumes ! 🪶🪶🪶🪶 (4/4)', 'Ce sont les quatre plumes les plus spéciales. La légende dit : « Avec quatre plumes en main, Gaïkin reviendra. » Il reste un dernier coffre, dans l\'observatoire de Yurii.']],
+    ['Quatre plumes ! 🪶🪶🪶🪶 (4/4)', 'Ce sont les quatre plumes les plus spéciales. Yurii pense que si l\'eau redevient propre, Gaïkin aura envie de revenir. Il reste un dernier coffre, dans l\'observatoire de Yurii.']],
     lines = q.final ? ['Tu as les quatre plumes ! Quelque chose brille au bord du lac… Gaïkin t\'attend peut-être !'] : CL[Math.min(3, Math.max(0, nf - 1))];
-  const MG = ['La plume murmure : « Merci, Myah. Grâce à toi, l\'île commence à reprendre des forces. »', 'La plume murmure : « Mes plumes nourrissent l\'eau et la terre. Prends-en bien soin. »', 'La plume murmure : « Tu vois ? Le lac redevient un peu plus clair depuis que tu as trouvé mes plumes. »', 'La plume murmure : « L\'île est presque guérie. Je t\'attends au bord du lac. »'];
+  const MG = ['Tu poses la plume au bord de l\'eau. Les fines particules se déposent… et un petit poisson vient y chercher sa nourriture. 🐟', 'Les plumes nourrissent la terre comme un engrais naturel : autour de la flaque, l\'herbe est déjà plus verte. 🌱', 'Les particules piègent la vase : l\'eau près de la rive devient un peu plus transparente. 💧', 'Avec quatre plumes, il y en a assez pour nettoyer le lac. Mais pour qu\'il reste pur, il faudra que Gaïkin revienne : à chaque mue, ses nouvelles plumes nourriront l\'eau.']
   if (!q.final) { lines.push(MG[Math.min(3, Math.max(0, nf - 1))]); burst(player.x, player.y - 30, 30, ['#fff', '#d9c2ff', '#ffe27a', '#9fe8ff'], true); try { sfx.star(); } catch (e) {} }
   const dlgGo0 = () => openDialog(q.final ? 'Le livre de la légende' : 'Plume de Gaïkin', lines, () => { player.state = 'free'; if (n === QUESTS.length && phase === 'quests' && storyOn()) startWatch(); }, LP());
   const dlgGo = () => { if (q.final || IN.on) return dlgGo0(); player.state = 'talk'; showTrophy(PLUME, 'Plume de Gaïkin (' + nf + '/4)', 'Une plume brillante, gagnée grâce à ta mission !', 4.5, dlgGo0); };
@@ -2446,8 +2446,8 @@ const SW_PERCH = SW_SMALL * 4 / 3,   // première apparition : 1/3 plus grand qu
   SW_MOUNT = .45;
 
 // avant l'apparition : Yurii invite Myah à regarder dans la longue-vue de l'observatoire ; elle y voit Gaïkin se poser sur le lac
-function startWatch() { phase = 'watch'; save(); player.state = 'talk'; (window.yuriiEnter || (f => f()))(() => openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Attends… j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Vite, regarde dans la longue-vue, juste là ! 🔭'], () => { player.state = 'free'; }, LP())); }
-function watchSeen() { closeScope(); phase = 'seek'; save(); openDialog('Myah', ['Waouh ! 😮 Quelque chose brille dans le ciel…', 'C\'est un immense cygne tout lumineux ! Il s\'est posé sur le lac !', 'Il faut aller voir ! 🦢'], () => { player.state = 'free'; }, LP()); }
+function startWatch() { phase = 'watch'; save(); player.state = 'talk'; (window.yuriiEnter || (f => f()))(() => openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Attends… j\'ai vu quelque chose de très grand voler au-dessus de l\'île !', 'Vite, regarde dans la longue-vue, juste là ! 🔭'], () => { player.state = 'free'; }, LP())); }
+function watchSeen() { closeScope(); phase = 'seek'; save(); openDialog('Myah', ['Waouh ! 😮 Quelque chose brille dans le ciel…', 'C\'est un immense cygne blanc ! Il s\'est posé sur le lac !', 'Il faut aller voir ! 🦢'], () => { player.state = 'free'; }, LP()); }
 function startReveal() {
   phase = 'reveal'; cine = { kind: 'reveal', t: 0, k: -1 }; swanAlt = 320; swanSparkle = 1; player.state = 'cine'; setAnim('idle');
   $('#veil').classList.add('on'); save();
