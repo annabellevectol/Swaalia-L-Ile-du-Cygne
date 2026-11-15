@@ -4742,7 +4742,7 @@ const MG_FILES = {
   puz2: ['cygne', 'colibri'].flatMap(k => ['assets/puzzle/' + k + '_sheet.png', 'assets/puzzle/' + k + '_ghost.jpg']),
   paint: ['assets/color/palette.png'],
   tet: ['assets/tetris/board.png', 'assets/tetris/blocks.png', 'assets/tetris/ui.png', 'assets/tetris/bg.jpg'],
-  cook: ['menu_intro', 'd_cake', 'd_banane', 'peel_m', 'cut_m', 'cup_f', 'cup_s', 'bowl', 'mix_m', 'pour', 'oven', 'peel_b', 'cut_b', 'mix_b', 'gz_g0', 'gz_g1', 'gz_p0', 'gz_p1', 'd_burnt', 'd_burnt_b', 'd_tipa', 'd_tipa_ko', 'peel_p', 'pan_p', 'grill_f'].map(n => 'assets/cook/' + n + '.jpg').concat(['hand_knife', 'hand_peel_b', 'hand_peel_f', 'hand_pinch', 'hand_whisk', 'eggs', 'peel', 'spice', 'cubes2', 'rounds', 'milk', 'steam', 'bar', 'vbar'].map(n => 'assets/cook/fx/' + n + '.png')),
+  cook: ['menu_intro', 'd_cake', 'd_banane', 'peel_m', 'cut_m', 'cup_f', 'cup_s', 'bowl', 'mix_m', 'pour', 'oven', 'peel_b', 'cut_b', 'mix_b', 'gz_g0', 'gz_g1', 'gz_p0', 'gz_p1', 'd_burnt', 'd_burnt_b', 'd_tipa', 'd_tipa_ko', 'peel_p', 'cut_p', 'pan_p', 'grill_f'].map(n => 'assets/cook/' + n + '.jpg').concat(['hand_knife', 'hand_peel_b', 'hand_peel_f', 'hand_pinch', 'hand_whisk', 'eggs', 'peel', 'spice', 'cubes2', 'rounds', 'milk', 'steam', 'bar', 'vbar'].map(n => 'assets/cook/fx/' + n + '.png')),
 };
 let mgIdleOn = false;
 function mgIdle() {   // une fois la partie lancée : on charge tranquillement les mini-jeux, du plus léger au plus lourd
@@ -7480,7 +7480,7 @@ function offerVeg(who, portrait, after, go, label) {   // menu à onglets : [qu�
 /* ================= CUISINE : Tukaï et Katouka (façon Cooking Mama) ================= */
 const COOK_SPOT = [213, 590], COOK_HL = [194, 511];
 const CKLV = [{ n: 'Facile', zw: .96, sp: .25, spd: 0, nm: .3, tm: 10, tn: .4, tc: .5, hl: .05, hh: .99, up: .9, dn: .05, th: 0, fl: .65, easy: 1 }, { n: 'Moyen', zw: .4, sp: .5, spd: .08, nm: .7, tm: 2, tn: .7, tc: .8, hl: .3, hh: .78, up: .55, dn: .3, th: .4, fl: .2 }, { n: 'Difficile', zw: .3, sp: .7, spd: .1, nm: 1, tm: 0, tn: 1, tc: 1, hl: .38, hh: .72, up: .5, dn: .36, th: .55, fl: 0 }];
-const CK_EASY = { gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
+const CK_EASY = { gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
@@ -7552,6 +7552,7 @@ const RECIPES = {
       ['Cuis le gâteau', '', 'oven', { strip: 'oven', n: 6, ar: '456/252', t: 8, fx: ['steam'] }]] },
   tipaiki: { name: 'Tipa Iki', sub: 'plantain dorée et poisson grillé', emoji: '🐟', need: { plantain: 2, fish: 1, citron: 1 }, ok: 'd_tipa', ko: 'd_tipa_ko',
     steps: [['Épluche la banane plantain', '', 'reveal', { strip: 'peel_p', n: 5, ar: '820/736', t: 18, fx: 'peel', tool: 'hand_peel_b', tool2: 'hand_peel_f', tw: 30, tr: 'translate(-95%,-50%)' }],
+      ['Coupe la plantain en rondelles', '', 'reveal', { strip: 'cut_p', n: 5, ar: '820/736', t: 16, fx: 'rounds', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Fais dorer les rondelles', '', 'oven', { strip: 'pan_p', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Fais griller le poisson', '', 'oven', { strip: 'grill_f', n: 6, ar: '400/380', t: 8, fx: ['steam'] }]] }
 };
