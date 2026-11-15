@@ -4216,7 +4216,11 @@ function icTouch(q) {
   const mk = (x, y, o, r, wp) => ({ x, y, r, get: () => o, wp, wi: 0, wait: 4, fl: false, walk: false });
   const N_Z = mk(560, 625, ZYN), N_Y = mk(450, 800, gx('gardien')), N_K = mk(620, 588, gx('kykah'), 0, [[620, 588], [660, 592], [585, 585], [690, 596]]), N_P = mk(355, 562, gx('poggi'), 0, [[355, 562], [368, 574], [345, 552], [372, 560]]);
   Object.defineProperty(SC_CABIN, 'npc', { configurable: true, get: () => ZYN._in === 'boat' ? N_Z : null });
-  Object.defineProperty(SC_OBS, 'npc', { configurable: true, get: () => gx('gardien')._in === 'obs' || phase === 'watch' ? N_Y : null });
+  const Y_NIGHT = Object.assign(Object.create(gx('gardien')), { sprite: npcSprite('gardien_u') }), Y_GET = N_Y.get, Y_POS = [N_Y.x, N_Y.y];
+  Object.defineProperty(SC_OBS, 'npc', { configurable: true, get: () => {   // la nuit, Yurii ne dort pas : il observe les étoiles dans la longue-vue de gauche
+    if (!(gx('gardien')._in === 'obs' || phase === 'watch')) return null;
+    const nt = sleepNow() && phase !== 'watch'; if (nt && !N_Y._nt) { N_Y._nt = 1; N_Y.x = 262; N_Y.y = 772; N_Y.get = () => Y_NIGHT; } else if (!nt && N_Y._nt) { N_Y._nt = 0; N_Y.x = Y_POS[0]; N_Y.y = Y_POS[1]; N_Y.get = Y_GET; }
+    return N_Y; } });
   window.yuriiEnter = cb => {   // après le livre : Yurii entre par la porte de l'observatoire et vient parler à Myah
     if (SC !== SC_OBS) { cb(); return; }
     N_Y.x = 540; N_Y.y = 870; N_Y.follow = null; N_Y.walk = false; N_Y.fl = IN.x > 540; cb();   // il est déjà là quand le livre se referme
