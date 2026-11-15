@@ -4251,7 +4251,7 @@ const sleepNow = () => isEve() && dayT > .72;
     ['parents', SC_HOME, 530, 183, 233, -.35, 0, () => true],
     ['frere', SC_HOME, 840, 98, 100, .3, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 840, 200, 100, .3, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
     ['couple', SC_UKAI, 548, 182, 237, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
-    ['romi', SC_UKAI, 540, 455, 192, .72, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 848, 199, 110, .3, 0, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 905, 252, 50, -.1, 1, () => inH(gx('kito'), 'ukai')],
+    ['romi', SC_UKAI, 540, 455, 192, .72, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 848, 188, 110, .3, 0, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 905, 252, 50, -.1, 1, () => inH(gx('kito'), 'ukai')],
     ['pecheur', SC_CABIN, 750, 395, 280, .05, 0, () => inH(ZYN, 'boat')],
   ];
   // le dessus des matelas (le dormeur ne dépasse pas du lit) et ce qui passe devant (rambarde, coffre), redessinés par-dessus
