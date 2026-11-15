@@ -4248,14 +4248,21 @@ const sleepNow = () => isEve() && dayT > .72;
   const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
   const inH = (o, h) => o && o._in === h;
   const SL = [   // [image, décor, x, y, largeur, angle, miroir, condition] — chaque dormeur à la taille de son lit, la tête sur l'oreiller
-    ['parents', SC_HOME, 532, 172, 135, -.35, 0, () => true],
+    ['parents', SC_HOME, 530, 183, 135, -.35, 0, () => true],
     ['frere', SC_HOME, 852, 92, 96, -.22, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 852, 192, 96, -.22, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
     ['couple', SC_UKAI, 548, 182, 140, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
     ['romi', SC_UKAI, 852, 192, 96, -.22, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 896, 258, 100, -.1, 1, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 850, 290, 40, 0, 0, () => inH(gx('kito'), 'ukai')],
     ['pecheur', SC_CABIN, 745, 392, 210, .05, 0, () => inH(ZYN, 'boat')],
   ];
-  window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; const m = SLP_M[k], h = w * m[3] / m[2];
-    ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); }); };
+  // le dessus des matelas (le dormeur ne dépasse pas du lit) et ce qui passe devant (rambarde, coffre), redessinés par-dessus
+  const MAT = { big: [[452, 172], [555, 145], [665, 180], [662, 210], [560, 248], [455, 214]], bunkT: [[762, 112], [858, 98], [935, 122], [935, 150], [845, 168], [762, 142]], bunkB: [[762, 214], [858, 200], [935, 224], [935, 252], [845, 270], [762, 244]], low: [[840, 234], [940, 186], [1002, 196], [1002, 216], [880, 274], [840, 264]], cab: [[600, 330], [700, 300], [960, 420], [940, 470], [830, 500], [600, 380]] };
+  const FG = { home: [[[372, 182], [705, 238], [705, 310], [372, 310]]], ukai: [[[576, 212], [692, 204], [696, 284], [578, 286]]] };
+  const poly = P => { ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); };
+  const MK = {};
+  window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; let any = false;
+    SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; any = true; const m = SLP_M[k], h = w * m[3] / m[2], mk = MK[k];
+      ctx.save(); if (mk) { poly(MAT[mk]); ctx.clip(); } ctx.filter = 'brightness(.88) saturate(.9)'; ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); });
+    const fg = any && (SC === SC_HOME ? FG.home : SC === SC_UKAI ? FG.ukai : null); if (fg && SC.img.complete) fg.forEach(P => { ctx.save(); poly(P); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); }); };
   const SLK = ['maman', 'kahn', 'frere', 'kykah', 'poggi', 'kito', 'romi', 'lila'], kOf = n => { const o = n.get ? n.get() : n; return o && (o.npc || o.key); };
   const hn = SC_HOME.npcs, ua = SC_UKAI.all; SC_HOME.npcs = () => sleepNow() ? hn().filter(n => !SLK.includes(kOf(n))) : hn(); SC_UKAI.all = () => sleepNow() ? ua().filter(n => !SLK.includes(kOf(n))) : ua();
   const cd = Object.getOwnPropertyDescriptor(SC_CABIN, 'npc'); Object.defineProperty(SC_CABIN, 'npc', { configurable: true, get: () => sleepNow() ? null : cd.get() });
