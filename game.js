@@ -4259,6 +4259,7 @@ const sleepNow = () => isEve() && dayT > .72;
   const FG = { home: [[[372, 182], [705, 238], [705, 310], [372, 310]], [[926, 40], [1000, 40], [1000, 250], [926, 250]]], ukai: [[[576, 212], [692, 204], [696, 284], [578, 286]], [[870, 120], [940, 120], [940, 232], [870, 232]]] };   // + le montant avant des lits superposés : les jambes passent derrière
   const poly = P => { ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); };
   const MK = {};
+  const CL = { frere: [[[690, 0], [1010, 0], [1010, 93], [935, 93], [779, 109], [690, 115]], [[690, 120], [1010, 120], [1010, 167], [935, 167], [779, 178], [690, 184]]], lila: [null, [[690, 100], [1010, 100], [1010, 202], [935, 202], [786, 211], [690, 216]]] };   // les jambes ne dépassent pas de la rambarde avant
   const QC = {};   // la couette lilas reprend le motif du dessus-de-lit d'origine (ombres gardées), calculé une seule fois
   const QZ = {   // pour chaque dormeur : quels pixels sont sa couverture, et quel morceau du lit sert de motif
     parents: { t: (r, g, b) => b > g + 25 && r > g + 5 && b > 110, p: [545, 170, 60, 28] }, couple: { t: (r, g, b) => b > g + 25 && r > g + 5 && b > 110, p: [545, 170, 60, 28] },
@@ -4281,7 +4282,7 @@ const sleepNow = () => isEve() && dayT > .72;
   }
   window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; let any = false;
     SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; any = true; const m = SLP_M[k], h = w * m[3] / m[2], mk = MK[k];
-      if (QZ[k]) { const c = quilt(k + '_' + x + '_' + y, k, sc, x, y, w, h, a, m, fl); if (c) { ctx.drawImage(c, 0, 0); return; } }
+      if (QZ[k]) { const c = quilt(k + '_' + x + '_' + y, k, sc, x, y, w, h, a, m, fl); if (c) { const cl = CL[k] && CL[k][y < 150 ? 0 : 1]; ctx.save(); if (cl) { poly(cl); ctx.clip(); } ctx.drawImage(c, 0, 0); ctx.restore(); return; } }
       ctx.save(); if (mk) { poly(MAT[mk]); ctx.clip(); } ctx.filter = 'brightness(.88) saturate(.9)'; ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); });
     const fg = any && (SC === SC_HOME ? FG.home : SC === SC_UKAI ? FG.ukai : null); if (fg && SC.img.complete) fg.forEach(P => { ctx.save(); poly(P); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); }); };
   const SLK = ['maman', 'kahn', 'frere', 'kykah', 'poggi', 'kito', 'romi', 'lila'], kOf = n => { const o = n.get ? n.get() : n; return o && (o.npc || o.key); };
