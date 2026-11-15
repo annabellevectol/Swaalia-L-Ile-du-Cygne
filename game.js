@@ -926,12 +926,12 @@ QUESTS.forEach(q => {
 const KID_BEACH = { lila: [-70, 14], romi: [52, -26] };   // où Lila et Romi se promènent sur la plage (autour de l'étal de Kykah)
 const EXTRAS = [
   { key: 'maima', who: 'Maïmaï, la cheffe de l\'île', spot: 'haut4', dx: 0, dy: 0, flip: false, lines: ['Bonjour ma petite Myah ! Je suis Maïmaï, la cheffe de l\'île. 🌺', 'Gaïkin, notre grand cygne, est parti depuis des années. Son lac devient trouble… je suis très inquiète. 😟', 'Les habitants gardent ses plumes en secret. Aide-les, gagne leur confiance, et Gaïkin reviendra peut-être. 🪶'] },
-  { key: 'poggi', who: 'Poggi, l\'ouvrier agricole', spot: 'haut3', dx: -99, dy: -144, flip: true, lines: ['Hé, Myah ! Je suis Poggi, l\'ouvrier agricole : je répare les bateaux et les bâtiments de l\'île, et je ramasse des noix de coco 🥥 pour le festin.', 'Si tu cherches des noix de coco 🥥, des mangues 🥭 ou des bananes 🍌, regarde près du bassin et du musée : les arbres refont des fruits au bout de 30 secondes !'] },
+  { key: 'poggi', who: 'Poggi, l\'ouvrier agricole', spot: 'haut3', dx: -99, dy: -144, flip: true, lines: ['Hé, Myah ! Je suis Poggi, l\'ouvrier agricole : je récolte les fruits et les légumes de l\'île, et je ramasse des noix de coco 🥥 pour le festin.', 'Si tu cherches des noix de coco 🥥, des mangues 🥭 ou des bananes 🍌, regarde près du bassin et du musée : les arbres refont des fruits au bout de 30 secondes !'] },
   { key: 'gardien', who: 'Yurii, l\'ornithologue', spot: 'obs', dx: 0, dy: 0, flip: false, lines: ['Bonjour Myah ! Je suis Yurii, l\'ornithologue : je suis les oiseaux de l\'île depuis l\'observatoire. 🦜', 'Depuis que Gaïkin est parti, je cherche son ombre dans le ciel chaque soir. Prends la longue-vue : tu verras peut-être quelque chose ! 🔭'] },
   { key: 'kykah', who: 'Kykah, la marchande', spot: 'bas', dx: 0, dy: 0, flip: false, lines: ['Bienvenue ! Perles, coquillages et colliers : tout vient de nos plages. 🐚', 'Pour la pêche, pense à ta canne [canne] : les poissons de la mer sont plus gros que ceux de l\'étang !'] },
   { key: 'kahn', who: 'Kahn, ton papa, le maraîcher', spot: 'sud', dx: 142, dy: -23, flip: false, chal: true, still: true, via: [[219, 341], [210, 298], [170, 278], [130, 245]], lines: ['Ma puce ! Te voilà ! Aujourd\'hui, on a du travail avec Zyno : les filets se remplissent vite sur la plage.', 'Tu veux bien m\'aider à pêcher ? Je te réserve un trésor rare !'] },
   { key: 'kito', who: 'Kito, le bébé de la marchande', spot: 'bas', dx: -26, dy: 6, flip: false, kid: true, follow: 'kykah', lines: ['Gouuu ! Ba-ba !', 'Kito agite son petit perroquet rouge. Il ne quitte jamais sa maman.'] },
-  { key: 'lila', who: 'Lila, la fille de Kykah et de Poggi', spot: 'bas', dx: KID_BEACH.lila[0], dy: KID_BEACH.lila[1], flip: false, kid: true, lines: ['Salut Myah ! Moi, c\'est Lila. Maman vend des coquillages et papa répare les bateaux.', 'Avec ma loupe et mon carnet, je cherche des indices partout sur l\'île. Même mon perroquet m\'aide !'] },
+  { key: 'lila', who: 'Lila, la fille de Kykah et de Poggi', spot: 'bas', dx: KID_BEACH.lila[0], dy: KID_BEACH.lila[1], flip: false, kid: true, lines: ['Salut Myah ! Moi, c\'est Lila. Maman vend des coquillages et papa récolte les fruits et les légumes de l\'île.', 'Avec ma loupe et mon carnet, je cherche des indices partout sur l\'île. Même mon perroquet m\'aide !'] },
   { key: 'romi', who: 'Romi, le grand frère', spot: 'bas', dx: KID_BEACH.romi[0], dy: KID_BEACH.romi[1], flip: false, kid: true, lines: ['Salut Myah. Moi, c\'est Romi, le grand frère de Lila et de Kito.', 'Je glisse partout avec ma planche. Maman dit que j\'écoute trop de musique, mais j\'entends quand même tout.'] },
 ].map(e => { const st = D.stands[e.spot]; e.sprite = npcSprite(e.key); e.x = st[0] + e.dx; e.y = st[1] + e.dy; Object.defineProperty(e, 'portrait', { get() { return npcPortrait(e.sprite); } }); return e; });
 const YUR = { key: 'gardien', who: 'Yurii, l\'ornithologue', lines: ['Bonjour Myah ! Je suis Yurii, l\'ornithologue : je suis les oiseaux de l\'île depuis l\'observatoire. 🦜', 'Depuis que Gaïkin est parti, je cherche son ombre dans le ciel chaque soir. Prends la longue-vue : tu verras peut-être quelque chose ! 🔭'] };
@@ -4241,6 +4241,25 @@ function icTouch(q) {
   SC_MUS.npcs = () => { const L = [N_J]; if (gx('lila')._in === 'museum') L.push(N_LM); if (gx('romi')._in === 'museum') L.push(N_RM); return L; };
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
+// la nuit, les habitants qui ont un lit dorment dedans : Miraaï et Kahn (grand lit) et Nijan (lit superposé) chez Myah, la famille Ukaï, Zyno dans sa cabine
+const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=54'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248]};
+const sleepNow = () => isEve() && dayT > .72;
+{
+  const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
+  const inH = (o, h) => o && o._in === h;
+  const SL = [   // [image, décor, x, y, largeur, angle, miroir, condition]
+    ['maman', SC_HOME, 552, 190, 130, .38, 0, () => true], ['kahn', SC_HOME, 612, 166, 135, .38, 0, () => inH(gx('kahn'), 'home')],
+    ['frere', SC_HOME, 862, 103, 112, .12, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 862, 205, 112, .12, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
+    ['couple', SC_UKAI, 578, 183, 180, .38, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')], ['kito', SC_UKAI, 952, 244, 48, 0, 0, () => inH(gx('kito'), 'ukai')],
+    ['romi', SC_UKAI, 862, 205, 112, .12, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 905, 268, 110, -.42, 1, () => inH(gx('lila'), 'ukai')],
+    ['pecheur', SC_CABIN, 765, 410, 230, .42, 0, () => inH(ZYN, 'boat')],
+  ];
+  window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; const m = SLP_M[k], h = w * m[3] / m[2];
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); }); };
+  const SLK = ['maman', 'kahn', 'frere', 'kykah', 'poggi', 'kito', 'romi', 'lila'], kOf = n => { const o = n.get ? n.get() : n; return o && (o.npc || o.key); };
+  const hn = SC_HOME.npcs, ua = SC_UKAI.all; SC_HOME.npcs = () => sleepNow() ? hn().filter(n => !SLK.includes(kOf(n))) : hn(); SC_UKAI.all = () => sleepNow() ? ua().filter(n => !SLK.includes(kOf(n))) : ua();
+  const cd = Object.getOwnPropertyDescriptor(SC_CABIN, 'npc'); Object.defineProperty(SC_CABIN, 'npc', { configurable: true, get: () => sleepNow() ? null : cd.get() });
+}
 const nearHatch = () => SC === SC_BOAT && IN.floor === 0 && dist(IN.x, IN.y, HATCH_SPOT[0], HATCH_SPOT[1]) < 42;
 function goScene(sc, x, y) { swapScene(() => { setScene(sc); IN.floor = 0; IN.camY = null; IN.dk = null; IN.zs = null; IN.exitArmed = false; IN.x = x; IN.y = y; IN.cool = 1; player.dir4 = sc === SC_CABIN ? 'down' : 'up'; if (sc === SC_BOAT) IN.askH = IN.t + 60; sfx.hop && sfx.hop(); }); }
 function askHatch(force) { if (bedPickOpen() || IN.busy || (!force && IN.askH && IN.t < IN.askH)) return; bedAsk = 'cabin'; $('#bedPickT').textContent = 'Cabine'; $('#bedPickP').textContent = 'Veux-tu descendre dans la cabine ?'; $('#bedPick').style.display = 'grid'; }
@@ -5725,6 +5744,7 @@ function renderInterior(vw, vh) {
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, IN_W, IN_H); holes.forEach(h => { ctx.moveTo(h[0] + h[2], h[1]); ctx.ellipse(h[0], h[1], h[2], h[3], 0, 0, TAU, true); }); (SC.polys || []).forEach(p => { p.forEach((q, qi) => qi ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); }); ctx.clip('evenodd');
     ctx.drawImage(SC.img, 0, 0); ctx.restore();
   }
+  try { drawSleepers(); } catch (e) {}
   if (SC === SC_HALL) {   // la lucarne du toit : ses vitres sont bleu nuit sur le dessin, on les éclaircit (ciel) et on remet les croisillons
     const q = [[245.6, 206.4], [273.6, 220], [273, 250], [246, 235]], mid = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
     ctx.save(); ctx.beginPath(); q.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); const g = ctx.createLinearGradient(0, 206, 0, 250); g.addColorStop(0, '#b9e6f7'); g.addColorStop(1, '#79c4e6'); ctx.fillStyle = g; ctx.fill(); ctx.clip();
