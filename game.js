@@ -4242,7 +4242,7 @@ function icTouch(q) {
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
 // la nuit, les habitants qui ont un lit dorment dedans : Miraaï et Kahn (grand lit) et Nijan (lit superposé) chez Myah, la famille Ukaï, Zyno dans sa cabine
-const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=58'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 153]};
+const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=59'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 153]};
 const sleepNow = () => isEve() && dayT > .72;
 {
   const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
@@ -4259,8 +4259,25 @@ const sleepNow = () => isEve() && dayT > .72;
   const FG = { home: [[[372, 182], [705, 238], [705, 310], [372, 310]]], ukai: [[[576, 212], [692, 204], [696, 284], [578, 286]]] };
   const poly = P => { ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); };
   const MK = {};
+  const QC = {};   // la couette lilas reprend le motif du dessus-de-lit d'origine (ombres gardées), calculé une seule fois
+  function quilt(k, sc, x, y, w, h, a, m) {
+    const key = k + (sc === SC_HOME ? 'h' : 'u'); if (QC[key] !== undefined) return QC[key]; if (!sc.img.complete || !sc.img.naturalWidth) return null;
+    try {
+      const W = sc.W, H = sc.H, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+      g.filter = 'brightness(.88) saturate(.9)'; g.translate(x, y); g.rotate(a); g.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); g.setTransform(1, 0, 0, 1, 0, 0); g.filter = 'none';
+      const bg = document.createElement('canvas'); bg.width = W; bg.height = H; const bgc = bg.getContext('2d'); bgc.drawImage(sc.img, 0, 0, W, H);
+      const P = g.getImageData(0, 0, W, H), B = bgc.getImageData(0, 0, W, H), d = P.data, e = B.data;
+      // motif : un morceau du dessus-de-lit, répété
+      const sx = 545, sy = 170, sw = 60, sh = 28;
+      for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 30) continue; const r = d[i], gg = d[i + 1], b = d[i + 2]; if (!(b > gg + 25 && r > gg + 5 && b > 110)) continue;
+        const px = (i >> 2) % W, py = (i >> 2) / W | 0, tx = sx + ((px % sw) + sw) % sw, ty = sy + ((py % sh) + sh) % sh, j = (ty * W + tx) * 4, l = Math.min(1.25, (r + gg + b) / 3 / 140);
+        d[i] = Math.min(255, e[j] * l); d[i + 1] = Math.min(255, e[j + 1] * l); d[i + 2] = Math.min(255, e[j + 2] * l); }
+      g.putImageData(P, 0, 0); return (QC[key] = c);
+    } catch (er) { return (QC[key] = null); }
+  }
   window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; let any = false;
     SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; any = true; const m = SLP_M[k], h = w * m[3] / m[2], mk = MK[k];
+      if (k === 'parents' || k === 'couple') { const c = quilt(k, sc, x, y, w, h, a, m); if (c) { ctx.drawImage(c, 0, 0); return; } }
       ctx.save(); if (mk) { poly(MAT[mk]); ctx.clip(); } ctx.filter = 'brightness(.88) saturate(.9)'; ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); });
     const fg = any && (SC === SC_HOME ? FG.home : SC === SC_UKAI ? FG.ukai : null); if (fg && SC.img.complete) fg.forEach(P => { ctx.save(); poly(P); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); }); };
   const SLK = ['maman', 'kahn', 'frere', 'kykah', 'poggi', 'kito', 'romi', 'lila'], kOf = n => { const o = n.get ? n.get() : n; return o && (o.npc || o.key); };
