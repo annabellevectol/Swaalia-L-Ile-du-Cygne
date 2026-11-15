@@ -4221,19 +4221,23 @@ function icTouch(q) {
   const NJN = QUESTS.find(q => q.id === 'bleu'), N_NJ = mk(520, 650, NJN, 0, [[520, 650], [560, 690], [480, 620], [540, 600]]);
   const KAH = gx('kahn'), N_KH = mk(470, 612, KAH, 0, [[470, 612], [500, 640], [440, 640], [480, 585]]), N_MH = SC_HOME.npc;
   const KITO_SOFA = [520, 585], KS = [0, 1, 2].map(i => Object.assign(Object.create(gx('kito')), { sprite: npcSprite('kito_s' + i) })), N_KTH = Object.assign(mk(KITO_SOFA[0], KITO_SOFA[1], null, 0, null), { get: () => KS[[0, 0, 1, 0, 2, 2][Math.floor(time / 5) % 6]] });   // assis : sage, tape des mains, somnole   // Kito est posé sur le canapé, à côté du coussin, toute la journée (Miraaï veille sur lui)
+  const carry = (o, k) => Object.assign(Object.create(o), { sprite: npcSprite(k), sprD: { l: npcSprite(k + '_l'), r: npcSprite(k + '_r'), u: npcSprite(k + '_u') } });   // la maman qui porte Kito dans ses bras
+  const KYK_K = carry(gx('kykah'), 'kykah_k'), MAN_K = carry(MAN, 'maman_k'), MH_GET = N_MH.get, KYK_GET = N_K.get;
   N_NJ.wp = null; N_KH.wp = null; const MH_WP = N_MH.wp, EVE_MH = [346, 572];   // le soir : toute la famille est fixe côté cuisine, le petit frère à gauche de maman, papa à droite
   SC_HOME.npcs = () => {
     const L = [N_MH], eve = NJN._in === 'home' || KAH._in === 'home';
     if (eve && !N_MH._fix) { N_MH._fix = 1; N_MH.wp = null; N_MH.go = null; N_MH.walk = false; N_MH.x = EVE_MH[0]; N_MH.y = EVE_MH[1]; N_MH.fl = false; }
     else if (!eve && N_MH._fix) { N_MH._fix = 0; N_MH.wp = MH_WP; }
-    if (gx('kito')._in === 'home') L.push(N_KTH);
+    const hug = gx('kito')._in === 'home' && !eve && Math.floor(time / 25) % 3 === 2;   // de temps en temps, Miraaï prend Kito dans ses bras
+    N_MH.get = hug ? () => MAN_K : MH_GET;
+    if (gx('kito')._in === 'home' && !hug) L.push(N_KTH);
     if (NJN._in === 'home') { N_NJ.x = EVE_MH[0] - 50; N_NJ.y = EVE_MH[1] + 8; N_NJ.walk = false; N_NJ.go = null; N_NJ.fl = false; L.push(N_NJ); }
     if (KAH._in === 'home') { N_KH.x = EVE_MH[0] + 52; N_KH.y = EVE_MH[1] - 12; N_KH.walk = false; N_KH.go = null; N_KH.fl = false; L.push(N_KH); }
     return L;
   };   // le soir, Nijan et Kahn sont rentrés à la maison
   const nearestN = L => L.length ? L.reduce((a, b) => dist(IN.x, IN.y, a.x, a.y) <= dist(IN.x, IN.y, b.x, b.y) ? a : b) : null;
   Object.assign(N_LU, { x: 860, y: 308, wp: null, up: true, fl: true });   // le soir, Lila est à l'étage de la maison Ukaï, près du petit lit vert
-  SC_UKAI.all = () => { const L = []; if (gx('poggi')._in === 'ukai') L.push(N_P); if (gx('kykah')._in === 'ukai') L.push(N_K); if (gx('kito')._in === 'ukai') L.push(N_KT); if (gx('lila')._in === 'ukai') L.push(N_LU); if (gx('romi')._in === 'ukai') L.push(N_RU); return L; };
+  SC_UKAI.all = () => { const L = []; if (gx('poggi')._in === 'ukai') L.push(N_P); if (gx('kykah')._in === 'ukai') L.push(N_K); const kk = false && gx('kito')._in === 'ukai' && gx('kykah')._in === 'ukai' && !sleepNow(); N_K.get = kk ? () => KYK_K : KYK_GET; if (gx('kito')._in === 'ukai' && !kk) L.push(N_KT); /* le soir, Kykah garde Kito dans ses bras jusqu'au coucher */ if (gx('lila')._in === 'ukai') L.push(N_LU); if (gx('romi')._in === 'ukai') L.push(N_RU); return L; };
   SC_UKAI.npcs = () => { const up = IN.floor === 1 || (IN.climb && IN.climb.u > .5); return SC_UKAI.all().filter(n => !!n.up === !!up); };   // Lila passe la soirée à l'étage, les autres en bas
   Object.defineProperty(SC_HOME, 'npc', { configurable: true, get: () => nearestN(SC_HOME.npcs()) });
   Object.defineProperty(SC_UKAI, 'npc', { configurable: true, get: () => nearestN(SC_UKAI.npcs()) });
