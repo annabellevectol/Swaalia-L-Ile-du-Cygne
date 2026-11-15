@@ -2446,7 +2446,7 @@ const SW_PERCH = SW_SMALL * 4 / 3,   // première apparition : 1/3 plus grand qu
   SW_MOUNT = .45;
 
 // avant l'apparition : Yurii invite Myah à regarder dans la longue-vue de l'observatoire ; elle y voit Gaïkin se poser sur le lac
-function startWatch() { phase = 'watch'; save(); openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Cette nuit, j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Viens vite à l\'observatoire et regarde dans la longue-vue !'], () => { player.state = 'free'; }, LP()); }
+function startWatch() { phase = 'watch'; save(); openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Attends… j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Vite, regarde dans la longue-vue, juste là ! 🔭'], () => { player.state = 'free'; }, LP()); }
 function watchSeen() { closeScope(); phase = 'seek'; save(); openDialog('Myah', ['Waouh ! 😮 Quelque chose brille dans le ciel…', 'C\'est un immense cygne tout lumineux ! Il s\'est posé sur le lac !', 'Il faut aller voir ! 🦢'], () => { player.state = 'free'; }, LP()); }
 function startReveal() {
   phase = 'reveal'; cine = { kind: 'reveal', t: 0, k: -1 }; swanAlt = 320; swanSparkle = 1; player.state = 'cine'; setAnim('idle');
@@ -6880,7 +6880,7 @@ function startGame(fresh) {
   if (!introSeen) { introSeen = true; player.state = 'talk'; save(true);
     { const h = HOUSES[0]; HOUSE = h; setScene(h.scene); IN.prevTool = 'none'; IN.on = true; IN.busy = false; IN.floor = 1; IN.camY = null; IN.dk = null; IN.x = 722; IN.y = 264; IN.cool = 2.5; player.dir4 = 'down'; player.x = h.exit[0]; player.y = h.exit[1]; document.body.classList.add('inside'); } if (storyOn()) whenLoaded(() => storyShow(INTRO_SLIDES, () => openDialog('La légende de l\'île', INTRO_MISSION, () => { player.state = 'free'; }, LP()), true)); else player.state = 'free'; }
   else if (phase === 'appeared') say('Gaïkin t\'attend au bord du lac !', 4);
-  else if (phase === 'watch') say('Va regarder dans la longue-vue de l\'observatoire ! 🔭', 4);
+  else if (phase === 'watch') say('Regarde dans la longue-vue de l\'observatoire ! 🔭', 4);
   else if (phase === 'seek') say('Quelque chose s\'est posé sur le lac… va voir ! 🦢', 4);
 }
 // ancienne sauvegarde unique -> emplacement 1
