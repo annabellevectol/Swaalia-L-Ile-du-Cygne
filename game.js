@@ -149,7 +149,7 @@ const sfx = {
 
 /* ================= histoire et quêtes ================= */
 const SAVE_KEY = 'ile-du-cygne-myah-v3';
-const VEG = [{ k: 'patate', n: 'Patate douce', e: '🍠' }, { k: 'gingembre', n: 'Gingembre', e: '🫚' }, { k: 'arachide', n: 'Cacahuètes', e: '🥜' }, { k: 'taro', n: 'Taro', e: '🥔' }, { k: 'mais', n: 'Maïs', e: '🌽' }, { k: 'plantain', n: 'Banane plantain', e: '🍌' }, { k: 'csucre', n: 'Canne à sucre', e: '🎋' }];   // les 6 légumes du potager (ordre = lignes des planches)
+const VEG = [{ k: 'patate', n: 'Patate douce', e: '🍠' }, { k: 'gingembre', n: 'Gingembre', e: '🫚' }, { k: 'arachide', n: 'Cacahuètes', e: '🥜' }, { k: 'taro', n: 'Igname', e: '🥔' }, { k: 'mais', n: 'Maïs', e: '🌽' }, { k: 'plantain', n: 'Banane plantain', e: '🍌' }, { k: 'csucre', n: 'Canne à sucre', e: '🎋' }];   // les 6 légumes du potager (ordre = lignes des planches)
 const inv = { banana: 0, flower: 0, butterfly: 0, firefly: 0, jar: 0, aqua: 0, treat0: 0, treat1: 0, treat2: 0, fish: 0, coconut: 0, mango: 0, patate: 0, gingembre: 0, arachide: 0, taro: 0, mais: 0, csucre: 0, farine: 0, sucre: 0, oeuf: 0, epices: 0, citron: 0, plantain: 0, shell: 0, crab: 0, tukai: 0, katouka: 0, gmangue: 0, gbanane: 0, tipaiki: 0 };
 const gdEmpty = () => Array.from({ length: 9 }, () => ({ c: -1, w: 0, e: 0, v: 0 })); let gd = gdEmpty();   // potager : 9 cases { c: légume (-1 = vide), w: moment de l'arrosage, v: variante }
 const ICO_TXT = { panier: 'panier', filet: 'filet', canne: 'canne', coffre: 'coffre', 'a-tresor': 'Ouvrir', 'a-parler': 'Parler', 'a-prendre': 'Prendre', 'a-cueillir': 'Cueillir', 'a-donner': 'Donner', 'a-attraper': 'Attraper', 'a-pecher': 'Pêcher' };
