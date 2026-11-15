@@ -4219,7 +4219,7 @@ function icTouch(q) {
   Object.defineProperty(SC_OBS, 'npc', { configurable: true, get: () => gx('gardien')._in === 'obs' || phase === 'watch' ? N_Y : null });
   window.yuriiEnter = cb => {   // après le livre : Yurii entre par la porte de l'observatoire et vient parler à Myah
     if (SC !== SC_OBS) { cb(); return; }
-    N_Y.x = 580; N_Y.y = 850; N_Y.follow = null; N_Y.walk = false; N_Y.fl = IN.x > 580; cb();   // il est déjà là quand le livre se referme
+    N_Y.x = 540; N_Y.y = 870; N_Y.follow = null; N_Y.walk = false; N_Y.fl = IN.x > 540; cb();   // il est déjà là quand le livre se referme
   };
   // les enfants : Kito suit sa maman ; Lila et Romi se promènent entre la plage, le musée et la maison Ukaï
   const KITO_BED = { x: 545, y: 463 }, N_KT = Object.assign(mk(KITO_BED.x, KITO_BED.y, gx('kito'), 0, null), { follow: { to: KITO_BED, dx: 0, dy: 0 } });   // le soir, Kito dort sur le lit du bas, fixe
