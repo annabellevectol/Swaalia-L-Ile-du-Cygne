@@ -7484,7 +7484,7 @@ const CK_EASY = { gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7,
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
-const CK_IMG = f => 'assets/cook/' + f + '.jpg';
+const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' ? '?v=2' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
 const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de la Kaïa Soupa' };
