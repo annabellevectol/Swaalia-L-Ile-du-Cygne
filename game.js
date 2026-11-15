@@ -4237,7 +4237,7 @@ function icTouch(q) {
   };   // le soir, Nijan et Kahn sont rentrés à la maison
   const nearestN = L => L.length ? L.reduce((a, b) => dist(IN.x, IN.y, a.x, a.y) <= dist(IN.x, IN.y, b.x, b.y) ? a : b) : null;
   Object.assign(N_LU, { x: 860, y: 308, wp: null, up: true, fl: true });   // le soir, Lila est à l'étage de la maison Ukaï, près du petit lit vert
-  SC_UKAI.all = () => { const L = []; if (gx('poggi')._in === 'ukai') L.push(N_P); if (gx('kykah')._in === 'ukai') L.push(N_K); const kk = false && gx('kito')._in === 'ukai' && gx('kykah')._in === 'ukai' && !sleepNow(); N_K.get = kk ? () => KYK_K : KYK_GET; if (gx('kito')._in === 'ukai' && !kk) L.push(N_KT); /* le soir, Kykah garde Kito dans ses bras jusqu'au coucher */ if (gx('lila')._in === 'ukai') L.push(N_LU); if (gx('romi')._in === 'ukai') L.push(N_RU); return L; };
+  SC_UKAI.all = () => { const L = []; if (gx('poggi')._in === 'ukai') L.push(N_P); if (gx('kykah')._in === 'ukai') L.push(N_K); const kk = gx('kito')._in === 'ukai' && gx('kykah')._in === 'ukai' && !sleepNow(); N_K.get = kk ? () => KYK_K : KYK_GET; if (gx('kito')._in === 'ukai' && !kk) L.push(N_KT); /* le soir, Kykah garde Kito dans ses bras jusqu'au coucher */ if (gx('lila')._in === 'ukai') L.push(N_LU); if (gx('romi')._in === 'ukai') L.push(N_RU); return L; };
   SC_UKAI.npcs = () => { const up = IN.floor === 1 || (IN.climb && IN.climb.u > .5); return SC_UKAI.all().filter(n => !!n.up === !!up); };   // Lila passe la soirée à l'étage, les autres en bas
   Object.defineProperty(SC_HOME, 'npc', { configurable: true, get: () => nearestN(SC_HOME.npcs()) });
   Object.defineProperty(SC_UKAI, 'npc', { configurable: true, get: () => nearestN(SC_UKAI.npcs()) });
