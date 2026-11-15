@@ -1594,7 +1594,7 @@ const BAG_CATS = [['fruits', '🍌 Fruits', [['banana', 'Bananes'], ['mango', 'M
   ['coquillages', '🐚 Coquillages', [['shell', 'Coquillages'], ['crab', 'Crabes']]], ['plantes', '🌸 Plantes', [['flower', 'Fleurs']]], ['insectes', '🦋 Insectes', [['butterfly', 'Papillons'], ['firefly', 'Lucioles']]], ['bocaux', 'BOCAUX Bocaux', []], ['friand', 'Friandises', [['treat0', 'Croquettes de Sukah'], ['treat1', 'Petits poissons croquants'], ['treat2', 'Kitty Bites']]],
   ['legumes', '🥕 Légumes', VEG.map(v => [v.k, v.n])],
   ['epicerie', '🧺 Épicerie', [['farine', 'Farine de maïs'], ['sucre', 'Sucre de canne'], ['oeuf', 'Œufs'], ['epices', 'Épices'], ['citron', 'Citrons verts']]],
-  ['plats', '🍲 Repas', [['gmangue', 'Maïmaïa'], ['gbanane', 'Maïbuï'], ['tipaiki', 'Tipa Iki'], ['soupe', 'Kaïa Soupa']]]];
+  ['plats', '🍲 Repas', [['gmangue', 'Maïmaïa'], ['gbanane', 'Maïbuï'], ['tipaiki', 'Tipa Iki'], ['soupe', 'Uja-Jiji']]]];
 const BAG_SUB = { gmangue: 'dessert · gâteau de maïs mangue', gbanane: 'dessert · gâteau de maïs banane', tipaiki: 'plat chaud · plantain et poisson grillé', soupe: 'plat chaud · soupe de crabe, patate douce et igname' };
 function bagIco(k) { const i = VEG.findIndex(v => v.k === k); return i >= 0 ? '<i class="gv" style="background-position:0 -' + (i * 20) + 'px"></i>' : (ICON[k] || '•'); }
 /* ----- petits bocaux : lucioles (4 max) ou papillons (2 max), à poser sur la table basse ou à offrir ----- */
@@ -7488,7 +7488,7 @@ const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
 const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' ? '?v=2' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
-const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de la Kaïa Soupa' };
+const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji' };
 function dishList(k) { mini.dq = mini.dq || {}; const a = mini.dq[k] = (mini.dq[k] || []).slice(0, inv[k] || 0); while (a.length < (inv[k] || 0)) a.push(2); return a; }
 function dishAdd(k, st) { dishList(k); mini.dq[k].push(st || 1); }
 function dishPop(k) { dishList(k); mini.dq[k].pop(); }
@@ -7556,7 +7556,7 @@ const RECIPES = {
       ['Coupe la plantain en rondelles', '', 'reveal', { strip: 'cut_p', n: 5, ar: '820/736', t: 16, fx: 'rounds', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Fais dorer les rondelles', '', 'oven', { strip: 'pan_p', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Fais griller le poisson', '', 'oven', { strip: 'grill_f', n: 6, ar: '400/380', t: 8, fx: ['steam'] }]] },
-  soupe: { name: 'Kaïa Soupa', sub: 'soupe de crabe, patate douce et igname', emoji: '🦀', need: { crab: 2, patate: 1, taro: 1 }, ok: 'd_soupe', ko: 'd_soupe_ko',
+  soupe: { name: 'Uja-Jiji', sub: 'soupe de crabe, patate douce et igname', emoji: '🦀', need: { crab: 2, patate: 1, taro: 1 }, ok: 'd_soupe', ko: 'd_soupe_ko',
     steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '820/736', t: 18, fx: 'peel', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Décortique les crabes', '', 'reveal', { strip: 'crab_s', n: 6, ar: '520/330', t: 16, fx: 'peel', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
       ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 6, ar: '520/330', t: 14, fx: 'cubes2' }],
