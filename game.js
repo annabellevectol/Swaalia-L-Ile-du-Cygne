@@ -7361,7 +7361,7 @@ function kykahTalk(e) {
 
 /* ----- la vitrine de Kykah : bocaux et aquariums contre des coquillages ----- */
 const EPI = [   // l'épicerie de Kykah : les ingrédients du gâteau de maïs (get = nombre de portions)
-  { k: 'farine', img: 'farine', nm: 'Sac de farine de maïs', pay: 'mais', payN: 'épis de maïs', n: 2, get: 2 },
+  { k: 'farine', img: 'farine', nm: 'Sac de farine de maïs', pay: 'mais', payN: 'épis de maïs', n: 2, get: 1 },
   { k: 'sucre', img: 'sucre', nm: 'Sachet de sucre de canne', pay: 'csucre', payN: 'canne à sucre', n: 1, get: 1 },
   { k: 'oeuf', img: 'oeufs', nm: 'Boîte de 6 œufs', pay: 'shell', payN: 'coquillages', n: 3, get: 6 },
   { k: 'epices', img: 'epices', nm: 'Pot d\'épices', pay: 'shell', payN: 'coquillages', n: 2, get: 2 }];
@@ -7390,7 +7390,7 @@ function kykahShop(e, free, epOnly) {
       return '<div class="kk' + (can ? '' : ' z') + '"><img class="ki" src="' + jarIconUrl(jj) + '" alt=""><div class="kn">' + it.nm + '</div><div class="kp">' + cost + '</div><div class="kp">' + (room ? (need && (inv[need] || 0) < it.need[need] ? 'Tu as ' + (inv[need] || 0) + ' ' + NM[need] : (!haveAll ? 'Il te faut plus de coquillages' : '')) : 'Tu en as déjà assez') + '</div><button class="kb" data-b="' + it.id + '" ' + (can ? '' : 'disabled') + '>Prendre</button></div>';
     };
     if (ksTab === 'jar') h += '<div class="kg">' + items.filter(i => i.id.startsWith('jar')).map(card).join('') + '</div><div class="kNote">Le petit bocal vide se remplit toi-même : lucioles, papillons, objets rares.</div>';
-    else if (ksTab === 'ep') h += '<div class="kg">' + EPI.map(x => { const ok = (inv[x.pay] || 0) >= x.n; return '<div class="kk' + (ok ? '' : ' z') + '"><img class="ki" src="assets/spr/ing_' + x.img + '.png" alt=""><div class="kn">' + x.nm + '</div><div class="kp">' + x.n + ' ' + x.payN + '</div><div class="kp">Tu as ' + (inv[x.pay] || 0) + ' ' + x.payN + ' · en stock : ' + (inv[x.k] || 0) + '</div><button class="kb" data-ep="' + x.k + '" ' + (ok ? '' : 'disabled') + '>Échanger</button></div>'; }).join('') + '</div><div class="kNote">Tout ce qu\'il faut pour le gâteau de maïs : la farine et les épices servent pour deux gâteaux, les œufs pour deux gâteaux aussi (3 par gâteau).</div>';
+    else if (ksTab === 'ep') h += '<div class="kg">' + EPI.map(x => { const ok = (inv[x.pay] || 0) >= x.n; return '<div class="kk' + (ok ? '' : ' z') + '"><img class="ki" src="assets/spr/ing_' + x.img + '.png" alt=""><div class="kn">' + x.nm + '</div><div class="kp">' + x.n + ' ' + x.payN + '</div><div class="kp">Tu as ' + (inv[x.pay] || 0) + ' ' + x.payN + ' · en stock : ' + (inv[x.k] || 0) + '</div><button class="kb" data-ep="' + x.k + '" ' + (ok ? '' : 'disabled') + '>Échanger</button></div>'; }).join('') + '</div><div class="kNote">Tout ce qu\'il faut pour le gâteau de maïs : un sac de farine et un sachet de sucre par gâteau. Le pot d\'épices et la boîte d\'œufs (3 par gâteau) servent pour deux gâteaux.</div>';
     else if (ksTab === 'aq') h += '<div class="kg">' + items.filter(i => i.id.startsWith('aq')).map(card).join('') + '</div><div class="kNote">Les poissons du jour changent chaque jour.</div>';
     else {
       const vg = dayVeg();
