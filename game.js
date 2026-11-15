@@ -3000,7 +3000,7 @@ const SC_BOAT = Object.assign({}, SC_CARE, {   // le pont du bateau amarré au p
 });
 const imgCabin = new Image(); imgCabin.src = 'assets/cabine.jpg';
 const SC_CABIN = Object.assign({}, SC_CARE, {   // la cabine du bateau
-  img: imgCabin, W: 1198, H: 896, K: 5, spd: .95, chroma: true, ckG: 110, ckLo: 38, ckSpan: 45, npc: null,
+  img: imgCabin, W: 1198, H: 896, K: 6.6, spd: .95, chroma: true, ckG: 110, ckLo: 38, ckSpan: 45, npc: null,
   floors: [
     [[215, 705], [300, 632], [440, 548], [560, 525], [640, 565], [740, 620], [880, 668], [900, 725], [800, 792], [640, 846], [430, 822], [300, 770]],
     [[0, 0], [1, 0], [1, 1]],
@@ -4242,17 +4242,17 @@ function icTouch(q) {
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
 // la nuit, les habitants qui ont un lit dorment dedans : Miraaï et Kahn (grand lit) et Nijan (lit superposé) chez Myah, la famille Ukaï, Zyno dans sa cabine
-const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=54'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248]};
+const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=55'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 152]};
 const sleepNow = () => isEve() && dayT > .72;
 {
   const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
   const inH = (o, h) => o && o._in === h;
-  const SL = [   // [image, décor, x, y, largeur, angle, miroir, condition]
-    ['maman', SC_HOME, 552, 190, 130, .38, 0, () => true], ['kahn', SC_HOME, 612, 166, 135, .38, 0, () => inH(gx('kahn'), 'home')],
-    ['frere', SC_HOME, 862, 103, 112, .12, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 862, 205, 112, .12, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
-    ['couple', SC_UKAI, 578, 183, 180, .38, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')], ['kito', SC_UKAI, 952, 244, 48, 0, 0, () => inH(gx('kito'), 'ukai')],
-    ['romi', SC_UKAI, 862, 205, 112, .12, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 905, 268, 110, -.42, 1, () => inH(gx('lila'), 'ukai')],
-    ['pecheur', SC_CABIN, 765, 410, 230, .42, 0, () => inH(ZYN, 'boat')],
+  const SL = [   // [image, décor, x, y, largeur, angle, miroir, condition] — chaque dormeur à la taille de son lit, la tête sur l'oreiller
+    ['parents', SC_HOME, 532, 172, 135, -.35, 0, () => true],
+    ['frere', SC_HOME, 852, 92, 96, -.22, 0, () => inH(NJN, 'home') && !(IN.lie && IN.lie.bed === 'top')], ['frere', SC_HOME, 852, 192, 96, -.22, 0, () => inH(NJN, 'home') && IN.lie && IN.lie.bed === 'top'],
+    ['couple', SC_UKAI, 548, 182, 140, -.35, 0, () => inH(gx('kykah'), 'ukai') || inH(gx('poggi'), 'ukai')],
+    ['romi', SC_UKAI, 852, 192, 96, -.22, 0, () => inH(gx('romi'), 'ukai')], ['lila', SC_UKAI, 896, 258, 100, -.1, 1, () => inH(gx('lila'), 'ukai')], ['kito', SC_UKAI, 850, 290, 40, 0, 0, () => inH(gx('kito'), 'ukai')],
+    ['pecheur', SC_CABIN, 745, 392, 210, .05, 0, () => inH(ZYN, 'boat')],
   ];
   window.drawSleepers = () => { if (!sleepNow() || !SLP_IMG.complete || !SLP_IMG.naturalWidth) return; SL.forEach(([k, sc, x, y, w, a, fl, ok]) => { if (sc !== SC || !ok()) return; const m = SLP_M[k], h = w * m[3] / m[2];
     ctx.save(); ctx.translate(x, y); ctx.rotate(a); if (fl) ctx.scale(-1, 1); ctx.drawImage(SLP_IMG, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore(); }); };
