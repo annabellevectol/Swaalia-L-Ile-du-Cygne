@@ -2138,7 +2138,7 @@ function finishChest(q) {
     lines = q.final ? ['Tu as les quatre plumes ! Quelque chose brille au bord du lac… Gaïkin t\'attend peut-être !'] : CL[Math.min(3, Math.max(0, nf - 1))];
   const MG = ['La plume murmure : « Merci, Myah. Grâce à toi, l\'île commence à reprendre des forces. »', 'La plume murmure : « Mes plumes nourrissent l\'eau et la terre. Prends-en bien soin. »', 'La plume murmure : « Tu vois ? Le lac redevient un peu plus clair depuis que tu as trouvé mes plumes. »', 'La plume murmure : « L\'île est presque guérie. Je t\'attends au bord du lac. »'];
   if (!q.final) { lines.push(MG[Math.min(3, Math.max(0, nf - 1))]); burst(player.x, player.y - 30, 30, ['#fff', '#d9c2ff', '#ffe27a', '#9fe8ff'], true); try { sfx.star(); } catch (e) {} }
-  const dlgGo0 = () => openDialog(q.final ? 'Le livre de la légende' : 'Plume de Gaïkin', lines, () => { player.state = 'free'; if (n === QUESTS.length && phase === 'quests' && storyOn()) startReveal(); }, LP());
+  const dlgGo0 = () => openDialog(q.final ? 'Le livre de la légende' : 'Plume de Gaïkin', lines, () => { player.state = 'free'; if (n === QUESTS.length && phase === 'quests' && storyOn()) startWatch(); }, LP());
   const dlgGo = () => { if (q.final || IN.on) return dlgGo0(); player.state = 'talk'; showTrophy(PLUME, 'Plume de Gaïkin (' + nf + '/4)', 'Une plume brillante, gagnée grâce à ta mission !', 4.5, dlgGo0); };
   if (q.final && storyOn()) bookShow(dlgGo); else dlgGo();
 }
@@ -2445,6 +2445,9 @@ let swanAlt = 0, swanSparkle = 0, swanFeathers = 0;
 const SW_PERCH = SW_SMALL * 4 / 3,   // première apparition : 1/3 plus grand que sur le lac (avant : .46, beaucoup trop grand)
   SW_MOUNT = .45;
 
+// avant l'apparition : Yurii invite Myah à regarder dans la longue-vue de l'observatoire ; elle y voit Gaïkin se poser sur le lac
+function startWatch() { phase = 'watch'; save(); openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Cette nuit, j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Viens vite à l\'observatoire et regarde dans la longue-vue !'], () => { player.state = 'free'; }, LP()); }
+function watchSeen() { closeScope(); phase = 'seek'; save(); openDialog('Myah', ['Waouh ! 😮 Quelque chose brille dans le ciel…', 'C\'est un immense cygne tout lumineux ! Il s\'est posé sur le lac !', 'Il faut aller voir ! 🦢'], () => { player.state = 'free'; }, LP()); }
 function startReveal() {
   phase = 'reveal'; cine = { kind: 'reveal', t: 0, k: -1 }; swanAlt = 320; swanSparkle = 1; player.state = 'cine'; setAnim('idle');
   $('#veil').classList.add('on'); save();
@@ -4993,6 +4996,7 @@ function drawNightSc(g, b, t) {   // le soir : chauve-souris et chouette (dessin
   g.restore();
 }
 function spawnScope() {
+  if (phase === 'watch' && !SCP.sky && SC === SC_OBS) { if (SCP.birds.some(b => b.sw)) return; const W = SCP.D || 500; SCP.birds.push({ sw: true, glow: true, dir: 1, x: -120, y: W * .3, s: W / 460, v: .16 * W, ph: 0 }); SCP.watchT = SCP.t; return; }
   if (isEve() && !(phase === 'returned' && SCP.kind % 4 === 3)) {   // le soir : pas de colibris ni de perroquets, mais des chauves-souris et parfois une chouette
     const W = SCP.D || 500, dir = Math.random() < .5 ? 1 : -1, owl = SCP.kind++ % 3 === 2, n = owl ? 1 : 2 + (Math.random() < .5 ? 1 : 0);
     for (let i = 0; i < n; i++) SCP.birds.push({ night: true, owl, dir, x: dir > 0 ? -90 - i * 70 : W + 90 + i * 70, y: W * (.18 + Math.random() * .4) + i * W * .05, s: owl ? W / 520 : W / 600, v: (owl ? .2 : .34) * W * (.9 + Math.random() * .2), ph: Math.random() });
@@ -5015,6 +5019,7 @@ function scopeFrame(now) {
   SCP.pan = Math.max(0, Math.min(1, SCP.pan + SCP.vel * dt * (SCP.which || SCP.sky ? 1 : .32))); SCP.py = Math.max(0, Math.min(1, SCP.py + SCP.vy * dt));
   SCP.next -= dt; if (SCP.next <= 0) { spawnScope(); SCP.next = 4 + Math.random() * 4; }
   { const span = SCP.which ? 330 : 1075, mxN = SCP.pan * span, dm = SCP.lastMx === undefined ? 0 : mxN - SCP.lastMx; SCP.lastMx = mxN; if (Math.abs(dm) > .05) { SCP.rot = dm > 0 ? 1 : -1; SCP.rotT = SCP.t; } }   // sens de rotation de la longue-vue : les oiseaux passent de préférence dans ce sens (image en miroir)
+  if (phase === 'watch' && SCP.watchT != null && SCP.t - SCP.watchT > 5.5 && !SCP.sky) { SCP.watchT = null; setTimeout(watchSeen, 50); }
   for (const b of SCP.birds) b.x += b.dir * b.v * dt; SCP.birds = SCP.birds.filter(b => b.dir > 0 ? b.x < D + 160 : b.x > -160);
   const ds = dayState(), night = ds.tint[3] > .25;
   // lentille
@@ -5074,7 +5079,7 @@ function startStars(withStar) {
 }
 function openScope(which = 0, sky = false) {
   tutDone('scope'); $('#scopeHint').style.display = tutSeen.scopeHint ? 'none' : ''; SCP.hintT = 0; SCP.sky = sky; $('#scopeHint').textContent = sky ? '✨ Contemple les étoiles… glisse avec le doigt ou la souris' : 'Glisse pour regarder autour · pince ou molette pour zoomer'; SCP.dir = 1; SCP.shootT = sky ? (STR.star ? .3 : 1.5) : 0; SCP.shoot = null;
-  if (scopeOpen()) return; SCP.which = which; SCP.py = .5; SCP.vy = 0; SCP.btn = null; player.mvx = player.mvy = 0; setAnim('idle'); SCP.birds = []; SCP.next = .6; SCP.t = 0; SCP.lastMx = undefined; SCP.rot = 0; SCP.zoom = 1; SCP.ptrs = {}; SCP.pan = (!which && !sky) ? 0 : .5; SCP.vel = 0;
+  if (scopeOpen()) return; SCP.which = which; SCP.py = .5; SCP.vy = 0; SCP.btn = null; player.mvx = player.mvy = 0; setAnim('idle'); SCP.birds = []; SCP.next = phase === 'watch' ? .3 : .6; SCP.watchT = null; SCP.t = 0; SCP.lastMx = undefined; SCP.rot = 0; SCP.zoom = 1; SCP.ptrs = {}; SCP.pan = (!which && !sky) ? 0 : .5; SCP.vel = 0;
   $('#scope').style.display = 'block'; SCP.last = performance.now(); if (!SCP.raf) SCP.raf = requestAnimationFrame(scopeFrame); blip(520, .12, 'sine', .08); blip(780, .12, 'sine', .06, .1);
 }
 press($('#scopeBtn'), () => startStars(MI.wishT > 0));
@@ -6036,6 +6041,7 @@ function update(dt) {
     if (ix) p.face = ix > 0 ? 1 : -1;
   };
 
+  if (phase === 'seek' && !IN.on && !cine && !dlg.open && p.state === 'free' && dist(p.x, p.y, D.perch[0], D.perch[1]) < 260) startReveal();   // Myah arrive au bord du lac : Gaïkin apparaît
   if (p.mount) {
     if (phase === 'returned' && !endingSeen && storyOn() && p.state === 'free' && !dlg.open && !cine && !document.getElementById('stOv')) { rideT += dt; if (rideT > 28) { rideT = 0; startEnding(); } }
     if (moving) tryMove(p.mount === 'fly' ? (run ? 220 : 155) : (run ? 66 : 47));
@@ -6874,6 +6880,8 @@ function startGame(fresh) {
   if (!introSeen) { introSeen = true; player.state = 'talk'; save(true);
     { const h = HOUSES[0]; HOUSE = h; setScene(h.scene); IN.prevTool = 'none'; IN.on = true; IN.busy = false; IN.floor = 1; IN.camY = null; IN.dk = null; IN.x = 722; IN.y = 264; IN.cool = 2.5; player.dir4 = 'down'; player.x = h.exit[0]; player.y = h.exit[1]; document.body.classList.add('inside'); } if (storyOn()) whenLoaded(() => storyShow(INTRO_SLIDES, () => openDialog('La légende de l\'île', INTRO_MISSION, () => { player.state = 'free'; }, LP()), true)); else player.state = 'free'; }
   else if (phase === 'appeared') say('Gaïkin t\'attend au bord du lac !', 4);
+  else if (phase === 'watch') say('Va regarder dans la longue-vue de l\'observatoire ! 🔭', 4);
+  else if (phase === 'seek') say('Quelque chose s\'est posé sur le lac… va voir ! 🦢', 4);
 }
 // ancienne sauvegarde unique -> emplacement 1
 try { const old = localStorage.getItem(SAVE_KEY); if (old && !localStorage.getItem(slotKey(1))) { localStorage.setItem(slotKey(1), old); } if (old) localStorage.removeItem(SAVE_KEY); } catch (e) {}
