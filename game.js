@@ -2446,7 +2446,7 @@ const SW_PERCH = SW_SMALL * 4 / 3,   // première apparition : 1/3 plus grand qu
   SW_MOUNT = .45;
 
 // avant l'apparition : Yurii invite Myah à regarder dans la longue-vue de l'observatoire ; elle y voit Gaïkin se poser sur le lac
-function startWatch() { phase = 'watch'; save(); openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Attends… j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Vite, regarde dans la longue-vue, juste là ! 🔭'], () => { player.state = 'free'; }, LP()); }
+function startWatch() { phase = 'watch'; save(); player.state = 'talk'; (window.yuriiEnter || (f => f()))(() => openDialog('Yurii, le gardien de l\'observatoire', ['Myah ! Tu as rassemblé les quatre plumes… 🪶', 'Attends… j\'ai vu une lumière étrange au-dessus de l\'île. ✨', 'Vite, regarde dans la longue-vue, juste là ! 🔭'], () => { player.state = 'free'; }, LP())); }
 function watchSeen() { closeScope(); phase = 'seek'; save(); openDialog('Myah', ['Waouh ! 😮 Quelque chose brille dans le ciel…', 'C\'est un immense cygne tout lumineux ! Il s\'est posé sur le lac !', 'Il faut aller voir ! 🦢'], () => { player.state = 'free'; }, LP()); }
 function startReveal() {
   phase = 'reveal'; cine = { kind: 'reveal', t: 0, k: -1 }; swanAlt = 320; swanSparkle = 1; player.state = 'cine'; setAnim('idle');
@@ -4216,7 +4216,11 @@ function icTouch(q) {
   const mk = (x, y, o, r, wp) => ({ x, y, r, get: () => o, wp, wi: 0, wait: 4, fl: false, walk: false });
   const N_Z = mk(560, 625, ZYN), N_Y = mk(450, 800, gx('gardien')), N_K = mk(620, 588, gx('kykah'), 0, [[620, 588], [660, 592], [585, 585], [690, 596]]), N_P = mk(355, 562, gx('poggi'), 0, [[355, 562], [368, 574], [345, 552], [372, 560]]);
   Object.defineProperty(SC_CABIN, 'npc', { configurable: true, get: () => ZYN._in === 'boat' ? N_Z : null });
-  Object.defineProperty(SC_OBS, 'npc', { configurable: true, get: () => gx('gardien')._in === 'obs' ? N_Y : null });
+  Object.defineProperty(SC_OBS, 'npc', { configurable: true, get: () => gx('gardien')._in === 'obs' || phase === 'watch' ? N_Y : null });
+  window.yuriiEnter = cb => {   // après le livre : Yurii entre par la porte de l'observatoire et vient parler à Myah
+    if (SC !== SC_OBS) { cb(); return; }
+    N_Y.x = 450; N_Y.y = 850; N_Y.follow = null; N_Y.walk = false; N_Y.fl = IN.x > 450; cb();   // il est déjà là quand le livre se referme
+  };
   // les enfants : Kito suit sa maman ; Lila et Romi se promènent entre la plage, le musée et la maison Ukaï
   const KITO_BED = { x: 545, y: 463 }, N_KT = Object.assign(mk(KITO_BED.x, KITO_BED.y, gx('kito'), 0, null), { follow: { to: KITO_BED, dx: 0, dy: 0 } });   // le soir, Kito dort sur le lit du bas, fixe
   const N_LU = mk(420, 575, gx('lila'), 0, [[420, 575], [445, 568], [400, 566], [430, 590]]), N_RU = mk(900, 640, gx('romi'), 0, [[900, 640], [915, 625], [880, 655], [925, 648]]);
