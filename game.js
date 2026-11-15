@@ -3343,7 +3343,7 @@ function kobWander(v, p) {   // va-et-vient tranquille : pause de face, marche d
   const e = f * f * (3 - 2 * f), hop = hopK ? Math.abs(Math.sin(f * Math.PI * 4)) * 2.5 : 0;
   return ph === 1 ? { m: KWALK[v.k + '_s'], dx: D * e, fl: false, hop } : { m: KWALK[v.k + '_s'], dx: D * (1 - e), fl: true, hop };
 }
-function vetAct() { const v = vetNear(); if (!v) return false; return careStart(v, vetShowAll === 1 ? v.sp[0] : vetPos(v)); }
+function vetAct() { const v = vetNear(); if (!v) return false; vetFiche(v, () => careStart(v, vetShowAll === 1 ? v.sp[0] : vetPos(v))); return true; }   // d'abord la fiche de l'animal (mal + conseil), puis le soin sur la carte
 /* ================= soins sur l'île (Kobhak) : le mini-jeu se joue sur la carte, comme la pêche =================
    1) thermomètre : on touche l'animal ; 2) les objets de la mallette apparaissent en bulles ; 3) un geste par soin ;
    4) l'animal guérit (cœurs, étoile). */
@@ -3378,6 +3378,9 @@ function careBtn(on) {
   let b = document.getElementById('careX');
   if (!b) { b = document.createElement('button'); b.id = 'careX'; b.textContent = 'Arrêter le soin'; b.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;padding:9px 18px;border-radius:20px;border:2px solid #fff;background:#c8973e;color:#fff;font:700 15px system-ui;box-shadow:0 3px 10px rgba(0,0,0,.3);display:none'; document.body.appendChild(b); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); careStop(); }); }
   b.style.display = on ? 'block' : 'none';
+  let f = document.getElementById('careF');
+  if (!f) { f = document.createElement('button'); f.id = 'careF'; f.textContent = '📋 Fiche'; f.style.cssText = b.style.cssText; f.style.left = 'auto'; f.style.right = '12px'; f.style.transform = 'none'; f.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); if (CARE) vetFiche(CARE.v); }); document.body.appendChild(f); }
+  f.style.display = on ? 'block' : 'none';
 }
 const careBubbles = c => { const ks = TOOLS.map(t => t.k).filter(k => k !== 'thermo'), n = ks.length, cx = (IN.x + c.p.x) / 2, cy = Math.min(IN.y, c.p.y) - 78, gap = 26;   // en arc, espacées de 26 : elles ne se touchent jamais (rayon 11)
   return ks.map((k, i) => { const row = i < 4 ? 0 : 1, m = row ? n - 4 : 4, u = (row ? i - 4 : i) - (m - 1) / 2; return { k, x: cx + u * gap, y: cy - 13 + row * 27 }; }); };   // 2 rangées (4 + 3)
@@ -3954,13 +3957,13 @@ function vetClose() { $('#vetOv').style.display = 'none'; }
 function koalaV(k) { const T = { zuki: ['Zuki', 'Papa koala', 'Il éternue : atchoum ! Il a un gros rhume.'], lumi: ['Lumi', 'Maman koala', 'Elle est enrhumée et très fatiguée.'], mini: ['Mini', 'Bébé koala', 'Il a le nez tout rouge et il tousse un peu.'] }[k];
   return { k, koala: true, n: T[0], hab: 'le grand eucalyptus', aime: T[1] + ' • les feuilles d\'eucalyptus et les câlins', mal: T[2], tool: 'tisane', conseil: 'la tisane aux plantes que tu viens de préparer, bien chaude, va leur faire du bien.' }; }
 const vetImg = (v, st, h) => { if (v.koala) return '<img class="sp" src="' + kobPortrait(v.k) + '" style="height:' + h + 'px;border-radius:50%">'; const m = KA_M[v.k + '_' + st]; return sprAn(v.k, st, Math.min(h, h * .8 * m[3] / m[2])); };
-function vetFiche(v) {
+function vetFiche(v, go) {
   const adv = v.koala || vetAdv[v.k] || vetShowAll === 1;
   $('#vetBody').innerHTML = '<div class="kvH">Fiche de ' + v.n + '</div><div class="kvRow"><div class="kvPic" id="kvPic">' + vetImg(v, 's', 120) + '</div><div class="kvTxt"><p><b>' + (v.k === 'roussette' || v.k === 'souris' ? 'Elle' : 'Il') + ' vit :</b> ' + v.hab + '</p><p><b>' + (v.k === 'roussette' || v.k === 'souris' ? 'Elle' : 'Il') + ' aime :</b> ' + v.aime + '</p>' + (v.when ? '<p><b>On le trouve :</b> ' + v.when + '</p>' : '') + '</div></div>'
     + '<div class="kvBox bad"><b>De quoi souffre-' + (v.k === 'roussette' || v.k === 'souris' ? 'elle' : 'il') + ' ?</b><br>' + v.mal + '</div>'
     + '<div class="kvBox ok"><b>Conseil de la vétérinaire :</b><br>' + (adv ? 'Docteur Tarah : « ' + v.conseil + ' »' : 'Va demander conseil au docteur Tarah, au dispensaire.') + '</div>'
     + '<div class="kvBtns"><button class="kvBtn" id="kvGo">Le soigner</button></div>';
-  $('#vetOv').style.display = 'grid'; player.mvx = player.mvy = 0; $('#kvGo').onclick = () => vetCare(v);
+  $('#vetOv').style.display = 'grid'; player.mvx = player.mvy = 0; $('#kvGo').textContent = careOn() ? 'Continuer le soin' : 'Le soigner'; $('#kvGo').onclick = () => { if (go || careOn()) { vetClose(); if (go && !careOn()) go(); } else vetCare(v); };
 }
 const VET_TEMP = { diable: [39.7, 'de la fièvre'], quokka: [39.5, 'de la fièvre : il a très chaud'], wallaby: [36.4, 'trop froid'], kookaburra: [38.8, 'un peu de fièvre'], echidne: [38.1, 'pas de fièvre'], roussette: [38.7, 'un peu de fièvre'], phalanger: [38.2, 'pas de fièvre'], ornitho: [38.9, 'un peu de fièvre'], casoar: [38.2, 'pas de fièvre'], bandicoot: [38.6, 'un peu de fièvre'], souris: [37.9, 'pas de fièvre'] };
 const REMK = { tisane: 'tisane', cuillere: 'sirop', baume: 'baume', gelule: 'gelule' };   // outil → remède à préparer au poste de soin (pris dans l'inventaire)
