@@ -7332,10 +7332,9 @@ function giveAnim(need, done) {
     clearTimeout(tm); if (i >= items.length) { if (!fin) { fin = true; o.remove(); done(); } return; }
     const [k, n] = items[i++], vi = VEG.findIndex(v => v.k === k), sc = Math.min(1.5, innerHeight / 430), W = 160 * sc, H = 200 * sc;
     let img, cols, rows, r, c, nm, em;
-    if (vi === 4 || vi === 6) { img = 'garden/veg_ripe'; cols = 4; rows = 7; r = vi; c = Math.floor(Math.random() * 4); nm = VEG[vi].n; em = VEG[vi].e; }   // maïs et canne : pas encore d'image de Myah qui les tient
-    else if (vi >= 0) { img = 'myah_veg'; cols = 4; rows = 6; r = vi; c = Math.floor(Math.random() * 4); nm = VEG[vi].n; em = VEG[vi].e; }
+    if (vi >= 0) { img = 'myah_veg'; cols = 4; rows = 7; r = vi; c = Math.floor(Math.random() * 4); nm = VEG[vi].n; em = VEG[vi].e; }
     else { const g = GIVE_IT[k], cell = g.c[Math.floor(Math.random() * g.c.length)]; img = 'myah_items'; cols = 4; rows = 3; r = Math.floor(cell / 4); c = cell % 4; nm = g.n; em = g.e; }
-    o.innerHTML = '<div style="width:' + W + 'px;height:' + H + 'px;background:url(assets/' + img + '.png) no-repeat;background-size:' + (W * cols) + 'px ' + (H * rows) + 'px;background-position:-' + (c * W) + 'px -' + (r * H) + 'px;animation:gpop .5s ease-out;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))"></div><div style="margin-top:6px;background:#fff8e6;border-radius:14px;padding:6px 14px;color:#5a3b1c;font-weight:bold;font-size:16px">Myah remet ' + n + ' × ' + nm + ' ' + em + '</div>';
+    o.innerHTML = '<div style="width:' + W + 'px;height:' + H + 'px;background:url(assets/' + img + '.png?v=93) no-repeat;background-size:' + (W * cols) + 'px ' + (H * rows) + 'px;background-position:-' + (c * W) + 'px -' + (r * H) + 'px;animation:gpop .5s ease-out;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))"></div><div style="margin-top:6px;background:#fff8e6;border-radius:14px;padding:6px 14px;color:#5a3b1c;font-weight:bold;font-size:16px">Myah remet ' + n + ' × ' + nm + ' ' + em + '</div>';
     o.innerHTML = emoFix(o.innerHTML); sfx.star(); tm = setTimeout(next, 1500);
   };
   o.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); next(); }); next();
