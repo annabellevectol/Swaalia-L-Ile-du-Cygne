@@ -4256,7 +4256,7 @@ const sleepNow = () => isEve() && dayT > .72;
   ];
   // le dessus des matelas (le dormeur ne dépasse pas du lit) et ce qui passe devant (rambarde, coffre), redessinés par-dessus
   const MAT = { big: [[452, 172], [555, 145], [665, 180], [662, 210], [560, 248], [455, 214]], bunkT: [[762, 112], [858, 98], [935, 122], [935, 150], [845, 168], [762, 142]], bunkB: [[762, 214], [858, 200], [935, 224], [935, 252], [845, 270], [762, 244]], low: [[840, 234], [940, 186], [1002, 196], [1002, 216], [880, 274], [840, 264]], cab: [[600, 330], [700, 300], [960, 420], [940, 470], [830, 500], [600, 380]] };
-  const FG = { home: [[[372, 182], [705, 238], [705, 310], [372, 310]]], ukai: [[[576, 212], [692, 204], [696, 284], [578, 286]]] };
+  const FG = { home: [[[372, 182], [705, 238], [705, 310], [372, 310]], [[926, 40], [1000, 40], [1000, 250], [926, 250]]], ukai: [[[576, 212], [692, 204], [696, 284], [578, 286]], [[870, 120], [940, 120], [940, 232], [870, 232]]] };   // + le montant avant des lits superposés : les jambes passent derrière
   const poly = P => { ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); };
   const MK = {};
   const QC = {};   // la couette lilas reprend le motif du dessus-de-lit d'origine (ombres gardées), calculé une seule fois
