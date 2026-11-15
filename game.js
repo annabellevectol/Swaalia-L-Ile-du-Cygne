@@ -1497,6 +1497,7 @@ if (IS_TOUCH) document.body.classList.add('touch');
   };
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   addEventListener('blur', () => { sw = null; stopStick(); });
+  window.__swReset = () => { sw = null; stopStick(); };   // un geste capté par un mini-jeu (soin…) ne doit pas laisser le joystick bloqué
 }
 
 /* pêche sur mobile : gros bouton 🎣 à tenir (touche + combat), ou doigt posé n'importe où sur l'écran */
@@ -3373,7 +3374,7 @@ function careStart(v, p) {
   say(v.mal + ' Touche ' + (v.koala ? 'le koala' : 'l\'animal') + ' pour prendre sa température.', 5);
   return true;
 }
-function careStop() { CARE = null; careBtn(false); player.state = 'free'; actBlock = time + .5; }
+function careStop() { try { window.__swReset(); clearInput(); } catch (er) {} CARE = null; careBtn(false); player.state = 'free'; actBlock = time + .5; }
 function careBtn(on) {
   let b = document.getElementById('careX');
   if (!b) { b = document.createElement('button'); b.id = 'careX'; b.textContent = 'Arrêter le soin'; b.style.cssText = 'position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;padding:9px 18px;border-radius:20px;border:2px solid #fff;background:#c8973e;color:#fff;font:700 15px system-ui;box-shadow:0 3px 10px rgba(0,0,0,.3);display:none'; document.body.appendChild(b); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); careStop(); }); }
@@ -3387,7 +3388,7 @@ const careBubbles = c => { const ks = TOOLS.map(t => t.k).filter(k => k !== 'the
 const careLocked = (c, k) => !!REMK[k] && !c.v.koala && vetShowAll !== 1 && !(kobRx[REMK[k]] > 0);
 function careWorld(e) { const r = cv.getBoundingClientRect(), v = IN.view; if (!v) return [0, 0]; return [(e.clientX - r.left - v.ox) / v.s, (e.clientY - r.top - v.oy) / v.s]; }
 function careDown(e) {
-  const c = CARE; if (!c || !IN.on) return; e.preventDefault(); e.stopImmediatePropagation(); audio();
+  const c = CARE; if (!c || !IN.on) return; e.preventDefault(); e.stopImmediatePropagation(); audio(); try { window.__swReset(); } catch (er) {}
   const [x, y] = careWorld(e), [ax, ay] = careAC(c), dA = dist(x, y, ax, ay), near = Math.max(34, careAnimH(c) * 1.3);
   c.down = { x, y, id: e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (er) {}
   if (c.step === 'thermo') { if (dA < near + 14) { c.step = 'temp'; c.t = 0; sfx.pick && sfx.pick(); } else say('Touche ' + (c.v.koala ? 'le koala' : 'l\'animal') + ' avec le thermomètre !', 2.4); return; }
