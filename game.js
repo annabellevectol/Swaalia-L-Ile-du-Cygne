@@ -4242,7 +4242,7 @@ function icTouch(q) {
   Object.defineProperty(SC_MUS, 'npc', { configurable: true, get: () => nearestN(SC_MUS.npcs()) });
 }
 // la nuit, les habitants qui ont un lit dorment dedans : Miraaï et Kahn (grand lit) et Nijan (lit superposé) chez Myah, la famille Ukaï, Zyno dans sa cabine
-const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=57'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 152]};
+const SLP_IMG = new Image(); SLP_IMG.src = 'assets/sleepers.png?v=58'; const SLP_M = {"maman": [0, 0, 260, 198], "kahn": [262, 0, 260, 184], "frere": [524, 0, 260, 188], "pecheur": [786, 0, 260, 189], "couple": [0, 200, 260, 152], "romi": [262, 200, 260, 206], "lila": [524, 200, 260, 184], "kito": [786, 200, 260, 248], "parents": [0, 450, 260, 153]};
 const sleepNow = () => isEve() && dayT > .72;
 {
   const gx = k => EXTRAS.find(e => e.key === k), ZYN = QUESTS.find(q => q.id === 'toto'), NJN = QUESTS.find(q => q.id === 'bleu');
