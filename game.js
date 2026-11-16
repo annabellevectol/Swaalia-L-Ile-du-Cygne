@@ -3238,13 +3238,17 @@ const KOB_PLT = [
 const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 0, 122, 128], mousse: [387, 0, 132, 86], racine: [523, 0, 128, 117], coq: [655, 0, 134, 114], euca_x: [793, 0, 130, 64], mousse_x: [927, 0, 130, 64], baies_x: [1061, 0, 130, 72], racine_x: [1195, 0, 130, 63], coq_x: [1329, 0, 134, 76], miel_x: [1467, 0, 130, 63] };
 const KOB_PIMG = new Image();
 let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » dans le carnet, étape de l'aventure (0 pas commencée, 1 cueillette, 2 tout est cueilli, 3 remèdes)
-const KOB_REGROW = 90000;   // une plante cueillie repousse en 1 min 30
+const KOB_REGROW = 90000;
+const RUCHE = { x: 408, y: 392 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=1'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
 const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.cut = {});   // plantes dans le panier, et moment de la cueillette
 const kobGrown = p => !kobCut()[p.k] || Date.now() - kobCut()[p.k] > KOB_REGROW;
 const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
+const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(IN.x, IN.y, RUCHE.x, RUCHE.y + 18) < 50;
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
+  if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 46, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
+    if (rucheNear() && full) { const bx = RUCHE.x, by = RUCHE.y - 56 - Math.abs(Math.sin(time * 4)) * 4; ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2e9e6b'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(bx, by, 11, 0, TAU); ctx.fill(); ctx.stroke(); ctx.font = '14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🐝', bx, by + 1); ctx.restore(); } }
   const near = kobPlantNear();
   KOB_PLT.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 15 : 34, w = h * m[2] / m[3];
@@ -3254,14 +3258,25 @@ function kobDrawPlants() {
   if (near) { const bx = near.x, by = near.y - 46 - Math.abs(Math.sin(time * 4)) * 4; ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2e9e6b'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(bx, by, 11, 0, TAU); ctx.fill(); ctx.stroke(); ctx.font = '14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✋', bx, by + 1); ctx.restore(); }
 }
 function kobGather() {
+  if (rucheNear()) { if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour récolter la ruche ! 🧺', 3.2); return true; }
+    if (!kobGrown({ k: 'ruche' })) { say('Les abeilles refont leur cire… reviens un peu plus tard ! 🐝', 3); return true; }
+    kobHS().cire = (kobHS().cire | 0) + 1; kobHS().miel = (kobHS().miel | 0) + 1; kobCut().ruche = Date.now(); sfx.pick(); save(); kobHold(0, 'Cire d\'abeille et miel récoltés ! 🐝'); return true; }
   const p = kobPlantNear(); if (!p) return false;
   if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les plantes ! 🧺', 3.2); return true; }
   const first = !kobPick[p.k]; kobPick[p.k] = true; if (first) kobNew[p.k] = true; sfx.pick(); player.dir4 = 'down';
   kobHS()[p.k] = (kobHS()[p.k] | 0) + 1; kobCut()[p.k] = Date.now();
+  if (kobQ >= 2 && p.k === 'racine') { kobHud(); save(); kobHold(3, 'Racine tendre cueillie ! Tu en as ' + kobHS()[p.k] + '.'); return true; }
   if (kobQ >= 2) { say(p.n + ' cueilli ! Tu en as ' + kobHS()[p.k] + ' dans ton panier. La plante repoussera bientôt 🌱', 3.4); kobHud(); save(); return true; }
   const left = KOB_PLT.filter(q => !kobPick[q.k]).length;
   if (!left) { kobQ = 2; say('Tout est cueilli ! Retourne voir le docteur Tarah !', 5); } else say(p.n + ' cueilli (encore ' + left + ')', 3);
   kobHud(); save(); return true;
+}
+function kobHold(row, txt) {   // Myah montre ce qu'elle vient de récolter (0 cire, 1 miel, 2 huile, 3 racine)
+  const sc = Math.min(1.5, innerHeight / 430), W = 160 * sc, H = 200 * sc, c = Math.floor(Math.random() * 4), o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;z-index:74;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif';
+  o.innerHTML = '<div style="width:' + W + 'px;height:' + H + 'px;background:url(assets/myah_kob.png?v=1) no-repeat;background-size:' + (W * 4) + 'px ' + (H * 4) + 'px;background-position:-' + (c * W) + 'px -' + (row * H) + 'px;animation:gpop .5s ease"></div><div style="margin-top:10px;background:#fff8e7;border-radius:14px;padding:8px 16px;font-weight:700;color:#5b3b1f;max-width:80vw;text-align:center">' + txt + '</div>';
+  player.mvx = player.mvy = 0; sfx.star(); let tm = 0; const end = () => { clearTimeout(tm); o.remove(); };
+  o.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); end(); }); document.body.appendChild(o); tm = setTimeout(end, 1800);
 }
 function kobHud() {
   const b = $('#kobB'); if (!b) return; const on = kobQ >= 1 && IN.on && kobScene();
@@ -4043,6 +4058,8 @@ function deskDraw() {
 const RMF = {"W":1600,"H":3334,"f":{"s_water":[0,0,203,228],"s_herbs":[203,0,210,228],"s_perfect":[413,0,208,228],"s_boil":[621,0,203,192],"s_lid":[824,0,210,192],"s_cold":[1034,0,208,192],"t_water":[1242,0,209,228],"t_herbs":[0,228,205,228],"t_perfect":[205,228,204,228],"t_boil":[409,228,209,192],"t_lid":[618,228,205,192],"t_cold":[823,228,204,192],"w_cubes":[1027,228,203,228],"w_melt":[1230,228,210,228],"w_pools":[0,456,205,228],"w_perfect":[205,456,208,192],"w_hot":[413,456,209,192],"w_root":[622,456,205,192],"w_cool":[827,456,204,192],"p_empty":[1031,456,240,174],"p_piles":[1271,456,240,174],"p_mix1":[0,684,240,175],"p_mix2":[240,684,240,174],"p_perfect":[480,684,240,146],"p_lump":[720,684,240,145],"r_whole":[960,684,240,162],"r_half":[1200,684,240,163],"r_good":[0,859,240,133],"r_bad":[240,859,240,140],"m_whole":[480,859,240,162],"m_half":[720,859,240,163],"m_good":[960,859,240,133],"m_bad":[1200,859,240,134],"b_whole":[0,1022,240,162],"b_half":[240,1022,240,163],"b_good":[480,1022,240,133],"b_bad":[720,1022,240,134],"pot_0":[960,1022,224,300],"pot_25":[1184,1022,223,300],"pot_50":[0,1322,222,300],"pot_75":[222,1322,226,300],"pot_100":[448,1322,220,300],"pot_over":[668,1322,219,300],"pot_set":[887,1322,218,300],"pot_lid":[1105,1322,222,300],"cup_0":[1327,1322,240,189],"cup_25":[0,1622,240,190],"cup_50":[240,1622,240,189],"cup_75":[480,1622,240,135],"cup_100":[720,1622,240,136],"cup_over":[960,1622,240,135],"cup_ok":[1200,1622,240,215],"fl_0":[0,1837,240,205],"fl_25":[240,1837,240,205],"fl_50":[480,1837,240,206],"fl_75":[720,1837,240,205],"fl_100":[960,1837,240,197],"fl_over":[1200,1837,240,212],"fl_cork":[0,2049,240,191],"fl_ok":[240,2049,240,191],"f_0":[480,2049,236,300],"f_drip":[716,2049,236,300],"f_half":[952,2049,235,300],"f_press":[1187,2049,236,300],"f_ok":[0,2349,240,299],"f_over":[240,2349,240,299],"g_0":[480,2349,240,240],"g_fill":[720,2349,240,239],"g_1":[960,2349,240,241],"g_3":[1200,2349,240,244],"g_6":[0,2648,240,244],"g_jar":[240,2648,240,245],"d_sirop_ok":[480,2648,240,231],"d_baume_ok":[720,2648,240,233],"d_gelule_ok":[960,2648,240,223],"d_tisane_ok":[1200,2648,240,202],"d_sirop_mess":[0,2893,240,226],"d_baume_mess":[240,2893,240,228],"d_gelule_mess":[480,2893,240,218],"d_tisane_mess":[720,2893,240,198],"d_sirop_gift":[960,2893,240,221],"d_baume_gift":[1200,2893,240,223],"d_gelule_gift":[0,3121,240,213],"d_tisane_gift":[240,3121,240,193]}};
 const RM_URL = 'assets/rem_scenes.jpg';
 const rmFr = (k, h) => { const m = RMF.f[k]; if (!m) return ''; return spr(RM_URL, RMF.W, RMF.H, m, Math.min(h || 190, 270 * m[3] / m[2])); };
+const ingKey = k => ING[k] && ING[k][1] === 'p' ? k : ING_STK[k];
+const ING_STK = { cire: 'cire', mielL: 'miel', mielP: 'miel', huile: 'huile' };   // ingrédients pris dans le panier (ruche, huile de cacahuète)
 const ING = { euca: ['Eucalyptus', 'p'], miel: ['Fleur de miel', 'p'], mousse: ['Mousse douce', 'p'], baies: ['Baies roses', 'p'], racine: ['Racine', 'p'], coq: ['Coquillage rose (pincée)', 'p'], eau: ['Eau', kdSpr('i_drop', 38)], huile: ['Huile', kdSpr('i_oil', 38)], cire: ['Cire d\'abeille', kdSpr('i_wax', 38)], mielL: ['Miel', kdSpr('i_honey', 38)], mielP: ['Miel en poudre', kdSpr('i_hpowder', 38)] };
 const RMT = {   // étapes de chaque recette
   tisane: ['dose:t_water', 'heat:t', 'fill:cup', 'done'],
@@ -4053,7 +4070,7 @@ const RMT = {   // étapes de chaque recette
 const RMD = {
   tisane: [['euca', .33], ['miel', .33], ['coq', .2], ['eau', .66]],
   sirop: [['euca', .66], ['miel', .33], ['eau', .75], ['mielL', .33]],
-  baume: [['cire', .33], ['huile', .66]],
+  baume: [['cire', .33], ['huile', .66], ['racine', .25]],
   gelule: [['mousse', .66], ['baies', .33], ['mielP', .33]],
 };
 const REC = [
@@ -4065,8 +4082,8 @@ const REC = [
 let kobRx = {};   // remèdes déjà préparés (nombre)
 function deskMenu() {
   if (kobQ < 2) { openDialog('Poste de soin', ['C\'est le poste de soin du docteur Tarah.', 'Il me faudra d\'abord cueillir toutes les plantes de l\'île !'], null, ''); return; }
-  $('#remBody').innerHTML = '<div class="kvH">Poste de soin</div><p class="kvMsg">Les recettes de la vétérinaire. Quelle recette veux-tu préparer ?</p><div class="kvTools">' + REC.map(r => { const on = kobQ >= r.q || vetShowAll === 1; return '<button class="kvTool' + (on ? '' : ' lock') + '" data-k="' + r.k + '">' + r.ico() + '<span>' + r.n + (on ? (kobRx[r.k] ? ' ×' + kobRx[r.k] : '') : ' (bientôt)') + '</span></button>'; }).join('') + '</div><p class="kvMsg" style="font-size:13px">🧺 Dans ton panier : ' + KOB_PLT.map(p => p.n.split(' ')[0] + ' ×' + (kobHS()[p.k] | 0)).join(' · ') + '</p><p class="kvMsg" id="rcD">Touche une recette.</p>';
-  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { const miss = (RMD[r.k] || []).filter(d => ING[d[0]][1] === 'p' && !(kobHS()[d[0]] > 0)).map(d => ING[d[0]][0].replace(/ \(.*\)/, '')); if ((kobQ >= r.q || vetShowAll === 1) && miss.length && vetShowAll !== 1) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te manque : <b>' + miss.join(', ') + '</b>. Prends le panier et va les cueillir sur l\'île : les plantes repoussent ! 🧺'; return; } if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
+  $('#remBody').innerHTML = '<div class="kvH">Poste de soin</div><p class="kvMsg">Les recettes de la vétérinaire. Quelle recette veux-tu préparer ?</p><div class="kvTools">' + REC.map(r => { const on = kobQ >= r.q || vetShowAll === 1; return '<button class="kvTool' + (on ? '' : ' lock') + '" data-k="' + r.k + '">' + r.ico() + '<span>' + r.n + (on ? (kobRx[r.k] ? ' ×' + kobRx[r.k] : '') : ' (bientôt)') + '</span></button>'; }).join('') + '</div><p class="kvMsg" style="font-size:13px">🧺 Dans ton panier : ' + KOB_PLT.map(p => p.n.split(' ')[0] + ' ×' + (kobHS()[p.k] | 0)).join(' · ') + ' · Cire ×' + (kobHS().cire | 0) + ' · Miel ×' + (kobHS().miel | 0) + ' · Huile ×' + (kobHS().huile | 0) + '</p><p class="kvMsg" id="rcD">Touche une recette.</p>';
+  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { if ((RMD[r.k] || []).some(d => d[0] === 'huile') && !(kobHS().huile > 0) && inv.arachide > 0) { inv.arachide--; kobHS().huile = 1; save(); kobHold(2, 'Tu presses une cacahuète du potager : voilà une fiole d\'huile !'); } const miss = (RMD[r.k] || []).filter(d => ingKey(d[0]) && !(kobHS()[ingKey(d[0])] > 0)).map(d => d[0] === 'huile' ? 'Huile (une cacahuète du potager)' : ING[d[0]][0].replace(/ \(.*\)/, '')); if ((kobQ >= r.q || vetShowAll === 1) && miss.length && vetShowAll !== 1) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te manque : <b>' + miss.join(', ') + '</b>. Prends le panier et va les cueillir sur l\'île : les plantes repoussent ! 🧺'; return; } if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
   $('#remOv').style.display = 'grid'; player.mvx = player.mvy = 0;
 }
 function kobRem(rk) {
@@ -4135,7 +4152,7 @@ function kobRem(rk) {
         if (lev >= .9 && lev <= 1.1) { done = true; frame(FM[6]); sfx.star(); msg('Pile la bonne quantité !'); next(1300); }
         else if (lev > 1.1) over(); else msg('Encore un peu... il en faut jusqu\'à la ligne !'); });
     } else if (t === 'done') {
-      const q = err >= 2 ? 'mess' : 'ok'; kobRx[rk] = (kobRx[rk] | 0) + 1; if (vetShowAll !== 1) (RMD[rk] || []).forEach(d => { if (ING[d[0]][1] === 'p') kobHS()[d[0]] = Math.max(0, (kobHS()[d[0]] | 0) - 1); }); save();   // les plantes du panier sont utilisées
+      const q = err >= 2 ? 'mess' : 'ok'; kobRx[rk] = (kobRx[rk] | 0) + 1; if (vetShowAll !== 1) { const used = {}; (RMD[rk] || []).forEach(d => { const k = ingKey(d[0]); if (k && !used[k]) { used[k] = 1; kobHS()[k] = Math.max(0, (kobHS()[k] | 0) - 1); } }); } save();   // les plantes du panier sont utilisées
       body.innerHTML = head(R.n + ' prêt' + (rk === 'gelule' ? 'e' : '') + ' ! ' + kdSpr('i_star', 24)) + '<div class="kvStage"><div class="rmBig happy">' + rmFr('d_' + rk + '_' + q, 200) + '</div></div><p class="kvMsg">' + (q === 'ok' ? 'Bravo ! Le remède est parfait, Myah.' : 'Il est un peu de travers, mais il va faire du bien quand même !') + '</p><div class="kvBtns"><button class="kvBtn" id="rmOk">Super !</button></div>';
       sfx.star();
       $('#rmOk').onclick = () => { stop(); $('#remOv').style.display = 'none';
