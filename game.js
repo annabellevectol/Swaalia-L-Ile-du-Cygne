@@ -3288,7 +3288,7 @@ function kobHiveTap() {
 }
 cv.addEventListener('pointerdown', e => { if (IN.hive && IN.hive.top && SC === SC_KOBHAK) { e.preventDefault(); e.stopImmediatePropagation(); audio(); kobHiveTap(); } }, true);
 addEventListener('keydown', e => { if (IN.hive && IN.hive.top && (e.key === ' ' || e.key === 'Enter' || e.key === 'e')) { e.preventDefault(); kobHiveTap(); } }, true);
-function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .11; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(LAD.x, LAD.y, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, LAD.y - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
+function drawHiveMyah() { const m0 = ECH[IN.hive.i], m = apiTint(m0); if (!m0.complete || !m0.naturalWidth) return; const k = .11; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(LAD.x, LAD.y, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, LAD.y - 754 * k, m.width * k, m.height * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
 function kobPrep(id) {   // mini-jeu « façon Cooking Mama » lancé depuis le poste de soin
   $('#remOv').style.display = 'none'; if (id === 'xmiel') kobHS().rayon = Math.max(0, (kobHS().rayon | 0) - 1);
   prefetch(MG_FILES.cook, true); if (!CK.el) cookBuild(); cookStop(); player.state = 'talk'; audio(); CK.el.classList.add('on'); cookStart(id);
@@ -6561,16 +6561,20 @@ setInterval(() => { if (outfitDirty) bakeOutfit(); }, 300);
 const myImg = sheet => outSheet[sheet] || img['m_' + sheet];
 const APIIMG = new Image(); APIIMG.src = 'assets/myah/api_walk.png?v=1';   // la tenue d'apicultrice (vestiaire)
 const API_COL = [null, '#f2e6c9', '#ffd6e8', '#cfe8ff', '#d8f5c8', '#fff1a8', '#e3d4ff'];   // 0 = d'origine
-let APIC = null, apiKey = '';
-function apiSheet() {   // recolore la combinaison et le chapeau (couleurs choisies au vestiaire)
-  const k = '' + (mini.apiSuit | 0); if (k === '0') return APIIMG; if (APIC && apiKey === k) return APIC;
-  const c = document.createElement('canvas'); c.width = APIIMG.naturalWidth; c.height = APIIMG.naturalHeight; const x = c.getContext('2d'); x.drawImage(APIIMG, 0, 0);
-  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hx = s => s ? [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)) : null, S = hx(API_COL[mini.apiSuit | 0]), H = S;   // toute la tenue (chapeau compris) d'une seule couleur : plus de traces blanches
+const _apiC = new Map();
+function apiTint(src) {   // recolore toute la tenue (couleur ou motif choisis au vestiaire) ; src = planche de marche ou pose sur l'échelle
+  const col = mini.apiSuit | 0, pat = mini.apiPat; if (!col && (pat == null || !PATIMG.naturalWidth)) return src; if (!src.naturalWidth) return src;
+  const key = src.src + '|' + col + '|' + pat; if (_apiC.has(key)) return _apiC.get(key);
+  const c = document.createElement('canvas'); c.width = src.naturalWidth; c.height = src.naturalHeight; const x = c.getContext('2d'); x.drawImage(src, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hx = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)), T = col ? hx(API_COL[col]) : null;
+  let P = null, PS = 40; if (pat != null && PATIMG.naturalWidth) { const pc = document.createElement('canvas'); pc.width = pc.height = PS; pc.getContext('2d').drawImage(PATIMG, (pat % 4) * 96 + 2, Math.floor(pat / 4) * 96 + 2, 92, 92, 0, 0, PS, PS); P = pc.getContext('2d').getImageData(0, 0, PS, PS).data; }
   for (let i = 0; i < p.length; i += 4) { if (p[i + 3] < 20) continue; const r = p[i], g = p[i + 1], b = p[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 510, s = mx === mn ? 0 : (mx - mn) / (255 - Math.abs(mx + mn - 255) + 1e-6);
     if (!(r >= g - 4 && g - b > 12 && l > .46 && s < .62 && r - g < 30)) continue;   // le beige de la tenue
-    const y = Math.floor(i / 4 / c.width) % 256, T = y < 78 ? H : S; if (!T) continue; const k2 = l / .78; p[i] = Math.min(255, T[0] * k2); p[i + 1] = Math.min(255, T[1] * k2); p[i + 2] = Math.min(255, T[2] * k2); }
-  x.putImageData(d, 0, 0); APIC = c; apiKey = k; return c;
+    const k2 = l / .78; let C = T; if (P) { const px = (i / 4) % c.width, py = Math.floor(i / 4 / c.width), q = ((py % PS) * PS + (px % PS)) * 4; C = [P[q], P[q + 1], P[q + 2]]; }
+    p[i] = Math.min(255, C[0] * k2); p[i + 1] = Math.min(255, C[1] * k2); p[i + 2] = Math.min(255, C[2] * k2); }
+  x.putImageData(d, 0, 0); if (_apiC.size > 12) _apiC.clear(); _apiC.set(key, c); return c;
 }
+const apiSheet = () => apiTint(APIIMG);
 const apiOn = () => mini.api && mini.apiOwn && APIIMG.naturalWidth;
 function myFrame(sheet, name, x, y, flip, lift = 0, scale = 1, cutTop = 0, cutH = 256) {
   let api = false; if (apiOn() && /^walk(rod|bask|net)?$/.test(sheet) && myIdx.walk[name] !== undefined) { sheet = 'walk'; api = true; }
@@ -7096,11 +7100,11 @@ $('#wdLum').addEventListener('input', e => { let t = wdTarget(); const l = (+e.t
 $('#wdOrig').addEventListener('click', () => { if (wd.part === 'neck') { wd.o.neckCols = Array(13).fill(null); wdDraw(); return; } wdSetTarget(null); wdDraw(); });
 $('#wdBagStkClr').addEventListener('click', () => { wd.o.bagStk = []; wdDraw(); });
 $('#wdBagOn').addEventListener('click', () => { wd.o.bagOn = !wd.o.bagOn; wdDraw(); });
-const wdApiLbl = () => { const cc = $('#wdApiC'); if (cc) { cc.style.display = mini.apiOwn && mini.api ? 'block' : 'none'; cc.querySelectorAll('i').forEach(e => e.style.outline = (+e.dataset.c === (mini[e.dataset.p] | 0)) ? '3px solid #4b2a7a' : 'none'); } const b = $('#wdApi'); if (b) { b.style.display = mini.apiOwn ? 'block' : 'none'; b.textContent = '🐝 Tenue d\'apicultrice : ' + (mini.api ? 'OUI' : 'NON'); b.classList.toggle('on', !!mini.api); } };
+const wdApiLbl = () => { const cc = $('#wdApiC'); if (cc) { cc.style.display = mini.apiOwn && mini.api ? 'block' : 'none'; cc.querySelectorAll('i[data-p]').forEach(e => e.style.outline = (+e.dataset.c === (mini[e.dataset.p] | 0)) ? '3px solid #4b2a7a' : 'none'); cc.querySelectorAll('i[data-pp]').forEach(e => e.style.outline = (+e.dataset.pp === (mini.apiPat == null ? -1 : mini.apiPat)) ? '3px solid #4b2a7a' : 'none'); } const b = $('#wdApi'); if (b) { b.style.display = mini.apiOwn ? 'block' : 'none'; b.textContent = '🐝 Tenue d\'apicultrice : ' + (mini.api ? 'OUI' : 'NON'); b.classList.toggle('on', !!mini.api); } };
 { const cc = document.createElement('div'); cc.id = 'wdApiC'; cc.style.cssText = 'text-align:center;margin:0 0 6px;font-size:13px;color:#4b2a7a;display:none';
   const row = (p, lb) => '<div>' + lb + ' ' + API_COL.map((c, i) => '<i data-p="' + p + '" data-c="' + i + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:' + (c || 'linear-gradient(135deg,#e9dcbf 50%,#fff 50%)') + '"></i>').join('') + '</div>';
-  cc.innerHTML = row('apiSuit', 'Couleur de la tenue'); $('#wdApi').after(cc);
-  cc.addEventListener('click', e => { const i = e.target.closest('i[data-p]'); if (!i) return; mini[i.dataset.p] = +i.dataset.c; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); }
+  cc.innerHTML = row('apiSuit', 'Couleur de la tenue') + '<div>Motif <i data-pp="-1" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:#fff;font-style:normal;line-height:22px">✕</i>' + Array.from({ length: 24 }, (_, n) => '<i data-pp="' + n + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:url(assets/patterns.jpg) -' + ((n % 4) * 96 * 22 / 92 + 1) + 'px -' + (Math.floor(n / 4) * 96 * 22 / 92 + 1) + 'px/' + (384 * 22 / 92) + 'px ' + (576 * 22 / 92) + 'px"></i>').join('') + '</div>'; $('#wdApi').after(cc);
+  cc.addEventListener('click', e => { const pp = e.target.closest('i[data-pp]'); if (pp) { const n = +pp.dataset.pp; mini.apiPat = n < 0 ? null : n; save(); wdApiLbl(); sfx.pick && sfx.pick(); return; } const i = e.target.closest('i[data-p]'); if (!i) return; mini[i.dataset.p] = +i.dataset.c; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); }
 $('#wdApi').addEventListener('click', () => { if (!mini.apiOwn) { sfx.no && sfx.no(); say('La tenue d\'apicultrice se trouve chez Koki, à la boutique de la plage de l\'île aux Koalas 🐝', 4); return; } mini.api = mini.api ? 0 : 1; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); setInterval(wdApiLbl, 500);
 $('#wdStkDel').addEventListener('click', () => { if (wd.sel >= 0) { wd.o.stickers.splice(wd.sel, 1); wd.sel = -1; wdDraw(); } });
 $('#wdStkClr').addEventListener('click', () => { wd.o.stickers = []; wd.sel = -1; wdDraw(); });
