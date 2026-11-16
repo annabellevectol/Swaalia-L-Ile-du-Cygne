@@ -3272,18 +3272,18 @@ function kobGather() {
 }
 const ECHL = new Image(); ECHL.src = 'assets/kob2/echelle.png?v=1';
 const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=4'; return m; });
-function kobClimb() {   // on monte soi-même à l'échelle ; en haut, on touche la ruche pour récolter
-  if (!mini.api && !kobD.apiTip) { kobD.apiTip = 1; save(); say(mini.apiOwn ? 'Conseil : mets ta tenue d\'apicultrice au vestiaire, les abeilles piquent ! 🐝' : 'Conseil : Koki vend une tenue d\'apicultrice à la boutique de la plage, les abeilles piquent ! 🐝', 4.5); }
+function kobClimb() {   // on monte soi-même à l'échelle (en tenue d'apicultrice) ; en haut : 1) on enfume, 2) on découpe un rayon
+  if (!(mini.api && mini.apiOwn)) { sfx.no && sfx.no(); say(mini.apiOwn ? 'Oulala, ne monte pas sans ta combinaison ! Mets ta tenue d\'apicultrice au vestiaire 🐝' : 'Oulala, ne monte pas sans combinaison ! Koki en vend une à la boutique de la plage 🐝', 4.5); return; }
+  if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour rapporter le rayon de miel ! 🧺', 3.2); return; }
   player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 }; say('Myah grimpe à l\'échelle…', 1.4);
-  setTimeout(() => { if (!IN.hive) return; IN.hive = { i: 2, top: true, cut: 0 }; say(kobGrown({ k: 'ruche' }) ? 'Touche la ruche pour récolter un rayon ! 🐝' : 'La ruche est presque vide… touche-la pour redescendre.', 3); }, 1100);
+  setTimeout(() => { if (!IN.hive) return; IN.hive = { i: 1, top: true, st: 0 }; say(kobGrown({ k: 'ruche' }) ? 'Étape 1 : touche la ruche pour l\'enfumer doucement. La fumée calme les abeilles 🌫️' : 'La ruche est presque vide… touche-la pour redescendre.', 4); }, 1100);
 }
 function kobHiveTap() {
   const h = IN.hive; if (!h || !h.top || h.busy) return; h.busy = true;
-  const down = (got) => { h.i = 3; h.top = false; setTimeout(() => { IN.hive = null; player.state = 'free'; actBlock = time + .5; if (got) kobHold(0, 'Un rayon de miel ! Prépare le miel et la cire au poste de soin 🍯'); }, 1300); };
+  const down = got => { h.i = 3; h.top = false; say(got ? 'Myah redescend avec son rayon de miel !' : 'Myah redescend.', 1.4); setTimeout(() => { IN.hive = null; player.state = 'free'; actBlock = time + .5; if (got) kobHold(0, 'Un rayon de miel ! Prépare le miel et la cire au poste de soin 🍯'); }, 1300); };
   if (!kobGrown({ k: 'ruche' })) { say('Les abeilles refont leur cire… reviens plus tard !', 2.4); return down(false); }
-  if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour récolter ! 🧺', 2.6); h.busy = false; return; }
-  h.i = 1; say('Un peu de fumée pour calmer les abeilles…', 1.4);
-  setTimeout(() => { h.i = 2; sfx.pick && sfx.pick(); say('Elle découpe un morceau de rayon…', 1.4); kobHS().rayon = (kobHS().rayon | 0) + 1; kobCut().ruche = Date.now(); save(); setTimeout(() => { say('Et redescend avec le rayon !', 1.3); down(true); }, 1300); }, 1300);
+  if (h.st === 0) { h.i = 1; sfx.pick && sfx.pick(); say('Pfff… la fumée endort les abeilles…', 1.6); setTimeout(() => { h.st = 1; h.i = 2; h.busy = false; say('Étape 2 : les abeilles sont calmes ! Touche la ruche pour découper un morceau de rayon 🔪', 4); }, 1600); return; }
+  h.i = 2; sfx.pick && sfx.pick(); say('Elle découpe délicatement un morceau de rayon…', 1.4); kobHS().rayon = (kobHS().rayon | 0) + 1; kobCut().ruche = Date.now(); save(); setTimeout(() => down(true), 1400);
 }
 cv.addEventListener('pointerdown', e => { if (IN.hive && IN.hive.top && SC === SC_KOBHAK) { e.preventDefault(); e.stopImmediatePropagation(); audio(); kobHiveTap(); } }, true);
 addEventListener('keydown', e => { if (IN.hive && IN.hive.top && (e.key === ' ' || e.key === 'Enter' || e.key === 'e')) { e.preventDefault(); kobHiveTap(); } }, true);
