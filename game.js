@@ -3247,7 +3247,7 @@ const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
-  if (kobQ >= 2 && !IN.hive && ECHL.complete && ECHL.naturalWidth) { const k = .155; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
+  if (kobQ >= 2 && ECHL.complete && ECHL.naturalWidth) { const k = .155; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
   if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 46, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
@@ -3273,7 +3273,7 @@ function kobGather() {
   kobHud(); save(); return true;
 }
 const ECHL = new Image(); ECHL.src = 'assets/kob2/echelle.png?v=1';
-const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=2'; return m; });
+const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=3'; return m; });
 function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, enfume la ruche, découpe un rayon et redescend
   const T = ['Myah grimpe à l\'échelle…', 'Un peu de fumée pour calmer les abeilles…', 'Elle découpe un morceau de rayon…', 'Et redescend avec le rayon !'];
   player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 };
