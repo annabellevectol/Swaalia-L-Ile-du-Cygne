@@ -431,13 +431,13 @@ const COLL = [
   { id: 'f9', cat: 'fleurs', img: 'flower9', name: 'Lotus d\'azur', desc: 'Un lotus bleu dont les pétales gardent la fraîcheur de l\'étang.' },
   { id: 'f7', cat: 'fleurs', img: 'flower7', rare: true, name: 'Oiseau de paradis', desc: 'Elle ressemble à un oiseau multicolore prêt à s\'envoler.' },
   { id: 'f8', cat: 'fleurs', img: 'flower8', rare: true, name: 'Fleur de la passion sauvage', desc: 'Une fleur à vrilles que le Cygne légendaire aimait, dit-on.' },
-  { id: 'p0', cat: 'poissons', img: 'fishA0', name: 'Poisson-perroquet vert', desc: 'Vert, rayé d\'orange, il grignote les algues du récif.' },
-  { id: 'p1', cat: 'poissons', img: 'fishA1', name: 'Poisson-lune pailleté', desc: 'Turquoise et tacheté de violet, il brille entre deux eaux.' },
-  { id: 'p2', cat: 'poissons', img: 'fishA2', name: 'Poisson-damier', desc: 'Doré, il porte un quadrillage rose comme un patchwork.' },
-  { id: 'p4', cat: 'poissons', img: 'fish4', name: 'Poisson-clown', desc: 'Orange et blanc, il se cache dans les anémones.' },
-  { id: 'p5', cat: 'poissons', img: 'fish5', rare: true, name: 'Ange des brumes', desc: 'Blanc, orange et bleu, il glisse comme un voile.' },
-  { id: 'p6', cat: 'poissons', img: 'fish6', rare: true, name: 'Globe-soleil', desc: 'Un poisson rond et jaune qui gonfle quand il a peur.' },
-  { id: 'prb', cat: 'poissons', img: 'fishrb', rare: true, name: 'Petit arc-en-ciel', desc: 'Un poisson aux sept couleurs, une légende chez les pêcheurs.' },
+  { id: 'p0', cat: 'poissons', img: 'fishA0', name: 'Poisson-perroquet arc-en-ciel', desc: 'Toutes les couleurs sur ses écailles, et un bec orange pour grignoter le corail.' },
+  { id: 'p1', cat: 'poissons', img: 'fishA1', name: 'Poisson-lune étoilé', desc: 'Rond et rose pâle, il est couvert de petites étoiles dorées.' },
+  { id: 'p2', cat: 'poissons', img: 'fishA2', name: 'Poisson-lotus', desc: 'Vert d\'eau, ses nageoires ressemblent à des pétales de lotus.' },
+  { id: 'p4', cat: 'poissons', img: 'fish4', name: 'Poisson-cygne', desc: 'Ses longues nageoires en voile ondulent comme les plumes de Gaïkin.' },
+  { id: 'p5', cat: 'poissons', img: 'fish5', rare: true, name: 'Poisson-plume', desc: 'Blanc et argenté, ses nageoires ont la forme de plumes de cygne.' },
+  { id: 'p6', cat: 'poissons', img: 'fish6', rare: true, name: 'Hippocampe corail', desc: 'Il nage debout et s\'accroche aux algues avec sa queue.' },
+  { id: 'prb', cat: 'poissons', img: 'fishrb', rare: true, name: 'Grand poisson doré', desc: 'Écailles d\'or et nageoires lilas : le trophée rêvé des pêcheurs.' },
   { id: 'sh0', cat: 'coquillages', img: 'shell0', name: 'Conque rose', desc: 'Si on l\'approche de l\'oreille, on entend la mer.' },
   { id: 'sh1', cat: 'coquillages', img: 'shell1', name: 'Coquille Saint-Jacques', desc: 'Striée comme un petit éventail doré.' },
   { id: 'sh2', cat: 'coquillages', img: 'shell2', name: 'Étoile de mer orange', desc: 'Elle a cinq bras et peut en refaire un nouveau.' },
@@ -479,7 +479,7 @@ function renderColl() {
     if (!L.length) { h += '<p class="soon">Bientôt… Yulia prépare la place pour les coquillages ✨</p>'; return; }
     h += '<div class="grid">' + L.map(c => {
       const ok = !!coll[c.id], nm = ok ? c.name : (c.rare ? '???' : c.name);
-      return '<div class="slot' + (ok ? ' ok' : '') + (c.rare ? ' rare' : '') + '"><img src="assets/spr/' + c.img + '.png" alt="">' + (c.rare ? '<i>✨</i>' : '') + '<span>' + nm + '</span>' + (ok ? '<em>' + c.desc + '</em>' : '') + '</div>';
+      return '<div class="slot' + (ok ? ' ok' : '') + (c.rare ? ' rare' : '') + '"><img src="assets/spr/' + c.img + '.png?v=2" alt="">' + (c.rare ? '<i>✨</i>' : '') + '<span>' + nm + '</span>' + (ok ? '<em>' + c.desc + '</em>' : '') + '</div>';
     }).join('') + '</div>';
   });
   $('#collBody').innerHTML = h + '</div>';
@@ -1607,7 +1607,7 @@ const AQ_CAP = 2, aquaOwned = () => (inv.aqua || 0) + jarsL().filter(j => j.k ==
 const FISH_COLS = [1, 2, 4, 5, 6], FISH_NAME = { 1: 'poisson-lune', 2: 'poisson-damier', 4: 'poisson-clown', 5: 'ange des brumes', 6: 'globe-soleil' };
 const dayFish = () => { const d = mini.dayNo || 0; return [FISH_COLS[d % 5], FISH_COLS[(d + 2) % 5]]; };   // deux variétés qui changent chaque jour de jeu
 const fishImg = c => img['s_' + (c < 4 ? 'fishA' + c : 'fish' + c)];
-const objImg = id => { const c = COLL.find(o => o.id === id); if (!c) return null; const k = 'o_' + c.img; if (!JIMG[k]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png'; JIMG[k] = i; } return JIMG[k]; };
+const objImg = id => { const c = COLL.find(o => o.id === id); if (!c) return null; const k = 'o_' + c.img; if (!JIMG[k]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png?v=2'; JIMG[k] = i; } return JIMG[k]; };
 const JIMG = {}; ['jar_empty', 'jar_glow', 'aqua'].forEach(n => { const i = new Image(); i.src = 'assets/spr/' + n + '.png'; JIMG[n] = i; });
 const jarName = j => j.k === 'aqua' ? (j.fish && j.fish.length ? 'Aquarium : ' + j.fish.map(c => FISH_NAME[c]).join(' et ') : 'Aquarium vide') : j.k === 'obj' ? 'Bocal : ' + ((COLL.find(o => o.id === j.o) || {}).name || 'objet rare') : j.k === 'fly' ? (j.n > 1 ? 'Bocal de ' + j.n + ' lucioles' : 'Bocal d\'une luciole') : (j.n > 1 ? 'Bocal de ' + j.n + ' papillons' : 'Bocal d\'un papillon');
 function jarDraw(g, j, w, h, t) {   // le bocal en verre, avec ses lucioles qui clignotent ou ses papillons qui battent des ailes
@@ -3556,7 +3556,8 @@ const KD_M = {"fish0":[0,0,112,90],"fish1":[116,0,125,90],"fish2":[245,0,240,90]
 const kdSpr = (k, h) => spr(KD_U, KD_W, KD_H, KD_M[k], h);
 const KD_A = .86;   // légère transparence des éléments posés sur la carte (comme sur l'île de Myah)
 let kobD = { acc: {}, done: {}, fr: {}, fi: {}, st: 0, rw: 0 };   // acc : défi accepté, fr : fruits cueillis, fi : poissons pêchés (nombre), st : étoiles, rw : victoires à la course
-const KFISH = [['Poisson-feuille', 3], ['Poisson-clown de Kobhak', 3], ['Fil d\'argent', 3], ['Poisson-koala', 2], ['Bleu-étoile', 3], ['Poisson doré', .8]];
+const KFI = ['f0', 'f1', 'f2', 'f3', 's0', 's1', 's2', 's3', 'b0', 'b1', 'b2', 'b3'].reduce((o, k) => { o[k] = new Image(); o[k].src = 'assets/kob3/' + k + '.png?v=1'; return o; }, {});   // île aux Koalas : papillons, poissons et coquillages d'Australie
+const KFISH = [['Poisson-clown', 3], ['Barramundi', 3], ['Chirurgien bleu', 3], ['Raie tachetée', 2], ['Bleu-étoile', 3], ['Poisson doré', .8]];
 const KFRU = [{ k: 'baie', n: 'baie-miel', x: 812, y: 447 }, { k: 'lune', n: 'poire-lune', x: 905, y: 525 }, { k: 'rose', n: 'grappe rose', x: 470, y: 545 }];
 const FISH_SPOT = [470, 638], RA = [400, 600], RB = [690, 598];
 const KOB_BEACH_FISH = [
@@ -3803,6 +3804,7 @@ function mgDraw(top) {
 const KAMB = (() => { const L = [];const pts = [[300, 520], [520, 560], [700, 520], [820, 440], [450, 400], [250, 330], [620, 330], [950, 300], [1080, 470], [380, 620], [880, 600], [160, 300]]; pts.forEach((p, i) => L.push({ x: p[0], y: p[1], rx: 50 + (i * 17) % 60, ry: 26 + (i * 11) % 30, sp: .22 + (i % 5) * .05, ph: i * 1.7, z: 14 + (i * 7) % 26, i })); return L; })();
 const KBF_TINT = ['rgba(40,210,200,.62)', 'rgba(255,120,190,.55)', 'rgba(150,120,255,.5)', 'rgba(120,230,150,.55)', 'rgba(255,170,90,.5)'], KBF_C = {};
 function kobBflyImg(idx) {
+  { const b = KFI['b' + (idx % 4)]; if (b && b.naturalWidth) return b; }
   const im = img['s_bfly' + idx]; if (!im || !im.complete || !im.naturalWidth) return null;
   if (!KBF_C[idx]) { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const g = c.getContext('2d'); g.drawImage(im, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = KBF_TINT[idx % 5]; g.fillRect(0, 0, c.width, c.height); KBF_C[idx] = c; }
   return KBF_C[idx];
@@ -3885,10 +3887,10 @@ function kobBeachFishDraw() {
   if (SC !== SC_KOBHAK || !KDI.complete || !KDI.naturalWidth) return;
   kobBeachFish.forEach(f => {
     if (f.state === 'gone') return;
-    const m = KD_M['fish' + f.k], h = 20, w = h * m[2] / m[3], x = f.x, y = f.y, dir = f.dir;
+    const nim = f.k < 4 && KFI['f' + f.k].naturalWidth ? KFI['f' + f.k] : null, m = nim ? [0, 0, nim.naturalWidth, nim.naturalHeight] : KD_M['fish' + f.k], h = 20, w = h * m[2] / m[3], x = f.x, y = f.y, dir = f.dir;
     ctx.save(); ctx.globalAlpha = .82; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.ellipse(x, y + 6, w * .42, 3 + Math.sin(time * 2 + f.ph), 0, 0, TAU); ctx.stroke();
-    ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
+    ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(nim || KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
   });
 }
 function updateKobBeachFish(dt) {
@@ -3920,6 +3922,7 @@ function updateKobBeachFish(dt) {
   }
 }
 function kobFishTrophy(k) {
+  if (k < 4 && KFI['f' + k].naturalWidth) return KFI['f' + k];
   if (!KDI.complete || !KDI.naturalWidth) return null;
   const m = KD_M['fish' + k], cv = document.createElement('canvas');
   cv.width = m[2]; cv.height = m[3];
@@ -4481,7 +4484,7 @@ function hangDraw(x, o) { const c = o.c, w = o.w, h = w * c.height / c.width; x.
 function drawHungFrames() { for (const id in PNT.hang) hangDraw(ctx, PNT.hang[id]); }
 /* ----- trésors posés sur la table basse du salon ----- */
 const TBL_SPOTS = [[452, 612], [488, 624]], TBL_C = [480, 660], TBL_IMG = {};   // places sur le plateau (image de la maison) ; centre pour l'approche
-function tblImg(id) { const c = COLL.find(o => o.id === id); if (!c) return null; if (!TBL_IMG[id]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png'; TBL_IMG[id] = i; } const i = TBL_IMG[id]; return i.complete && i.naturalWidth ? i : null; }
+function tblImg(id) { const c = COLL.find(o => o.id === id); if (!c) return null; if (!TBL_IMG[id]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png?v=2'; TBL_IMG[id] = i; } const i = TBL_IMG[id]; return i.complete && i.naturalWidth ? i : null; }
 const DT_C = [886, 598], DT_H = [886, 626], DT_SPOTS = [[846, 646], [926, 646]];   // table ronde de la salle à manger : centre d'approche et places de départ
 const SURF = { 1: { name: 'la table basse', list: () => TRE.tbl, max: 2, spots: TBL_SPOTS, poly: [[422, 609], [465, 591], [526, 622], [492, 646]], view: [476, 620, 200] }, 2: { name: 'la table', list: () => TRE.tb2, max: 2, spots: DT_SPOTS, poly: Array.from({ length: 28 }, (_, i) => [886 + 74 * Math.cos(i / 28 * 6.2832), 633 + 31 * Math.sin(i / 28 * 6.2832)]), view: [886, 632, 260] } };
 const inPoly2 = (p, x, y) => { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < (p[j][0] - p[i][0]) * (y - p[i][1]) / (p[j][1] - p[i][1]) + p[i][0]) c = !c; } return c; };
@@ -6336,7 +6339,7 @@ function placeTrophy() {
 }
 function trophyImgFish(f) { const c = f.col | 0, nm = c < 4 ? 'fishA' + c : 'fish' + c; return img['s_' + nm]; }
 const TIMG = {};
-function trophyImgColl(id) { const c = COLL.find(o => o.id === id); if (!c) return null; if (MIM[c.img] && mimOk(c.img)) return MIM[c.img]; if (!TIMG[c.img]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png'; TIMG[c.img] = i; } return TIMG[c.img]; }
+function trophyImgColl(id) { const c = COLL.find(o => o.id === id); if (!c) return null; if (MIM[c.img] && mimOk(c.img)) return MIM[c.img]; if (!TIMG[c.img]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png?v=2'; TIMG[c.img] = i; } return TIMG[c.img]; }
 function updateHint() {
   placeTrophy();
   updateFightBar();
