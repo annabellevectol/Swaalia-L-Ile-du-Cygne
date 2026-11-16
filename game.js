@@ -3567,6 +3567,7 @@ const KOB_BEACH_FISH = [
   { k: 3, x: 815, y: 710, ph: 3.2 },
   { k: 4, x: 965, y: 686, ph: 4.1 },
   { k: 5, x: 1100, y: 650, ph: 5.3 },
+  { k: 0, x: 1150, y: 272, ph: .9, pond: 1 }, { k: 2, x: 1205, y: 285, ph: 2.1, pond: 1 }, { k: 3, x: 1180, y: 262, ph: 3.7, pond: 1 },   // la mare aux nénuphars
 ];
 const kobBeachFish = KOB_BEACH_FISH.map(f => ({ ...f, bx: f.x, by: f.y, state: 'swim', cool: 0, t: 0, dir: 1 }));
 const nFish = () => Object.keys(kobD.fi).filter(k => kobD.fi[k] > 0).length, nFruit = () => KFRU.filter(f => kobD.fr[f.k]).length;
@@ -3854,7 +3855,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
     if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
   }
   if (tool === 'fish') {
-    if (kobFishNear() && !CARE) drawHalo(kobAtPond() ? { x: POND_SPOT[0], y: POND_SPOT[1], r: 22 } : { x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
+    if (kobFishNear() && !CARE) if (!kobAtPond()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
   }
 }
 function kobFxDraw() {
@@ -3946,12 +3947,12 @@ function drawKobFishingLine() {
 }
 function kobFishing() {
   if (player.state === 'fishing' || !kobFishNear()) return;
-  const fish = kobBeachFish.reduce((best, f) => !best || dist(IN.x, IN.y, f.x, f.y) < dist(IN.x, IN.y, best.x, best.y) ? f : best, null);
+  const fish = kobBeachFish.filter(f => !!f.pond === kobAtPond()).reduce((best, f) => !best || dist(IN.x, IN.y, f.x, f.y) < dist(IN.x, IN.y, best.x, best.y) ? f : best, null);
   const dx = fish.x - IN.x, dy = fish.y - IN.y, d = Math.hypot(dx, dy) || 1;
   player.dir4 = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
   player.face = dx >= 0 ? 1 : -1;
   fs.tx = IN.x + dx / d * 76; fs.ty = IN.y + dy / d * 76;
-  if (kobAtPond()) { fs.tx = 1170; fs.ty = 282; player.dir4 = 'right'; player.face = 1; }
+
   fs.region = 'kob'; fs.phase = 'cast'; fs.t = 0; fs.caught = false; fs.fish = null; fs.fight = null;
   player.state = 'fishing'; setAnim('fish'); player.fr = 0; sfx.cast();
 }
