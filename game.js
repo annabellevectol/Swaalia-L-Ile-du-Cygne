@@ -6563,11 +6563,11 @@ const APIIMG = new Image(); APIIMG.src = 'assets/myah/api_walk.png?v=1';   // la
 const API_COL = [null, '#f2e6c9', '#ffd6e8', '#cfe8ff', '#d8f5c8', '#fff1a8', '#e3d4ff'];   // 0 = d'origine
 let APIC = null, apiKey = '';
 function apiSheet() {   // recolore la combinaison et le chapeau (couleurs choisies au vestiaire)
-  const k = (mini.apiSuit | 0) + '-' + (mini.apiHat | 0); if (k === '0-0') return APIIMG; if (APIC && apiKey === k) return APIC;
+  const k = '' + (mini.apiSuit | 0); if (k === '0') return APIIMG; if (APIC && apiKey === k) return APIC;
   const c = document.createElement('canvas'); c.width = APIIMG.naturalWidth; c.height = APIIMG.naturalHeight; const x = c.getContext('2d'); x.drawImage(APIIMG, 0, 0);
-  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hx = s => s ? [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)) : null, S = hx(API_COL[mini.apiSuit | 0]), H = hx(API_COL[mini.apiHat | 0]);
+  const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hx = s => s ? [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)) : null, S = hx(API_COL[mini.apiSuit | 0]), H = S;   // toute la tenue (chapeau compris) d'une seule couleur : plus de traces blanches
   for (let i = 0; i < p.length; i += 4) { if (p[i + 3] < 20) continue; const r = p[i], g = p[i + 1], b = p[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 510, s = mx === mn ? 0 : (mx - mn) / (255 - Math.abs(mx + mn - 255) + 1e-6);
-    if (!(r >= g && g >= b && l > .45 && s < .55 && r - b > 18)) continue;   // le beige de la tenue
+    if (!(r >= g - 4 && g - b > 12 && l > .46 && s < .62 && r - g < 30)) continue;   // le beige de la tenue
     const y = Math.floor(i / 4 / c.width) % 256, T = y < 78 ? H : S; if (!T) continue; const k2 = l / .78; p[i] = Math.min(255, T[0] * k2); p[i + 1] = Math.min(255, T[1] * k2); p[i + 2] = Math.min(255, T[2] * k2); }
   x.putImageData(d, 0, 0); APIC = c; apiKey = k; return c;
 }
@@ -7099,7 +7099,7 @@ $('#wdBagOn').addEventListener('click', () => { wd.o.bagOn = !wd.o.bagOn; wdDraw
 const wdApiLbl = () => { const cc = $('#wdApiC'); if (cc) { cc.style.display = mini.apiOwn && mini.api ? 'block' : 'none'; cc.querySelectorAll('i').forEach(e => e.style.outline = (+e.dataset.c === (mini[e.dataset.p] | 0)) ? '3px solid #4b2a7a' : 'none'); } const b = $('#wdApi'); if (b) { b.style.display = mini.apiOwn ? 'block' : 'none'; b.textContent = '🐝 Tenue d\'apicultrice : ' + (mini.api ? 'OUI' : 'NON'); b.classList.toggle('on', !!mini.api); } };
 { const cc = document.createElement('div'); cc.id = 'wdApiC'; cc.style.cssText = 'text-align:center;margin:0 0 6px;font-size:13px;color:#4b2a7a;display:none';
   const row = (p, lb) => '<div>' + lb + ' ' + API_COL.map((c, i) => '<i data-p="' + p + '" data-c="' + i + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:' + (c || 'linear-gradient(135deg,#e9dcbf 50%,#fff 50%)') + '"></i>').join('') + '</div>';
-  cc.innerHTML = row('apiSuit', 'Combinaison') + row('apiHat', 'Chapeau'); $('#wdApi').after(cc);
+  cc.innerHTML = row('apiSuit', 'Couleur de la tenue'); $('#wdApi').after(cc);
   cc.addEventListener('click', e => { const i = e.target.closest('i[data-p]'); if (!i) return; mini[i.dataset.p] = +i.dataset.c; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); }
 $('#wdApi').addEventListener('click', () => { if (!mini.apiOwn) { sfx.no && sfx.no(); say('La tenue d\'apicultrice se trouve chez Koki, à la boutique de la plage de l\'île aux Koalas 🐝', 4); return; } mini.api = mini.api ? 0 : 1; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); setInterval(wdApiLbl, 500);
 $('#wdStkDel').addEventListener('click', () => { if (wd.sel >= 0) { wd.o.stickers.splice(wd.sel, 1); wd.sel = -1; wdDraw(); } });
