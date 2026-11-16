@@ -7491,7 +7491,7 @@ const EPI = [   // l'épicerie de Kykah : les ingrédients du gâteau de maïs (
   { k: 'oeuf', img: 'oeufs', nm: 'Boîte de 6 œufs', pay: 'shell', payN: 'coquillages', n: 3, get: 6 },
   { k: 'epices', img: 'epices', nm: 'Pot d\'épices', pay: 'shell', payN: 'coquillages', n: 2, get: 2 },
   { k: 'citron', img: 'citron', nm: 'Citron vert', pay: 'shell', payN: 'coquillage', n: 1, get: 1 }];   // pour l'Alloco-poisson
-const KOKI_SHOP = [{ k: 'laitcoco', emo: '🥥', nm: 'Brique de lait de coco', pay: 'shell', payN: 'coquillage', n: 1, get: 1 }, { k: 'citron', img: 'citron', nm: 'Citron vert', pay: 'shell', payN: 'coquillage', n: 1, get: 1 }, { k: 'citronnelle', emo: '🌾', nm: 'Botte de citronnelle', pay: 'shell', payN: 'coquillage', n: 1, get: 2 }];   // la boutique de l'île (Koki)
+const KOKI_SHOP = [{ k: 'laitcoco', emo: '🥥', nm: 'Bouteille de lait de coco', pay: 'shell', payN: 'coquillage', n: 1, get: 1 }, { k: 'citron', img: 'citron', nm: 'Citron vert', pay: 'shell', payN: 'coquillage', n: 1, get: 1 }, { k: 'citronnelle', emo: '🌾', nm: 'Botte de citronnelle', pay: 'shell', payN: 'coquillage', n: 1, get: 2 }];   // la boutique de l'île (Koki)
 function kykahShop(e, free, epOnly, list, title) {
   const EPL = list || EPI;
   clearInput(); player.state = 'talk';
