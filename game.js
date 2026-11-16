@@ -3248,12 +3248,12 @@ const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
   if (kobQ >= 2 && ECHL.complete && ECHL.naturalWidth) { const k = .11; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
-  if (IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 12, r: 18 });
+  if (IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 12, r: 9, dot: true });
   if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
   KOB_PLT.forEach(p => {
-    const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 15 : 34, w = h * m[2] / m[3];
+    const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 12 : 26, w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A; if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
     ctx.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], p.x - w / 2, p.y - h + 3, w, h); ctx.restore();
   });
@@ -3819,7 +3819,7 @@ function kobAmbDraw() {
   if (SC !== SC_KOBHAK || !IN.on) return;
   const ns = nightAmt(), dayA = 1 - Math.min(1, ns * 1.6);
   if (dayA > .05) kobBflyList().forEach(({ a, p, gone }) => { if (gone) return; const bi = kobBflyImg(a.i % 5), sp = SPR['bfly' + (a.i % 5)]; if (!bi || !sp) return; const flap = time * 14 + a.ph * 3, sx = .3 + .7 * Math.abs(Math.cos(flap)), sz = 1;
-    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 4, 4, 1.5, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = .88 * dayA; ctx.translate(p.x, p.y - p.z); ctx.rotate(Math.sin(flap * .5) * .15); ctx.scale(sx * sz, sz); ctx.globalAlpha *= .8; { const bw = sp.w * 1.1, bh = bw * bi.height / bi.width; ctx.drawImage(bi, -bw / 2, -bh / 2, bw, bh); } ctx.restore(); });
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 4, 4, 1.5, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = .88 * dayA; ctx.translate(p.x, p.y - p.z); ctx.rotate(Math.sin(flap * .5) * .15); ctx.scale(sx * sz, sz); ctx.globalAlpha *= .8; { const bw = sp.w * .8, bh = bw * bi.height / bi.width; ctx.drawImage(bi, -bw / 2, -bh / 2, bw, bh); } ctx.restore(); });
   if (ns > .05) kobFlyList().forEach(({ a, p, gone }) => { if (gone) return; const tw = .45 + .55 * Math.max(0, Math.sin(time * 2.6 + a.ph * 3)), al = Math.min(1, ns * tw * 1.15), y = p.y - p.z + Math.sin(time * 1.7 + a.ph) * 3, c = a.i % 2 ? '120,235,255' : '255,160,225';
     if (al < .03) return; ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(p.x, y, 0, p.x, y, 17); g.addColorStop(0, 'rgba(' + c + ',' + al + ')'); g.addColorStop(.35, 'rgba(' + c + ',' + al * .4 + ')'); g.addColorStop(1, 'rgba(' + c + ',0)'); ctx.fillStyle = g; ctx.fillRect(p.x - 17, y - 17, 34, 34); ctx.fillStyle = 'rgba(255,255,240,' + al + ')'; ctx.beginPath(); ctx.arc(p.x, y, 1.7, 0, TAU); ctx.fill(); ctx.restore(); });
 }
@@ -3848,14 +3848,14 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   if (SC !== SC_KOBHAK || !IN.on || IN.floor !== 0 || player.state !== 'free' || dlg.open || bedPickOpen()) return;
   if (tool === 'net') {
     const night = nightAmt() > .3, L = (night ? kobFlyList() : kobBflyList()).filter(o => !o.gone && dist(o.p.x, o.p.y - o.p.z, IN.x, IN.y - 20) < 78).sort((u, v) => dist(u.p.x, u.p.y - u.p.z, IN.x, IN.y - 20) - dist(v.p.x, v.p.y - v.p.z, IN.x, IN.y - 20));
-    if (L[0]) drawHalo({ x: L[0].p.x, y: L[0].p.y - L[0].p.z, r: 11, air: true });
+    if (L[0]) drawHalo({ x: L[0].p.x, y: L[0].p.y - L[0].p.z, r: 9, dot: true });
   }
   if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
+    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 9, dot: true }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 9, dot: true }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 9, dot: true });
   }
   if (tool === 'fish') {
-    if (kobFishNear() && !CARE) if (!kobAtPond()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
+    if (kobFishNear() && !CARE) if (!kobAtPond()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 9, dot: true });
   }
 }
 function kobFxDraw() {
