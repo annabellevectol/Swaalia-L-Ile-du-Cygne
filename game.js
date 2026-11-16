@@ -3737,14 +3737,26 @@ function mgGraines(p) {
 }
 // 6. Le bouquet pour Koki (table de Tomba) : Myah le compose, puis le livre à la boutique
 const BQF = [{ k: 'bq0', n: 'Patte de kangourou', s: 'Kangourou' }, { k: 'bq1', n: 'Waratah', s: 'Waratah' }, { k: 'bq2', n: 'Mimosa doré', s: 'Mimosa' }, { k: 'bq3', n: 'Grevillea', s: 'Grevillea' }, { k: 'bq4', n: 'Banksia', s: 'Banksia' }, { k: 'bq5', n: 'Immortelle rose', s: 'Immortelle' }];   // fleurs sauvages d'Australie, sur tige
+const BQ_TO = [   // habitants qui commandent un bouquet, et où ils le posent chez eux
+  { k: 'koki', n: 'Koki', pose: 'sur le comptoir de ma boutique', pour: 'pour le comptoir de sa boutique', sc: () => SC_MK5, x: 300, y: 470 },
+  { k: 'maia', n: 'Le docteur Tarah', pose: 'sur mon bureau, au dispensaire', pour: 'pour égayer le dispensaire', sc: () => SC_DISP, x: 640, y: 505 },
+  { k: 'nuna', n: 'Nuna', pose: 'sur ma table, dans la maison de l\'arbre', pour: 'pour la table de sa maison dans l\'arbre', sc: () => SC_MK2, x: 830, y: 545 },
+  { k: 'okai', n: 'Okaï', pose: 'sur ma table, près du feu', pour: 'pour la table de sa maison', sc: () => SC_MK1, x: 512, y: 812 }];
 const BQ_ORD = [{ bq1: 1, bq2: 2 }, { bq5: 2, bq0: 1 }, { bq4: 1, bq3: 2 }, { bq1: 1, bq5: 1, bq2: 1 }, { bq0: 2, bq4: 1 }, { bq3: 1, bq2: 1, bq5: 1, bq1: 1 }];
 const bqName = k => BQF.find(p => p.k === k).n;
 const bqImg = (k, h) => '<img src="assets/kob4/' + k + '.png" alt="" style="height:' + h + 'px;vertical-align:middle">';
 function mgBouquet(p) {
   kobD.bq = kobD.bq || { n: 0, carry: false };
-  if (kobD.bq.carry) { openDialog('Tomba', ['Tu as déjà ton joli bouquet ! Va vite l\'offrir à Koki, à la boutique.'], null, kobPortrait('tomba')); return; }
-  const want = BQ_ORD[kobD.bq.n % BQ_ORD.length], need = Object.values(want).reduce((a, b) => a + b, 0), lst = Object.keys(want).map(k => want[k] + ' ' + bqName(k).toLowerCase());
-  openDialog('Tomba', ['Koki me demande un bouquet pour sa boutique : ' + lst.join(' et ') + '.', 'Tu veux le composer, Myah ?'], () => mgBqPlay(p, want, need), kobPortrait('tomba'));
+  if (kobD.bq.carry) { openDialog('Tomba', ['Tu as déjà ton joli bouquet ! Va vite l\'offrir à ' + (BQ_TO.find(w => w.k === (kobD.bq.ord || {}).to) || { n: 'Koki' }).n + ' !'], null, kobPortrait('tomba')); return; }
+  const today = new Date().toDateString(); if (kobD.bq.day !== today) { kobD.bq.day = today; kobD.bq.cnt = 0; kobD.bq.ord = null; }
+  if (!kobD.bq.ord) {
+    if ((kobD.bq.cnt | 0) >= 2) { openDialog('Tomba', ['Plus de commande de bouquet pour aujourd\'hui ! Reviens me voir demain, les habitants auront sûrement envie de fleurs 🌸'], null, kobPortrait('tomba')); return; }
+    const who = BQ_TO.filter(w => !kobD.bqs || !kobD.bq.last || w.k !== kobD.bq.last), to = who[Math.floor(Math.random() * who.length)];
+    const fl = BQF.map(f => f.k).sort(() => Math.random() - .5).slice(0, 2 + Math.floor(Math.random() * 2)), want = {}; fl.forEach((k, i) => { want[k] = i === 0 && Math.random() < .6 ? 2 : 1; });
+    kobD.bq.ord = { to: to.k, want }; save();
+  }
+  const o = kobD.bq.ord, to = BQ_TO.find(w => w.k === o.to), want = o.want, need = Object.values(want).reduce((a, b) => a + b, 0), lst = Object.keys(want).map(k => want[k] + ' ' + bqName(k).toLowerCase());
+  openDialog('Tomba', [to.n + ' aimerait un bouquet ' + to.pour + ' : ' + lst.join(' et ') + '.', 'Tu veux le composer, Myah ?'], () => mgBqPlay(p, want, need), kobPortrait('tomba'));
 }
 function mgBqPlay(p, want, need) {
   let got = []; mgRestart = () => mgBqPlay(p, want, need);
@@ -3757,13 +3769,14 @@ function mgBqPlay(p, want, need) {
   $('#mgGo').onclick = () => {
     const ok = Object.keys(want).every(k => cnt(k) === want[k]) && got.length === need;
     if (!ok) { sfx.no(); $('#mgM').textContent = 'Relis bien la commande : il y a des fleurs en trop ou en moins.'; return; }
-    sfx.chest(); $('#mgBody').innerHTML = '<div class="kvH">Le bouquet est prêt !</div><div class="kvStage">' + '<div class="mgVase" style="transform:scale(1.4);margin:30px auto 10px">' + $('#mgBou').outerHTML.replace('id="mgBou"', '') + mgS('vase', 78) + '</div>' + '</div><p class="kvMsg"><b>Va vite l\'offrir à Koki, à la boutique !</b></p><div class="kvBtns"><button class="kvBtn" id="mgOk">D\'accord !</button></div>';
-    $('#mgX').style.display = 'none'; kobD.bq.carry = true; save(); $('#mgOk').onclick = mgClose;
+    sfx.chest(); $('#mgBody').innerHTML = '<div class="kvH">Le bouquet est prêt !</div><div class="kvStage">' + '<div class="mgVase" style="transform:scale(1.4);margin:30px auto 10px">' + $('#mgBou').outerHTML.replace('id="mgBou"', '') + mgS('vase', 78) + '</div>' + '</div><p class="kvMsg"><b>Va vite l\'offrir à ' + (BQ_TO.find(w => w.k === (kobD.bq.ord || {}).to) || { n: 'Koki' }).n + ' !</b></p><div class="kvBtns"><button class="kvBtn" id="mgOk">D\'accord !</button></div>';
+    $('#mgX').style.display = 'none'; kobD.bq.carry = true; kobD.bq.got = got.slice(); save(); $('#mgOk').onclick = mgClose;
   };
 }
-function mgBouquetGive() {   // Koki reçoit le bouquet
-  if (!(kobD.bq && kobD.bq.carry)) return false;
-  openDialog('Koki', ['Oh ! Quel magnifique bouquet !', 'Merci Myah, et merci à Tomba. Il sent si bon, je vais le poser sur mon comptoir.'], () => { kobD.bq.carry = false; kobD.bq.n++; const first = !kobD.done.mg_bouq; kobD.done.mg_bouq = true; if (first) { kobD.st++; sfx.star(); say('Une étoile pour ton carnet !', 5); } save(); }, kobPortrait('koki'));
+function mgBouquetGive(k) {   // l'habitant qui l'a commandé reçoit le bouquet et le pose chez lui
+  const o = kobD.bq && kobD.bq.ord; if (!(kobD.bq && kobD.bq.carry) || (o ? o.to : 'koki') !== k) return false;
+  const to = BQ_TO.find(w => w.k === k), T = KOB_TALK[k] || { who: to.n };
+  openDialog(T.who, ['Oh ! Quel magnifique bouquet !', 'Merci Myah, et merci à Tomba. Je vais le poser ' + to.pose + '.'], () => { kobD.bq.carry = false; kobD.bq.n++; kobD.bqs = kobD.bqs || {}; kobD.bqs[k] = kobD.bq.got || Object.keys(o ? o.want : {}); kobD.bq.last = k; kobD.bq.ord = null; kobD.bq.cnt = (kobD.bq.cnt | 0) + 1; inv.shell = (inv.shell | 0) + 1; renderHud(); say('Merci ! +1 coquillage 🐚', 3); const first = !kobD.done.mg_bouq; kobD.done.mg_bouq = true; if (first) { kobD.st++; sfx.star(); say('Une étoile pour ton carnet !', 5); } save(); }, kobPortrait('koki'));
   return true;
 }
 // les points d'interaction : coffres cachés ou objets posés dans les maisons (jamais au dispensaire)
@@ -3821,7 +3834,17 @@ function mgAct() {
 }
 function mgSpark(x, y, r, ph) { const a = .5 + .5 * Math.sin(time * 3 + ph); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#fff6b0'; ctx.translate(x, y); ctx.rotate(Math.PI / 4 * Math.sin(time + ph)); ctx.beginPath(); for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * .3 : r; ctx.lineTo(Math.cos(i * Math.PI / 4) * rr, Math.sin(i * Math.PI / 4) * rr); } ctx.closePath(); ctx.fill(); ctx.restore(); }
 let mgLastSc = null;
+const BQ_IM = {}, BQ_VASE = new Image(); BQ_VASE.src = SOI;
+function bqDrawAll() {   // les bouquets offerts, posés chez les habitants
+  if (!kobD.bqs) return;
+  BQ_TO.forEach(w => { const L = kobD.bqs[w.k]; if (!L || SC !== w.sc() || IN.floor !== 0) return;
+    const m = MGA.vase, vh = 16, vw = vh * m[2] / m[3]; ctx.save(); ctx.globalAlpha = KD_A;
+    L.forEach((k, i) => { const im = BQ_IM[k] || (BQ_IM[k] = Object.assign(new Image(), { src: 'assets/kob4/' + k + '.png' })); if (!im.complete || !im.naturalWidth) return; const h = 18, fw = h * im.naturalWidth / im.naturalHeight, a = (i - (L.length - 1) / 2) * .28; ctx.save(); ctx.translate(w.x, w.y - vh * .8); ctx.rotate(a); ctx.drawImage(im, -fw / 2, -h, fw, h); ctx.restore(); });
+    if (BQ_VASE.complete && BQ_VASE.naturalWidth) ctx.drawImage(BQ_VASE, m[0], m[1], m[2], m[3], w.x - vw / 2, w.y - vh, vw, vh);
+    ctx.restore(); });
+}
 function mgDraw(top) {
+  if (!top) bqDrawAll();
   if (!KANI.complete || !KANI.naturalWidth) return;
   if (!top && SC !== mgLastSc) { mgLastSc = SC; const q = MGP.find(p => p.sc === SC && mgOpen() && !kobD.done['mg_' + p.k] && (!p.eve || isEve())); if (q && q.hint && IN.on) say(q.hint, 5); }
   MGP.forEach(p => {
@@ -4240,7 +4263,7 @@ function drawKobN(n) {
 }
 function kobTalk() {
   if (SC !== SC_KOBHAK && IN.floor !== 0) return false; if (kobHF()) return false; const n = kobList().filter(q => dist(IN.x, IN.y, q.x, q.y) < 58 && !(SC === SC_DISP && q.coolUntil && IN.t < q.coolUntil)).sort((a, b) => dist(IN.x, IN.y, a.x, a.y) - dist(IN.x, IN.y, b.x, b.y))[0]; if (!n) return false;
-  if (n.k === 'koki' && mgBouquetGive()) return true;
+  if (mgBouquetGive(n.k)) return true;
   if (SC === SC_DISP) IN.lastKobN = n; const T = KOB_TALK[n.k]; const first = !kobSeen[n.k]; kobSeen[n.k] = true; n.walk = false; n.wait = 6;
   let lines = first ? T.first : T.again, after = null;
   if (n.ko && kobQ === 4 && !kobKoa[n.k]) { careStart(koalaV(n.k), { x: n.x, y: n.y }); return true; }
