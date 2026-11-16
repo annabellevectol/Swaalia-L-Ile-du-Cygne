@@ -3039,7 +3039,7 @@ const SC_KOBHAK = Object.assign({}, SC_BOAT, {
   blocks: [
     [[285, 448], [435, 425], [440, 500], [425, 552], [300, 552]],      // la boutique souvenir
     [[425, 300], [565, 280], [568, 365], [430, 382]],                    // le dispensaire
-    [[590, 345], [775, 340], [770, 430], [600, 420]],                    // le jardin de plantes
+    [[660, 345], [775, 340], [770, 430], [615, 442], [600, 425], [640, 380]],   // le jardin de plantes (le coin gauche reste libre : on coupe en diagonale par le chemin)
     [[905, 385], [950, 385], [952, 440], [908, 440]],                    // le tronc du grand eucalyptus (juste le pied : on passe à droite pour aller à l'escalier)
     [[1020, 440], [1150, 440], [1150, 570], [1022, 570]],                // la maison en bas à droite
     [[190, 272], [315, 272], [315, 300], [190, 300]],                    // la maison de la falaise
@@ -3199,7 +3199,7 @@ const KOB_TALK = {
 const KOB_N = [
   { k: 'bimba', x: 880, y: 478, r: 40, wp: [[880, 478]] },
   { k: 'tobi', x: 630, y: 605, r: 40, wp: [[630, 605], [648, 614], [614, 600], [640, 622]] },   // Kobi reste là (à l'endroit choisi), sans barrer le chemin
-  { k: 'okai', x: 582, y: 452, r: 40, wp: [[582, 452], [600, 458], [570, 446]] },   // Okaï, le vieux gardien : dehors, près des jardinières
+  { k: 'okai', x: 500, y: 425, r: 40, wp: [[500, 425], [512, 430], [490, 420]] },   // Okaï, le vieux gardien : dehors, près des jardinières
 ].map(n => Object.assign(n, { wi: 0, wait: 3 + Math.random() * 4, fl: false, walk: false, get: () => n, sprite: null }));
 const KOB_D = [{ k: 'maia', x: 735, y: 565, r: 40, wp: [[735, 565], [770, 585], [700, 560], [745, 590]], wi: 0, wait: 3, fl: false, walk: false, get() { return this; }, sprite: null }];   // Docteur Tarah, dans le dispensaire
 function dispList() {   // une fois les plantes cueillies, le docteur Tarah s'écarte du plan de travail : préparer les remèdes ne se chevauche plus avec la discussion
@@ -3590,7 +3590,8 @@ function kobDefiTalk(n) {   // renvoie { lines, after } ou null
   return { lines: D.remind() };
 }
 function kobFruitNear() { if (SC !== SC_KOBHAK || !kobD.acc.fruit) return null; return KFRU.find(f => !kobD.fr[f.k] && dist(IN.x, IN.y, f.x, f.y) < 36); }
-const kobFishNear = () => SC === SC_KOBHAK && (kobQ >= 5 || level === 'balade') && dist(IN.x, IN.y, FISH_SPOT[0], FISH_SPOT[1]) < 40;
+const POND_SPOT = [1112, 318], kobAtPond = () => dist(IN.x, IN.y, POND_SPOT[0], POND_SPOT[1]) < 36;   // on pêche aussi à la mare aux nénuphars
+const kobFishNear = () => SC === SC_KOBHAK && (kobQ >= 5 || level === 'balade') && (dist(IN.x, IN.y, FISH_SPOT[0], FISH_SPOT[1]) < 40 || kobAtPond());
 function kobFruitAct() { const f = kobFruitNear(); if (!f) return false; if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les fruits ! 🧺', 3.2); return true; } kobD.fr[f.k] = true; sfx.pick(); player.dir4 = 'down'; say('Tu as trouvé une ' + f.n + ' ! (' + nFruit() + '/3)' + (nFruit() >= 3 ? ' Va voir Koki à la boutique !' : ''), 4); save(); return true; }
 function kobFishAct() {
   if (player.state === 'fishing') { fishPress(); return true; }
@@ -3817,7 +3818,7 @@ function kobAmbDraw() {
   if (SC !== SC_KOBHAK || !IN.on) return;
   const ns = nightAmt(), dayA = 1 - Math.min(1, ns * 1.6);
   if (dayA > .05) kobBflyList().forEach(({ a, p, gone }) => { if (gone) return; const bi = kobBflyImg(a.i % 5), sp = SPR['bfly' + (a.i % 5)]; if (!bi || !sp) return; const flap = time * 14 + a.ph * 3, sx = .3 + .7 * Math.abs(Math.cos(flap)), sz = 1;
-    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 4, 4, 1.5, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = .88 * dayA; ctx.translate(p.x, p.y - p.z); ctx.rotate(Math.sin(flap * .5) * .15); ctx.scale(sx * sz, sz); ctx.drawImage(bi, -sp.w / 2, -sp.h / 2, sp.w, sp.h); ctx.restore(); });
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 4, 4, 1.5, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = .88 * dayA; ctx.translate(p.x, p.y - p.z); ctx.rotate(Math.sin(flap * .5) * .15); ctx.scale(sx * sz, sz); ctx.globalAlpha *= .8; { const bw = sp.w * 1.1, bh = bw * bi.height / bi.width; ctx.drawImage(bi, -bw / 2, -bh / 2, bw, bh); } ctx.restore(); });
   if (ns > .05) kobFlyList().forEach(({ a, p, gone }) => { if (gone) return; const tw = .45 + .55 * Math.max(0, Math.sin(time * 2.6 + a.ph * 3)), al = Math.min(1, ns * tw * 1.15), y = p.y - p.z + Math.sin(time * 1.7 + a.ph) * 3, c = a.i % 2 ? '120,235,255' : '255,160,225';
     if (al < .03) return; ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(p.x, y, 0, p.x, y, 17); g.addColorStop(0, 'rgba(' + c + ',' + al + ')'); g.addColorStop(.35, 'rgba(' + c + ',' + al * .4 + ')'); g.addColorStop(1, 'rgba(' + c + ',0)'); ctx.fillStyle = g; ctx.fillRect(p.x - 17, y - 17, 34, 34); ctx.fillStyle = 'rgba(255,255,240,' + al + ')'; ctx.beginPath(); ctx.arc(p.x, y, 1.7, 0, TAU); ctx.fill(); ctx.restore(); });
 }
@@ -3853,7 +3854,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
     if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
   }
   if (tool === 'fish') {
-    if (kobFishNear() && !CARE) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
+    if (kobFishNear() && !CARE) drawHalo(kobAtPond() ? { x: POND_SPOT[0], y: POND_SPOT[1], r: 22 } : { x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
   }
 }
 function kobFxDraw() {
@@ -3887,8 +3888,8 @@ function kobBeachFishDraw() {
   if (SC !== SC_KOBHAK || !KDI.complete || !KDI.naturalWidth) return;
   kobBeachFish.forEach(f => {
     if (f.state === 'gone') return;
-    const nim = f.k < 4 && KFI['f' + f.k].naturalWidth ? KFI['f' + f.k] : null, m = nim ? [0, 0, nim.naturalWidth, nim.naturalHeight] : KD_M['fish' + f.k], h = 20, w = h * m[2] / m[3], x = f.x, y = f.y, dir = f.dir;
-    ctx.save(); ctx.globalAlpha = .82; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
+    const nim = f.k < 4 && KFI['f' + f.k].naturalWidth ? KFI['f' + f.k] : null, m = nim ? [0, 0, nim.naturalWidth, nim.naturalHeight] : KD_M['fish' + f.k], w = 24, h = w * m[3] / m[2], x = f.x, y = f.y, dir = f.dir;
+    ctx.save(); ctx.globalAlpha = .7; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.ellipse(x, y + 6, w * .42, 3 + Math.sin(time * 2 + f.ph), 0, 0, TAU); ctx.stroke();
     ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(nim || KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
   });
@@ -3950,6 +3951,7 @@ function kobFishing() {
   player.dir4 = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
   player.face = dx >= 0 ? 1 : -1;
   fs.tx = IN.x + dx / d * 76; fs.ty = IN.y + dy / d * 76;
+  if (kobAtPond()) { fs.tx = 1170; fs.ty = 282; player.dir4 = 'right'; player.face = 1; }
   fs.region = 'kob'; fs.phase = 'cast'; fs.t = 0; fs.caught = false; fs.fish = null; fs.fight = null;
   player.state = 'fishing'; setAnim('fish'); player.fr = 0; sfx.cast();
 }
