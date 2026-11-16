@@ -7609,8 +7609,8 @@ const RECIPES = {
       ['Fais fondre la cire doucement', '', 'oven', { strip: 'mx_melt', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Verse la cire dans le moule', '', 'reveal', { strip: 'mx_mold', n: 3, ar: '520/420', t: 10, fx: 'peel' }]] },
   xhuile: { kob: 'huile', name: 'Huile de cacahuète', emoji: '🥜', need: { arachide: 2 }, ok: 'd_hx', ko: 'd_hx',
-    steps: [['Casse les coques des cacahuètes', '', 'reveal', { strip: 'hx_shell', n: 2, ar: '520/420', t: 12, fx: 'peel' }],
-      ['Écrase les cacahuètes au pilon', '', 'reveal', { strip: 'hx_pile', n: 2, ar: '520/420', t: 14, fx: 'peel' }],
+    steps: [['Tape pour casser les coques des cacahuètes', '', 'tap', { strip: 'hx_shell', frames: 2, n: 12, ar: '520/420', t: 8, fx: 'peel' }],
+      ['Tape avec le pilon pour écraser les cacahuètes', '', 'tap', { strip: 'hx_pile', frames: 2, n: 14, ar: '520/420', t: 9, fx: 'peel' }],
       ['Presse la pâte dans le tissu', '', 'reveal', { strip: 'hx_press', n: 2, ar: '520/420', t: 12, fx: 'peel' }],
       ['Verse l\'huile dans la fiole', '', 'reveal', { strip: 'hx_fill', n: 2, ar: '520/420', t: 10, fx: 'peel' }]] }
 };
@@ -7719,10 +7719,11 @@ function cookTap(S, p, fin) {
   p = Object.assign({}, p, { n: Math.max(3, Math.round(p.n * lvP().tn)), t: p.t + lvP().tm });
   S.insertAdjacentHTML('beforeend', '<div class="pg"><div class="bi"><i></i></div></div><div class="tm">' + p.t + ' s</div>');
   const pg = S.querySelector('.pg i'), tm = S.querySelector('.tm'); let n = 0, t0 = 0;
+  const fr = p.frames, setFr = () => { if (!fr) return; const k = Math.min(fr - 1, Math.floor(n / p.n * fr)); S.style.background = 'url(' + CK_IMG(p.strip) + ') ' + (fr > 1 ? k / (fr - 1) * 100 : 0) + '% 0/' + (fr * 100) + '% 100% no-repeat'; }; setFr();   // images qui changent à chaque tape (coques qui cassent…)
   const loop = t => { if (!t0) t0 = t; const left = p.t - (t - t0) / 1000; if (n === 0) { tm.textContent = '👆 tape !'; t0 = t; } else tm.textContent = Math.max(0, Math.ceil(left)) + ' s'; if (n > 0 && left <= 0) return fin(n / p.n); CK.raf = requestAnimationFrame(loop); };
   CK.raf = requestAnimationFrame(loop);
   CK.kd = () => { const r = S.getBoundingClientRect(); S.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: r.left + r.width * (.3 + Math.random() * .4), clientY: r.top + r.height * (.35 + Math.random() * .25) })); };
-  S.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); n++; if (n === 1) t0 = performance.now(); { const r = S.getBoundingClientRect(); const f = fxPick(p, 0); if (f) fxAt(S, f, ((e.clientX - r.left) / r.width * 100) || 50, ((e.clientY - r.top) / r.height * 100) || 45, { w: 20 }); } pg.style.width = Math.min(100, n / p.n * 100) + '%'; sfx.blip && sfx.blip(); S.style.transform = 'scale(.985)'; setTimeout(() => S.style.transform = '', 80); if (n >= p.n) fin(1); });
+  S.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); n++; if (n === 1) t0 = performance.now(); { const r = S.getBoundingClientRect(); const f = fxPick(p, 0); if (f) fxAt(S, f, ((e.clientX - r.left) / r.width * 100) || 50, ((e.clientY - r.top) / r.height * 100) || 45, { w: 20 }); } pg.style.width = Math.min(100, n / p.n * 100) + '%'; setFr(); sfx.blip && sfx.blip(); S.style.transform = 'scale(.985)'; setTimeout(() => S.style.transform = '', 80); if (n >= p.n) fin(1); });
 }
 function cookStir(S, p, fin) {
   p = Object.assign({}, p, { turns: p.turns * lvP().nm, t: p.t + lvP().tm });
