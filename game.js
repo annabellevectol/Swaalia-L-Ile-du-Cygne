@@ -3239,7 +3239,7 @@ const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 
 const KOB_PIMG = new Image();
 let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » dans le carnet, étape de l'aventure (0 pas commencée, 1 cueillette, 2 tout est cueilli, 3 remèdes)
 const KOB_REGROW = 90000;
-const RUCHE = { x: 393, y: 356 }, LAD = { x: 421, y: 400 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=2'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
+const RUCHE = { x: 393, y: 322 }, LAD = { x: 421, y: 400 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=2'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
 const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.cut = {});   // plantes dans le panier, et moment de la cueillette
 const kobGrown = p => !kobCut()[p.k] || Date.now() - kobCut()[p.k] > KOB_REGROW;
 const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
