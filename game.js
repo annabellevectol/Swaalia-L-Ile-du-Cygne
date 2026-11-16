@@ -3826,7 +3826,7 @@ function wmDrawMyah() {
   ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2d6f78'; ctx.lineWidth = 2.5; ctx.textAlign = 'center'; if (WM.playing) for (let i = 0; i < 3; i++) { const u = (time * .35 + i / 3) % 1; ctx.globalAlpha = Math.sin(u * Math.PI); ctx.font = (13 + i * 2) + 'px "Trebuchet MS",sans-serif'; const nx = IN.x + (i - 1) * 22 + Math.sin(u * 6 + i) * 5, ny = IN.y - h - 2 - u * 26; ctx.strokeText('♪', nx, ny); ctx.fillText('♪', nx, ny); } ctx.restore();
 }
 const mgOpen = () => kobQ >= 5 || vetShowAll || level === 'balade';   // mini-jeux des habitants : ouverts dès l'arrivée en Balade, sinon après la guérison des koalas
-const mgOn = p => p.sc === SC && IN.floor === (p.fl || 0) && (mgOpen() || (p.k === 'memory' && kobQ >= 1));   // le mémory est ouvert dès l'arrivée sur l'île
+const mgOn = p => p.sc === SC && IN.floor === (p.fl || 0) && (mgOpen() || p.k === 'memory');   // le mémory est ouvert dès l'arrivée sur l'île
 const mgNear = () => MGP.find(p => mgOn(p) && dist(IN.x, IN.y, p.sx, p.sy) < (p.r || 46));
 function mgAct() {
   const p = mgNear(); if (!p) return false;
@@ -3847,7 +3847,7 @@ function bqDrawAll() {   // les bouquets offerts, posés chez les habitants
 function mgDraw(top) {
   if (!top) bqDrawAll();
   if (!KANI.complete || !KANI.naturalWidth) return;
-  if (!top && SC !== mgLastSc) { mgLastSc = SC; const q = MGP.find(p => p.sc === SC && mgOpen() && !kobD.done['mg_' + p.k] && (!p.eve || isEve())); if (q && q.hint && IN.on) say(q.hint, 5); }
+  if (!top && SC !== mgLastSc) { mgLastSc = SC; const q = MGP.find(p => p.sc === SC && (mgOpen() || p.k === 'memory') && !kobD.done['mg_' + p.k] && (!p.eve || isEve())); if (q && q.hint && IN.on) say(q.hint, 5); }
   MGP.forEach(p => {
     if (!mgOn(p) || ((p.kind !== 'chest') || !!p.top) !== !!top) return; const done = !!kobD.done['mg_' + p.k], live = !p.eve || isEve(), draw = (key, h) => { const m = MGA[key], w = h * m[2] / m[3]; ctx.save(); ctx.translate(p.x, p.y); if (p.flip) ctx.scale(-1, 1); if (p.rot) ctx.rotate(p.rot); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); return [w, h]; };
     let wh;
