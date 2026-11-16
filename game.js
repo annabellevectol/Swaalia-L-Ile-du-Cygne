@@ -1432,7 +1432,7 @@ press($('#tMute'), () => { muted = !muted; $('#tMute').classList.toggle('off', m
 press($('#setSound'), () => { muted = !muted; $('#tMute').classList.toggle('off', muted); $('#mute').textContent = muted ? '🔇' : '🔊'; setSoundTxt(); musApply(); });
 $('#inv').addEventListener('pointerdown', e => { const jb = e.target.closest('.jb'), jf = e.target.closest('.jfree'); if (jb || jf) { e.preventDefault(); e.stopPropagation(); audio(); if (jb) { if (jb.dataset.jk === 'aqua') makeAqua(); else makeJar(jb.dataset.jk); } else freeJar(jf.dataset.jid); return; }
   const jo = e.target.closest('.jo'); if (jo) { e.preventDefault(); e.stopPropagation(); audio(); makeJarObj(jo.dataset.jo); return; } const b = e.target.closest('.btab'); if (!b) return; e.preventDefault(); e.stopPropagation(); audio(); bagTab = b.dataset.bt; renderHud(); });
-$('#quests').addEventListener('pointerdown', e => { const b = e.target.closest('.qtab'); if (!b) return; e.preventDefault(); e.stopPropagation(); audio(); questTab = b.dataset.qt; renderHud(); });
+$('#quests').addEventListener('pointerdown', e => { const b = e.target.closest('.qtab'); if (!b) return; e.preventDefault(); e.stopPropagation(); audio(); if (b.dataset.qi) { questIsl = b.dataset.qi; renderHud(); return; } questTab = b.dataset.qt; renderHud(); });
 const setLevelTxt = () => { tileSet('#setLevel', '<img src="assets/ui/lv_' + level + '.png" alt="" style="height:34px;width:auto">', LEVEL_NAME[level].replace(/^\S+\s/, '')); };
 document.querySelectorAll('#lvBtns button').forEach(b => b.addEventListener('click', () => { audio(); $('#lvSel').value = b.dataset.v; document.querySelectorAll('#lvBtns button').forEach(x => x.classList.toggle('sel', x === b)); }));
 press($('#setLevel'), () => { setLevel(LEVELS[(LEVELS.indexOf(level) + 1) % LEVELS.length]); setLevelTxt(); save(); renderHud(); $('#setMsg').textContent = level === 'balade' ? 'Balade : la pêche est toute douce 🌿' : level === 'aventure' ? 'Aventure : un petit défi 🐟' : 'Défi : pour les pros de la canne 🔥'; });
@@ -1692,7 +1692,7 @@ function bagItemsHtml() {
   h += '</div><div class="bitems"><b>' + bt[0] + '</b><div class="bgrid">' + cat[2].map(([k, n]) => { const dl = BAG_SUB[k] && inv[k] ? dishList(k) : null, best = dl && dl.length ? Math.max.apply(null, dl) : 0, jk = k === 'firefly' ? 'fly' : k === 'butterfly' ? 'bfly' : k === 'fish' ? 'aqua' : null, jb = jk === 'aqua' ? (inv.fish > 0 && inv.aqua > 0 ? '<button class="jb" data-jk="aqua">En aquarium</button>' : '') : jk && inv[k] > 0 && inv.jar > 0 ? '<button class="jb" data-jk="' + jk + '">En bocal</button>' : ''; return '<div class="bc' + (inv[k] ? '' : ' z') + '"><span class="bcc">' + (inv[k] || 0) + '</span><span class="bci">' + (BAG_SUB[k] ? dishImg(k) : bagIco(k)) + '</span><span class="bcn">' + n + '</span>' + (best ? '<small>' + '★'.repeat(best) + '</small>' : '') + jb + '</div>'; }).join('') + '</div>' + (cat[2].some(([k]) => inv[k]) ? '' : '<small class="jnote">Rien ici pour le moment. Va en chercher !</small>') + '</div>';
   return h;
 }
-let questTab = 'todo';
+let questTab = 'todo', questIsl = null;   // onglet d'île choisi (null = l'île où on est)
 const SCI = ['🐟 <b>Observation 1</b> : au bord du lac, les fines particules de la plume se déposent dans l\'eau. Un petit poisson est venu s\'en nourrir.',
   '🌱 <b>Observation 2</b> : les plumes agissent comme un engrais naturel. Autour de la flaque, l\'herbe est plus verte qu\'ailleurs.',
   '💧 <b>Observation 3</b> : les particules piègent la vase. Près de la rive, l\'eau est devenue plus transparente.',
@@ -1711,6 +1711,14 @@ function renderHud() {
   $('#inv').innerHTML = emoFix(h);
   { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
+  let kq = 0, isl = 'swan'; try { kq = kobQ; isl = questIsl || (IN.on && kobScene() ? 'kob' : 'swan'); } catch (e) {}
+  if (kq >= 1) t += `<div class="qtabs"><button class="qtab ${isl === 'swan' ? 'sel' : ''}" data-qi="swan">🦢 Île du Cygne</button><button class="qtab ${isl === 'kob' ? 'sel' : ''}" data-qi="kob">🐨 Île aux Koalas</button></div>`;
+  if (kq >= 1 && isl === 'kob') {
+    const KS = ['Parler au docteur Tarah', 'Cueillir toutes les plantes de l\'île', 'Retourner voir le docteur Tarah', 'Préparer la tisane au poste de soin', 'Soigner la famille koala', 'Retourner voir le docteur Tarah', 'Soigner les animaux malades de l\'île', 'Retourner voir le docteur Tarah'];
+    t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
+    if (kobQ >= KS.length) t += '<div class="q done"><span>Tous les animaux de l\'île sont soignés 🐨</span><span class="cnt">✔</span></div>';
+    $('#quests').innerHTML = emoFix(t);
+  } else {
   const seen = QUESTS.filter(q => qState[q.id] !== 'new');
   const line = q => {
     const st = qState[q.id], lock = !unlocked(q);
@@ -1736,6 +1744,7 @@ function renderHud() {
   const sw = phase === 'quests' || phase === 'reveal';
   if (storyOn() && !sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''}"><span>🦢 Rendre les plumes au Cygne</span><span class="cnt">${phase === 'returned' ? '✔' : '! lac'}</span></div>`;
   $('#quests').innerHTML = emoFix(t);
+  }
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
   const act = QUESTS.filter(q => qState[q.id] === 'active').length + QUESTS.filter(q => qState[q.id] === 'done' && !opened[q.id]).length;
   { const sn = $('#scrN'); sn.textContent = act || '!'; sn.classList.toggle('show', act > 0); }
