@@ -4227,7 +4227,7 @@ function kobTalk() {
     openDialog(KOB_TALK.maia.who, ['Bravo pour les koalas, Myah !', 'Pour certaines recettes, tu auras besoin des produits de la ruche, près du poste de soin : le miel et la cire.', 'Pour récolter, il te faut d\'abord une tenue d\'apicultrice. Koki en vend à la boutique de la plage !'], () => { kobD.apiInfo = 1; save(); player.state = 'free'; }, ''); return true; }
   if (n.k === 'maia') {
     const pend = VET.filter(v => vetS[v.k] === 1 && !vetAdv[v.k]);
-    if (kobQ === 0) { lines = T.first; after = () => { kobQ = 1; kobHud(); say('Le carnet de plantes est dans ton coin d\'écran !', 5); save(); }; }
+    if (kobQ === 0) { lines = T.first.concat(['Tiens, voici mon carnet de plantes : chaque plante y est dessinée, pour que tu saches à quoi elle ressemble.', 'Quand un remède te demande une plante, ouvre le carnet pour la reconnaître. Regardons-le ensemble !']); after = () => { kobQ = 1; kobHud(); save(); setTimeout(() => { kobBkOpenNow(); say('📖 Ton carnet de plantes ! Tu le retrouves à tout moment avec le bouton dans ton coin d\'écran.', 6); }, 400); }; }
     else if (kobQ === 2) { lines = ['Tu as trouvé toutes les plantes ? Bravo, Myah !', 'Viens, on prépare la tisane ensemble : mortier, pilon, casserole...']; after = () => { kobQ = 3; kobHud(); save(); kobRem(); }; }
     else if (kobQ === 3) { lines = ['On prépare la tisane ? Je te regarde faire !']; after = () => kobRem(); }
     else if (kobQ === 4) lines = ['Va donner la tisane à la famille koala, sous le grand eucalyptus. N\'oublie pas ta mallette !'];
