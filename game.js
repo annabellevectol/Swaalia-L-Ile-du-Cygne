@@ -3274,6 +3274,7 @@ function kobGather() {
 const ECHL = new Image(); ECHL.src = 'assets/kob2/echelle.png?v=1';
 const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=4'; return m; });
 function kobClimb() {   // on monte soi-même à l'échelle ; en haut, on touche la ruche pour récolter
+  if (!mini.api && !kobD.apiTip) { kobD.apiTip = 1; save(); say(mini.apiOwn ? 'Conseil : mets ta tenue d\'apicultrice au vestiaire, les abeilles piquent ! 🐝' : 'Conseil : Bimba vend une tenue d\'apicultrice pour 2 coquillages, les abeilles piquent ! 🐝', 4.5); }
   player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 }; say('Myah grimpe à l\'échelle…', 1.4);
   setTimeout(() => { if (!IN.hive) return; IN.hive = { i: 2, top: true, cut: 0 }; say(kobGrown({ k: 'ruche' }) ? 'Touche la ruche pour récolter un rayon ! 🐝' : 'La ruche est presque vide… touche-la pour redescendre.', 3); }, 1100);
 }
@@ -4220,6 +4221,9 @@ function kobTalk() {
     if (a) { lines = a.tell; after = () => { vetS[a.k] = 1; say('Un animal a besoin de toi : va demander conseil au docteur Tarah !', 6); save(); }; }
     else if (VET.some(v => vetS[v.k] === 1) && !n.ko) lines = ['Occupe-toi d\'abord de l\'animal malade, Myah ! Je te dirai si un autre a besoin de toi.'];
   }
+  if (n.k === 'bimba' && kobQ >= 2 && !mini.apiOwn && !after) {   // Bimba vend la tenue d'apicultrice (2 coquillages, une seule fois)
+    lines = ['Tu veux récolter le miel de la ruche ? Il te faut une tenue d\'apicultrice, sinon gare aux piqûres !', 'J\'en ai cousu une à ta taille. Elle est à toi pour 2 coquillages.'];
+    after = () => { if ((inv.shell | 0) >= 2) { inv.shell -= 2; mini.apiOwn = 1; mini.api = 1; save(); renderHud(); sfx.chest && sfx.chest(); say('Tenue d\'apicultrice achetée ! Tu la retrouves au vestiaire 🐝', 4.5); } else say('Il te faut 2 coquillages. Cherche-les sur la plage !', 4); }; }
   if (!n.ko && n.k !== 'maia' && !after) { const df = kobDefiTalk(n); if (df) { lines = df.lines; after = df.after || null; } }
   openDialog(T.who, lines, after, kobPortrait(n.k)); return true;
 }
@@ -6553,14 +6557,17 @@ function setOutfit(o) {
 }
 setInterval(() => { if (outfitDirty) bakeOutfit(); }, 300);
 const myImg = sheet => outSheet[sheet] || img['m_' + sheet];
+const APIIMG = new Image(); APIIMG.src = 'assets/myah/api_walk.png?v=1';   // la tenue d'apicultrice (vestiaire)
+const apiOn = () => mini.api && mini.apiOwn && APIIMG.naturalWidth;
 function myFrame(sheet, name, x, y, flip, lift = 0, scale = 1, cutTop = 0, cutH = 256) {
+  let api = false; if (apiOn() && /^walk(rod|bask|net)?$/.test(sheet) && myIdx.walk[name] !== undefined) { sheet = 'walk'; api = true; }
   const i = myIdx[sheet][name]; if (i === undefined) return;
   if (FIX[sheet]) scale *= FIX[sheet][name] || 1;
   const cols = MY[sheet].cols, sx = (i % cols) * 256, sy = Math.floor(i / cols) * 256, s = MS * scale;
   ctx.save(); ctx.translate(x, y - lift); ctx.scale(flip ? -1 : 1, 1);
   ctx.filter = 'contrast(1.06)';
-  ctx.drawImage(myImg(sheet), sx, sy + cutTop, 256, cutH, -128 * s, (-212 + cutTop) * s, 256 * s, cutH * s);
-  ctx.globalAlpha = SOLID_A; ctx.drawImage(myImg(sheet), sx, sy + cutTop, 256, cutH, -128 * s, (-212 + cutTop) * s, 256 * s, cutH * s);
+  ctx.drawImage(api ? APIIMG : myImg(sheet), sx, sy + cutTop, 256, cutH, -128 * s, (-212 + cutTop) * s, 256 * s, cutH * s);
+  ctx.globalAlpha = SOLID_A; ctx.drawImage(api ? APIIMG : myImg(sheet), sx, sy + cutTop, 256, cutH, -128 * s, (-212 + cutTop) * s, 256 * s, cutH * s);
   ctx.restore();
 }
 const cyc = (arr, rate) => arr[Math.floor(time * rate) % arr.length];
@@ -7076,6 +7083,8 @@ $('#wdLum').addEventListener('input', e => { let t = wdTarget(); const l = (+e.t
 $('#wdOrig').addEventListener('click', () => { if (wd.part === 'neck') { wd.o.neckCols = Array(13).fill(null); wdDraw(); return; } wdSetTarget(null); wdDraw(); });
 $('#wdBagStkClr').addEventListener('click', () => { wd.o.bagStk = []; wdDraw(); });
 $('#wdBagOn').addEventListener('click', () => { wd.o.bagOn = !wd.o.bagOn; wdDraw(); });
+const wdApiLbl = () => { const b = $('#wdApi'); if (b) { b.style.display = mini.apiOwn ? 'block' : 'none'; b.textContent = '🐝 Tenue d\'apicultrice : ' + (mini.api ? 'OUI' : 'NON'); b.classList.toggle('on', !!mini.api); } };
+$('#wdApi').addEventListener('click', () => { if (!mini.apiOwn) { sfx.no && sfx.no(); say('La tenue d\'apicultrice se trouve chez Bimba, sur l\'île aux Koalas (2 coquillages) 🐝', 4); return; } mini.api = mini.api ? 0 : 1; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); setInterval(wdApiLbl, 500);
 $('#wdStkDel').addEventListener('click', () => { if (wd.sel >= 0) { wd.o.stickers.splice(wd.sel, 1); wd.sel = -1; wdDraw(); } });
 $('#wdStkClr').addEventListener('click', () => { wd.o.stickers = []; wd.sel = -1; wdDraw(); });
 press($('#wdHelpBtn'), () => { $('#wdHelp').style.display = 'grid'; });
