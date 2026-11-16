@@ -3253,6 +3253,7 @@ const KOB_BEDS = [   // jardinières de Tomba : on y récolte de quoi cuisiner c
   { ck: 'bed1', k: 'citronnelle', n: 'Citronnelle', x: 692, y: 414 },
   { ck: 'bed2', k: 'patate', n: 'Patate douce violette', x: 744, y: 390 },
   { ck: 'bed3', k: 'citronnelle', n: 'Citronnelle', x: 676, y: 366 }];
+function kobFlPick(f, n) { const k = 'bq' + f.i.slice(2); kobD.fls = kobD.fls || {}; kobD.fls[k] = (kobD.fls[k] | 0) + 1; kobCut()['fl' + n] = Date.now(); save(); sfx.pick && sfx.pick(); say(bqName(k) + ' cueillie ! Tu en as ' + kobD.fls[k] + ' pour tes bouquets 💐', 3.4); }
 function kobBedPick(b) { inv[b.k] = (inv[b.k] || 0) + 1; kobCut()[b.ck] = Date.now(); save(); renderHud(); sfx.pick && sfx.pick(); say(b.n + ' récoltée ! Tu en as ' + inv[b.k] + '. Elle repoussera bientôt 🌱', 3.4); }
 const KOB_PLT = [
   { k: 'euca', n: 'Eucalyptus argenté', x: 693, y: 326, d: 'Ses feuilles argentées font du bien quand on tousse.' },
@@ -3279,7 +3280,7 @@ function kobDrawPlants() {
     if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
-  KOB_FL.forEach(f => { const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = f.h || 20, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
+  KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = f.h || 20, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
   KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
@@ -3760,17 +3761,17 @@ function mgBouquet(p) {
 }
 function mgBqPlay(p, want, need) {
   let got = []; mgRestart = () => mgBqPlay(p, want, need);
-  mgShow('Un bouquet pour Koki', '<div class="mgBq"><div class="mgSlip"><b>La commande</b>' + Object.keys(want).map(k => '<div class="mgSl" data-k="' + k + '">' + bqImg(k, 34) + '<span>× ' + want[k] + '</span></div>').join('') + '</div><div class="mgVase"><div class="mgBou" id="mgBou"></div>' + mgS('vase', 78) + '</div><div class="mgPl">' + BQF.map(q => '<button class="mgPb" data-k="' + q.k + '">' + bqImg(q.k, 44) + '<span>' + q.s + '</span></button>').join('') + '</div></div><p class="kvMsg" id="mgM">Touche les fleurs pour les mettre dans le vase.</p><div class="kvBtns"><button class="kvBtn alt" id="mgUn">Enlever</button><button class="kvBtn" id="mgGo">C\'est prêt !</button></div>');
+  mgShow('Un bouquet pour Koki', '<div class="mgBq"><div class="mgSlip"><b>La commande</b>' + Object.keys(want).map(k => '<div class="mgSl" data-k="' + k + '">' + bqImg(k, 34) + '<span>× ' + want[k] + '</span></div>').join('') + '</div><div class="mgVase"><div class="mgBou" id="mgBou"></div>' + mgS('vase', 78) + '</div><div class="mgPl">' + BQF.map(q => '<button class="mgPb" data-k="' + q.k + '">' + bqImg(q.k, 44) + '<span>' + q.s + ' <b class="bqN"></b></span></button>').join('') + '</div></div><p class="kvMsg" id="mgM">Touche les fleurs pour les mettre dans le vase. Les fleurs se cueillent sur l\'île 🌸</p><div class="kvBtns"><button class="kvBtn alt" id="mgUn">Enlever</button><button class="kvBtn" id="mgGo">C\'est prêt !</button></div>');
   const cnt = k => got.filter(x => x === k).length;
-  const draw = () => { $('#mgBou').innerHTML = got.map((k, i) => { const a = (i - (got.length - 1) / 2) * 16; return '<i style="position:absolute;left:50%;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotate(' + a + 'deg)">' + bqImg(k, 62) + '</i>'; }).join(''); document.querySelectorAll('.mgSl').forEach(s => { const k = s.dataset.k; s.classList.toggle('ok', cnt(k) === want[k]); s.querySelector('span').textContent = cnt(k) + ' / ' + want[k]; }); };
+  const draw = () => { $('#mgBou').innerHTML = got.map((k, i) => { const a = (i - (got.length - 1) / 2) * 16; return '<i style="position:absolute;left:50%;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotate(' + a + 'deg)">' + bqImg(k, 62) + '</i>'; }).join(''); document.querySelectorAll('.mgPb').forEach(b => { const k = b.dataset.k, left = ((kobD.fls || {})[k] | 0) - cnt(k); b.querySelector('.bqN').textContent = '×' + left; b.style.opacity = left > 0 ? 1 : .45; }); document.querySelectorAll('.mgSl').forEach(s => { const k = s.dataset.k; s.classList.toggle('ok', cnt(k) === want[k]); s.querySelector('span').textContent = cnt(k) + ' / ' + want[k]; }); };
   draw();
-  document.querySelectorAll('.mgPb').forEach(b => b.onclick = () => { if (got.length >= need + 2) { $('#mgM').textContent = 'Le vase est plein !'; return; } got.push(b.dataset.k); sfx.pick(); draw(); });
+  document.querySelectorAll('.mgPb').forEach(b => b.onclick = () => { if (got.length >= need + 2) { $('#mgM').textContent = 'Le vase est plein !'; return; } if (((kobD.fls || {})[b.dataset.k] | 0) - cnt(b.dataset.k) <= 0) { sfx.no(); $('#mgM').textContent = 'Plus de « ' + bqName(b.dataset.k) + ' » : va en cueillir sur l\'île 🌸'; return; } got.push(b.dataset.k); sfx.pick(); draw(); });
   $('#mgUn').onclick = () => { got.pop(); sfx.pick(); draw(); };
   $('#mgGo').onclick = () => {
     const ok = Object.keys(want).every(k => cnt(k) === want[k]) && got.length === need;
     if (!ok) { sfx.no(); $('#mgM').textContent = 'Relis bien la commande : il y a des fleurs en trop ou en moins.'; return; }
     sfx.chest(); $('#mgBody').innerHTML = '<div class="kvH">Le bouquet est prêt !</div><div class="kvStage">' + '<div class="mgVase" style="transform:scale(1.4);margin:30px auto 10px">' + $('#mgBou').outerHTML.replace('id="mgBou"', '') + mgS('vase', 78) + '</div>' + '</div><p class="kvMsg"><b>Va vite l\'offrir à ' + (BQ_TO.find(w => w.k === (kobD.bq.ord || {}).to) || { n: 'Koki' }).n + ' !</b></p><div class="kvBtns"><button class="kvBtn" id="mgOk">D\'accord !</button></div>';
-    $('#mgX').style.display = 'none'; kobD.bq.carry = true; kobD.bq.got = got.slice(); save(); $('#mgOk').onclick = mgClose;
+    $('#mgX').style.display = 'none'; kobD.bq.carry = true; kobD.bq.got = got.slice(); got.forEach(k => { kobD.fls[k]--; }); save(); $('#mgOk').onclick = mgClose;
   };
 }
 function mgBouquetGive(k) {   // l'habitant qui l'a commandé reçoit le bouquet et le pose chez lui
@@ -5811,6 +5812,7 @@ function tapSpots() {
   if (!kobHF()) MGP.forEach(p => { if (mgOn(p) && dist(IN.x, IN.y, p.sx, p.sy) < (p.r || 46) + 45) L.push({ id: 'mg_' + p.k, big: 1, x: p.x, y: p.y - (p.kind === 'chest' ? p.h * .55 : p.kind === 'vase' ? 30 : 16), go: () => { actQueued = false; if (dist(IN.x, IN.y, p.sx, p.sy) > (p.r || 46)) { 0; return; } mgAct(); } }); });
   if (SC === SC_MK4 && (wmNear() || dist(IN.x, IN.y, WM.sx, WM.sy) < 120 || dist(IN.x, IN.y, WM.x, WM.y) < 100)) L.push({ id: 'wm', big: 1, x: WM.x, y: WM.y - 28, go: () => { actQueued = false; if (!wmAct()) 0; } });   // le walkman posé au sol
   if (IN.floor !== 0) return L;   // petit halo + rond doré devant chaque mini-jeu (comme sur l'île du Cygne)
+  if (SC === SC_KOBHAK && IN.floor === 0) KOB_FL.forEach((f, n) => { if (dist(IN.x, IN.y, f.x, f.y) < 38 && kobGrown({ k: 'fl' + n })) L.push({ id: 'kfl' + n, x: f.x, y: f.y - 14, dot: true, go: () => { actQueued = false; kobFlPick(f, n); } }); });   // fleurs sauvages à cueillir
   if (SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0) KOB_BEDS.forEach(b => { if (dist(IN.x, IN.y, b.x, b.y) < 45 && kobGrown({ k: b.ck })) L.push({ id: 'kbed_' + b.ck, x: b.x, y: b.y - 18, dot: true, go: () => { actQueued = false; kobBedPick(b); } }); });   // les jardinières de Tomba
   if (SC === SC_KOBHAK && !handsFull()) KOB_PL.forEach(q => { if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) < (q.r || 32) + 55 || (q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 85)) L.push({ id: 'kpl_' + q.txt, big: 0, x: q.hl ? q.hl[0] : q.spot[0], y: q.hl ? q.hl[1] : q.spot[1] - 6, go: () => { actQueued = false; if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) > (q.r || 32) + 30 && !(q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 70)) { 0; return; } askDisp(true, q); } }); });   // halo doré + rond devant chaque porte de l'île aux Koalas
   if (IN.shower) return [{ id: 'shower', x: SHOWER.x, y: SHOWER.y - 128, on: 1, go: () => { tutDone('shower'); showerOff(); } }];
