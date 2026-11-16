@@ -3271,13 +3271,14 @@ function kobGather() {
   if (!left) { kobQ = 2; say('Tout est cueilli ! Retourne voir le docteur Tarah !', 5); } else say(p.n + ' cueilli (encore ' + left + ')', 3);
   kobHud(); save(); return true;
 }
-function kobLadder(done) {   // Myah grimpe à l'échelle, enfume la ruche, découpe un rayon et redescend
-  const o = document.createElement('div'), h = Math.min(innerHeight * .62, 420); let i = 0, tm = 0;
-  o.style.cssText = 'position:fixed;inset:0;z-index:74;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif';
+const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=2'; return m; });
+function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, enfume la ruche, découpe un rayon et redescend
   const T = ['Myah grimpe à l\'échelle…', 'Un peu de fumée pour calmer les abeilles…', 'Elle découpe un morceau de rayon…', 'Et redescend avec le rayon !'];
-  const show = () => { if (i >= 4) { clearTimeout(tm); o.remove(); done && done(); return; } o.innerHTML = '<img src="assets/kob2/ech' + i + '.png?v=1" style="height:' + h + 'px;animation:gpop .4s ease"><div style="margin-top:8px;background:#fff8e7;border-radius:14px;padding:8px 16px;font-weight:700;color:#5b3b1f">' + T[i] + '</div>'; if (i === 2) sfx.pick && sfx.pick(); i++; tm = setTimeout(show, 1500); };
-  player.mvx = player.mvy = 0; o.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); clearTimeout(tm); show(); }); document.body.appendChild(o); show();
+  player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 };
+  const step = i => { if (i >= 4) { IN.hive = null; player.state = 'free'; actBlock = time + .5; done && done(); return; } IN.hive.i = i; say(T[i], 1.6); if (i === 2) sfx.pick && sfx.pick(); setTimeout(() => step(i + 1), 1600); };
+  step(0);
 }
+function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .155; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(388, 418, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.drawImage(m, 388 - 180 * k, 418 - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }
 function kobPrep(id) {   // mini-jeu « façon Cooking Mama » lancé depuis le poste de soin
   $('#remOv').style.display = 'none'; if (id === 'xmiel') kobHS().rayon = Math.max(0, (kobHS().rayon | 0) - 1);
   prefetch(MG_FILES.cook, true); if (!CK.el) cookBuild(); cookStop(); player.state = 'talk'; audio(); CK.el.classList.add('on'); cookStart(id);
@@ -5945,7 +5946,7 @@ function renderInterior(vw, vh) {
     }
     if (t.fg === 'table') { ctx.save(); ctx.beginPath(); TABLE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); if (SC === SC_HOME) drawTblItems(2); ctx.restore(); }
   };
-  const drawMy = () => { if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
+  const drawMy = () => { if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
     const bh = 46 * IN_K * .76, d4 = player.dir4 || 'down', bwob = Math.abs(Math.sin(time * 8)) * 1.3 * (Math.hypot(player.mvx || 0, player.mvy || 0) > .1 ? 1 : 0);
     
