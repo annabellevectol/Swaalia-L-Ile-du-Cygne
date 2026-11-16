@@ -3248,6 +3248,7 @@ const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
   if (kobQ >= 2 && ECHL.complete && ECHL.naturalWidth) { const k = .11; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
+  if (IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 12, r: 18 });
   if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
@@ -3259,9 +3260,7 @@ function kobDrawPlants() {
   // un halo doré (dessiné avec les autres halos) montre ce qu'on peut cueillir
 }
 function kobGather() {
-  if (rucheNear()) { if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour récolter la ruche ! Grimpe à l\'échelle 🧺', 3.2); return true; }
-    if (!kobGrown({ k: 'ruche' })) { say('Les abeilles refont leur cire… reviens un peu plus tard ! 🐝', 3); return true; }
-    kobHS().rayon = (kobHS().rayon | 0) + 1; kobCut().ruche = Date.now(); save(); kobLadder(() => kobHold(0, 'Un rayon de miel ! Prépare le miel et la cire au poste de soin 🍯')); return true; }
+  if (rucheNear() && !IN.hive) { kobClimb(); return true; }
   const p = kobPlantNear(); if (!p) return false;
   if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les plantes ! 🧺', 3.2); return true; }
   const first = !kobPick[p.k]; kobPick[p.k] = true; if (first) kobNew[p.k] = true; sfx.pick(); player.dir4 = 'down';
@@ -3273,13 +3272,21 @@ function kobGather() {
   kobHud(); save(); return true;
 }
 const ECHL = new Image(); ECHL.src = 'assets/kob2/echelle.png?v=1';
-const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=3'; return m; });
-function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, enfume la ruche, découpe un rayon et redescend
-  const T = ['Myah grimpe à l\'échelle…', 'Un peu de fumée pour calmer les abeilles…', 'Elle découpe un morceau de rayon…', 'Et redescend avec le rayon !'];
-  player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 };
-  const step = i => { if (i >= 4) { IN.hive = null; player.state = 'free'; actBlock = time + .5; done && done(); return; } IN.hive.i = i; say(T[i], 1.6); if (i === 2) sfx.pick && sfx.pick(); setTimeout(() => step(i + 1), 1600); };
-  step(0);
+const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=4'; return m; });
+function kobClimb() {   // on monte soi-même à l'échelle ; en haut, on touche la ruche pour récolter
+  player.mvx = player.mvy = 0; player.state = 'talk'; IN.hive = { i: 0 }; say('Myah grimpe à l\'échelle…', 1.4);
+  setTimeout(() => { if (!IN.hive) return; IN.hive = { i: 2, top: true, cut: 0 }; say(kobGrown({ k: 'ruche' }) ? 'Touche la ruche pour récolter un rayon ! 🐝' : 'La ruche est presque vide… touche-la pour redescendre.', 3); }, 1100);
 }
+function kobHiveTap() {
+  const h = IN.hive; if (!h || !h.top || h.busy) return; h.busy = true;
+  const down = (got) => { h.i = 3; h.top = false; setTimeout(() => { IN.hive = null; player.state = 'free'; actBlock = time + .5; if (got) kobHold(0, 'Un rayon de miel ! Prépare le miel et la cire au poste de soin 🍯'); }, 1300); };
+  if (!kobGrown({ k: 'ruche' })) { say('Les abeilles refont leur cire… reviens plus tard !', 2.4); return down(false); }
+  if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour récolter ! 🧺', 2.6); h.busy = false; return; }
+  h.i = 1; say('Un peu de fumée pour calmer les abeilles…', 1.4);
+  setTimeout(() => { h.i = 2; sfx.pick && sfx.pick(); say('Elle découpe un morceau de rayon…', 1.4); kobHS().rayon = (kobHS().rayon | 0) + 1; kobCut().ruche = Date.now(); save(); setTimeout(() => { say('Et redescend avec le rayon !', 1.3); down(true); }, 1300); }, 1300);
+}
+cv.addEventListener('pointerdown', e => { if (IN.hive && IN.hive.top && SC === SC_KOBHAK) { e.preventDefault(); e.stopImmediatePropagation(); audio(); kobHiveTap(); } }, true);
+addEventListener('keydown', e => { if (IN.hive && IN.hive.top && (e.key === ' ' || e.key === 'Enter' || e.key === 'e')) { e.preventDefault(); kobHiveTap(); } }, true);
 function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .11; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(LAD.x, LAD.y, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, LAD.y - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
 function kobPrep(id) {   // mini-jeu « façon Cooking Mama » lancé depuis le poste de soin
   $('#remOv').style.display = 'none'; if (id === 'xmiel') kobHS().rayon = Math.max(0, (kobHS().rayon | 0) - 1);
@@ -3840,7 +3847,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   }
   if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (rucheNear() && kobGrown({ k: 'ruche' })) drawHalo({ x: LAD.x - 4, y: LAD.y - 22, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
+    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
   }
   if (tool === 'fish') {
     if (kobFishNear() && !CARE) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
