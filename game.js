@@ -3253,7 +3253,7 @@ const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.
 const kobGrown = p => !kobCut()[p.ck || p.k] || Date.now() - kobCut()[p.ck || p.k] > KOB_REGROW;
 const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
 const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(IN.x, IN.y, LAD.x, LAD.y + 8) < 40;
-const KOB_PLT_ALL = KOB_PLT.concat([Object.assign({}, KOB_PLT[4], { x: 633, y: 336, ck: 'racine2' }), Object.assign({}, KOB_PLT[5], { x: 761, y: 629, ck: 'coq2' }), Object.assign({}, KOB_PLT[0], { x: 993, y: 431, ck: 'euca2' }), Object.assign({}, KOB_PLT[2], { x: 548, y: 478, ck: 'miel2' }), Object.assign({}, KOB_PLT[3], { x: 667, y: 492, ck: 'mousse2' })]);   // 2e buisson de baies, 2e mousse en haut de la falaise
+const KOB_PLT_ALL = KOB_PLT.concat([Object.assign({}, KOB_PLT[1], { x: 123, y: 282, ck: 'baies2' }), Object.assign({}, KOB_PLT[4], { x: 633, y: 336, ck: 'racine2' }), Object.assign({}, KOB_PLT[5], { x: 761, y: 629, ck: 'coq2' }), Object.assign({}, KOB_PLT[0], { x: 993, y: 431, ck: 'euca2' }), Object.assign({}, KOB_PLT[2], { x: 548, y: 478, ck: 'miel2' }), Object.assign({}, KOB_PLT[3], { x: 667, y: 492, ck: 'mousse2' })]);   // 2e buisson de baies, 2e mousse en haut de la falaise
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT_ALL.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
