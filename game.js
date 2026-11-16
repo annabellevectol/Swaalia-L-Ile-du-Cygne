@@ -7396,7 +7396,7 @@ function gardenFit() {
 }
 function gardenMsg(t) { G.msg = t; const m = $('#gMsg'); if (m) m.textContent = t; }
 const VEGK = [{ k: 'patate', n: 'Patate douce violette', e: '🍠', img: 'pv' }, { k: 'citronnelle', n: 'Citronnelle', e: '🌾', img: 'cn' }];   // potager de l'île aux Koalas
-const GPTS_K = [[51.2, 31.8], [61.8, 37.8], [72.4, 43.8], [39.9, 37.7], [50.5, 43.7], [61.1, 49.8], [28.6, 43.6], [39.2, 49.6], [49.8, 55.7]];
+const GPTS_K = [[51.0, 39.9], [59.4, 44.7], [67.9, 49.5], [41.9, 44.6], [50.4, 49.4], [58.9, 54.3], [32.9, 49.3], [41.4, 54.2], [49.9, 59.0]];
 let GK = false;   // true : le potager ouvert est la jardinière de l'île aux Koalas
 const GD = () => GK ? (kobD.gd || (kobD.gd = gdEmpty())) : gd, GV = () => GK ? VEGK : VEG, GP = () => GK ? GPTS_K : GPTS;
 function gardenRender() {
@@ -7420,7 +7420,7 @@ function gardenRender() {
 function openGarden(kob) {
   clearInput();
   if (!G.el) gardenBuild(); GK = !!kob; gardenFit();
-  { const bed = $('#gBed'); bed.style.backgroundImage = GK ? 'url(assets/garden/bed_kob.jpg)' : ''; bed.querySelectorAll('.gp').forEach((d, i) => { d.style.left = GP()[i][0] + '%'; d.style.top = GP()[i][1] + '%'; delete d.dataset.st; });
+  { const bed = $('#gBed'); bed.style.backgroundImage = GK ? 'url(assets/garden/bed_kob.jpg?v=2)' : ''; bed.querySelectorAll('.gp').forEach((d, i) => { d.style.left = GP()[i][0] + '%'; d.style.top = GP()[i][1] + '%'; delete d.dataset.st; });
     const pk = $('#gPick'); pk.innerHTML = ''; GV().forEach((v, j) => { const b = document.createElement('button'); b.innerHTML = GK ? '<img src="assets/spr/' + (v.img === 'pv' ? 'ing_patviol' : 'ing_citronnelle') + '.png" alt="" style="height:1.6em;vertical-align:middle;margin-right:4px">' + v.n : '<i style="background-position:0 calc(var(--ip) * -' + j + ')"></i>' + v.n; b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); gardenPlant(j); }); pk.appendChild(b); });
     const tt = G.el.querySelector('.gtit'); if (tt) tt.textContent = GK ? '🌱 La jardinière de Tomba' : '🌱 Le potager'; }
   player.state = 'talk'; setAnim('idle'); G.sel = -1; G.busy = 0;
