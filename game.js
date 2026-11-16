@@ -3239,7 +3239,7 @@ const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 
 const KOB_PIMG = new Image();
 let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » dans le carnet, étape de l'aventure (0 pas commencée, 1 cueillette, 2 tout est cueilli, 3 remèdes)
 const KOB_REGROW = 90000;
-const RUCHE = { x: 393, y: 322 }, LAD = { x: 421, y: 400 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=2'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
+const RUCHE = { x: 398, y: 346 }, LAD = { x: 421, y: 400 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=2'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
 const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.cut = {});   // plantes dans le panier, et moment de la cueillette
 const kobGrown = p => !kobCut()[p.k] || Date.now() - kobCut()[p.k] > KOB_REGROW;
 const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
@@ -3247,8 +3247,8 @@ const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
-  if (kobQ >= 2 && ECHL.complete && ECHL.naturalWidth) { const k = .155; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
-  if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 46, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
+  if (kobQ >= 2 && ECHL.complete && ECHL.naturalWidth) { const k = .11; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
+  if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
   KOB_PLT.forEach(p => {
@@ -3280,7 +3280,7 @@ function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, e
   const step = i => { if (i >= 4) { IN.hive = null; player.state = 'free'; actBlock = time + .5; done && done(); return; } IN.hive.i = i; say(T[i], 1.6); if (i === 2) sfx.pick && sfx.pick(); setTimeout(() => step(i + 1), 1600); };
   step(0);
 }
-function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .155; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(LAD.x, LAD.y, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, LAD.y - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
+function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .11; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(LAD.x, LAD.y, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, LAD.y - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
 function kobPrep(id) {   // mini-jeu « façon Cooking Mama » lancé depuis le poste de soin
   $('#remOv').style.display = 'none'; if (id === 'xmiel') kobHS().rayon = Math.max(0, (kobHS().rayon | 0) - 1);
   prefetch(MG_FILES.cook, true); if (!CK.el) cookBuild(); cookStop(); player.state = 'talk'; audio(); CK.el.classList.add('on'); cookStart(id);
@@ -3840,7 +3840,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   }
   if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (rucheNear() && kobGrown({ k: 'ruche' })) drawHalo({ x: LAD.x - 6, y: LAD.y - 30, r: 22 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
+    if (rucheNear() && kobGrown({ k: 'ruche' })) drawHalo({ x: LAD.x - 4, y: LAD.y - 22, r: 20 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
   }
   if (tool === 'fish') {
     if (kobFishNear() && !CARE) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
