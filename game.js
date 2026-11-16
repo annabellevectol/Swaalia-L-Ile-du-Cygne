@@ -3248,14 +3248,14 @@ const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
   if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 46, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
-    if (rucheNear() && full) { const bx = RUCHE.x, by = RUCHE.y - 56 - Math.abs(Math.sin(time * 4)) * 4; ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2e9e6b'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(bx, by, 11, 0, TAU); ctx.fill(); ctx.stroke(); ctx.font = '14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🐝', bx, by + 1); ctx.restore(); } }
+    }
   const near = kobPlantNear();
   KOB_PLT.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 15 : 34, w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A; if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
     ctx.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], p.x - w / 2, p.y - h + 3, w, h); ctx.restore();
   });
-  if (near) { const bx = near.x, by = near.y - 46 - Math.abs(Math.sin(time * 4)) * 4; ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2e9e6b'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(bx, by, 11, 0, TAU); ctx.fill(); ctx.stroke(); ctx.font = '14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✋', bx, by + 1); ctx.restore(); }
+  // un halo doré (dessiné avec les autres halos) montre ce qu'on peut cueillir
 }
 function kobGather() {
   if (rucheNear()) { if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour récolter la ruche ! 🧺', 3.2); return true; }
@@ -3823,10 +3823,12 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   if (tool === 'net') {
     const night = nightAmt() > .3, L = (night ? kobFlyList() : kobBflyList()).filter(o => !o.gone && dist(o.p.x, o.p.y - o.p.z, IN.x, IN.y - 20) < 78).sort((u, v) => dist(u.p.x, u.p.y - u.p.z, IN.x, IN.y - 20) - dist(v.p.x, v.p.y - v.p.z, IN.x, IN.y - 20));
     if (L[0]) drawHalo({ x: L[0].p.x, y: L[0].p.y - L[0].p.z, r: 11, air: true });
-  } else if (tool === 'basket') {
+  }
+  if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
-  } else if (tool === 'fish') {
+    if (rucheNear() && kobGrown({ k: 'ruche' })) drawHalo({ x: RUCHE.x, y: RUCHE.y - 18, r: 22 }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 16 }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 18 });
+  }
+  if (tool === 'fish') {
     if (kobFishNear() && !CARE) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 22 });
   }
 }
