@@ -3669,11 +3669,11 @@ function mgFace(a, h, w) {   // animaux et koalas en pied (jamais coupés), bust
   const st = a.k === 'diable' ? 'h' : 'i', m = KA_M[a.k + '_' + st]; return sprAn(a.k, st, Math.min(h, w * m[3] / m[2]));   // le diable de Tasmanie : pose debout, plus douce que le gros plan
 }
 function mgMemory(p) {
-  const all = mgPool(), heal = all.filter(a => !a.v.koala), mix = all.filter(a => a.v.koala).concat(MG_NPC.map(k => ({ k, n: KOB_TALK[k].who, v: { k, n: KOB_TALK[k].who }, npc: true })));
-  const n = Math.min(10, Math.max(6, 3 + heal.length));   // de 6 à 10 paires : les animaux soignés d'abord, complétés par les koalas et les habitants de l'île
+  const all = VET.map(v => ({ k: v.k, n: v.n, v })).concat(mgPool().filter(a => a.v.koala)), heal = all.filter(a => !a.v.koala), mix = all.filter(a => a.v.koala).concat(MG_NPC.map(k => ({ k, n: KOB_TALK[k].who, v: { k, n: KOB_TALK[k].who }, npc: true })));
+  const n = 8;   // 8 paires : des animaux de l'île, complétés par les koalas et les habitants
   const an = mgShuf(heal).slice(0, Math.min(heal.length, n - 3)), pick = an.concat(mgShuf(mix).slice(0, n - an.length));
   const cards = mgShuf(pick.concat(pick)).map(a => ({ a, key: a.k, up: false, ok: false })), N = cards.length;
-  const big = N <= 12, cw = big ? 92 : 80, ch = big ? 64 : 56, cols = N <= 12 ? 4 : N === 14 ? 5 : N === 16 ? 6 : N === 18 ? 6 : 5; let first = null, lock = false, found = 0;
+  const narrow = innerWidth < 640, cols = narrow ? 4 : N <= 12 ? 4 : N === 14 ? 5 : N === 16 ? 6 : N === 18 ? 6 : 5, cw = Math.min(N <= 12 ? 92 : 80, Math.floor((Math.min(innerWidth, 720) - 70) / cols) - 6), ch = Math.round(cw * .7); let first = null, lock = false, found = 0;
   mgShow('Le coffre des animaux', '<p class="kvMsg">Retrouve les paires !</p><div class="mgGrid" style="grid-template-columns:repeat(' + cols + ',' + cw + 'px)">' + cards.map((c, i) => '<button class="mgCd" style="width:' + cw + 'px;height:' + ch + 'px" data-i="' + i + '"></button>').join('') + '</div>');
   const draw = () => document.querySelectorAll('.mgCd').forEach(b => { const c = cards[b.dataset.i]; b.innerHTML = (c.up || c.ok) ? '<div class="mgFace' + (c.ok ? ' ok' : '') + '" style="width:' + cw + 'px;height:' + ch + 'px">' + mgFace(c.a, ch - 12, cw - 14) + '</div>' : mgS('card', ch); });
   draw();
@@ -3826,7 +3826,7 @@ function wmDrawMyah() {
   ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2d6f78'; ctx.lineWidth = 2.5; ctx.textAlign = 'center'; if (WM.playing) for (let i = 0; i < 3; i++) { const u = (time * .35 + i / 3) % 1; ctx.globalAlpha = Math.sin(u * Math.PI); ctx.font = (13 + i * 2) + 'px "Trebuchet MS",sans-serif'; const nx = IN.x + (i - 1) * 22 + Math.sin(u * 6 + i) * 5, ny = IN.y - h - 2 - u * 26; ctx.strokeText('♪', nx, ny); ctx.fillText('♪', nx, ny); } ctx.restore();
 }
 const mgOpen = () => kobQ >= 5 || vetShowAll || level === 'balade';   // mini-jeux des habitants : ouverts dès l'arrivée en Balade, sinon après la guérison des koalas
-const mgOn = p => p.sc === SC && IN.floor === (p.fl || 0) && mgOpen();
+const mgOn = p => p.sc === SC && IN.floor === (p.fl || 0) && (mgOpen() || (p.k === 'memory' && kobQ >= 1));   // le mémory est ouvert dès l'arrivée sur l'île
 const mgNear = () => MGP.find(p => mgOn(p) && dist(IN.x, IN.y, p.sx, p.sy) < (p.r || 46));
 function mgAct() {
   const p = mgNear(); if (!p) return false;
