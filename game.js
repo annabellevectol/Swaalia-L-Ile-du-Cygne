@@ -3238,12 +3238,16 @@ const KOB_PLT = [
 const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 0, 122, 128], mousse: [387, 0, 132, 86], racine: [523, 0, 128, 117], coq: [655, 0, 134, 114], euca_x: [793, 0, 130, 64], mousse_x: [927, 0, 130, 64], baies_x: [1061, 0, 130, 72], racine_x: [1195, 0, 130, 63], coq_x: [1329, 0, 134, 76], miel_x: [1467, 0, 130, 63] };
 const KOB_PIMG = new Image();
 let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » dans le carnet, étape de l'aventure (0 pas commencée, 1 cueillette, 2 tout est cueilli, 3 remèdes)
-const kobPlantNear = () => SC === SC_KOBHAK && kobQ === 1 && IN.floor === 0 ? KOB_PLT.find(p => !kobPick[p.k] && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
+const KOB_REGROW = 90000;   // une plante cueillie repousse en 1 min 30
+const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.cut = {});   // plantes dans le panier, et moment de la cueillette
+const kobGrown = p => !kobCut()[p.k] || Date.now() - kobCut()[p.k] > KOB_REGROW;
+const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
+const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
   const near = kobPlantNear();
   KOB_PLT.forEach(p => {
-    const done = !!kobPick[p.k], m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 15 : 34, w = h * m[2] / m[3];
+    const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = done ? 15 : 34, w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A; if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
     ctx.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], p.x - w / 2, p.y - h + 3, w, h); ctx.restore();
   });
@@ -3252,7 +3256,9 @@ function kobDrawPlants() {
 function kobGather() {
   const p = kobPlantNear(); if (!p) return false;
   if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les plantes ! 🧺', 3.2); return true; }
-  kobPick[p.k] = true; kobNew[p.k] = true; sfx.pick(); player.dir4 = 'down';
+  const first = !kobPick[p.k]; kobPick[p.k] = true; if (first) kobNew[p.k] = true; sfx.pick(); player.dir4 = 'down';
+  kobHS()[p.k] = (kobHS()[p.k] | 0) + 1; kobCut()[p.k] = Date.now();
+  if (kobQ >= 2) { say(p.n + ' cueilli ! Tu en as ' + kobHS()[p.k] + ' dans ton panier. La plante repoussera bientôt 🌱', 3.4); kobHud(); save(); return true; }
   const left = KOB_PLT.filter(q => !kobPick[q.k]).length;
   if (!left) { kobQ = 2; say('Tout est cueilli ! Retourne voir le docteur Tarah !', 5); } else say(p.n + ' cueilli (encore ' + left + ')', 3);
   kobHud(); save(); return true;
@@ -4059,8 +4065,8 @@ const REC = [
 let kobRx = {};   // remèdes déjà préparés (nombre)
 function deskMenu() {
   if (kobQ < 2) { openDialog('Poste de soin', ['C\'est le poste de soin du docteur Tarah.', 'Il me faudra d\'abord cueillir toutes les plantes de l\'île !'], null, ''); return; }
-  $('#remBody').innerHTML = '<div class="kvH">Poste de soin</div><p class="kvMsg">Les recettes de la vétérinaire. Quelle recette veux-tu préparer ?</p><div class="kvTools">' + REC.map(r => { const on = kobQ >= r.q || vetShowAll === 1; return '<button class="kvTool' + (on ? '' : ' lock') + '" data-k="' + r.k + '">' + r.ico() + '<span>' + r.n + (on ? (kobRx[r.k] ? ' ×' + kobRx[r.k] : '') : ' (bientôt)') + '</span></button>'; }).join('') + '</div><p class="kvMsg" id="rcD">Touche une recette.</p>';
-  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
+  $('#remBody').innerHTML = '<div class="kvH">Poste de soin</div><p class="kvMsg">Les recettes de la vétérinaire. Quelle recette veux-tu préparer ?</p><div class="kvTools">' + REC.map(r => { const on = kobQ >= r.q || vetShowAll === 1; return '<button class="kvTool' + (on ? '' : ' lock') + '" data-k="' + r.k + '">' + r.ico() + '<span>' + r.n + (on ? (kobRx[r.k] ? ' ×' + kobRx[r.k] : '') : ' (bientôt)') + '</span></button>'; }).join('') + '</div><p class="kvMsg" style="font-size:13px">🧺 Dans ton panier : ' + KOB_PLT.map(p => p.n.split(' ')[0] + ' ×' + (kobHS()[p.k] | 0)).join(' · ') + '</p><p class="kvMsg" id="rcD">Touche une recette.</p>';
+  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { const miss = (RMD[r.k] || []).filter(d => ING[d[0]][1] === 'p' && !(kobHS()[d[0]] > 0)).map(d => ING[d[0]][0].replace(/ \(.*\)/, '')); if ((kobQ >= r.q || vetShowAll === 1) && miss.length && vetShowAll !== 1) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te manque : <b>' + miss.join(', ') + '</b>. Prends le panier et va les cueillir sur l\'île : les plantes repoussent ! 🧺'; return; } if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
   $('#remOv').style.display = 'grid'; player.mvx = player.mvy = 0;
 }
 function kobRem(rk) {
@@ -4129,7 +4135,7 @@ function kobRem(rk) {
         if (lev >= .9 && lev <= 1.1) { done = true; frame(FM[6]); sfx.star(); msg('Pile la bonne quantité !'); next(1300); }
         else if (lev > 1.1) over(); else msg('Encore un peu... il en faut jusqu\'à la ligne !'); });
     } else if (t === 'done') {
-      const q = err >= 2 ? 'mess' : 'ok'; kobRx[rk] = (kobRx[rk] | 0) + 1; save();
+      const q = err >= 2 ? 'mess' : 'ok'; kobRx[rk] = (kobRx[rk] | 0) + 1; if (vetShowAll !== 1) (RMD[rk] || []).forEach(d => { if (ING[d[0]][1] === 'p') kobHS()[d[0]] = Math.max(0, (kobHS()[d[0]] | 0) - 1); }); save();   // les plantes du panier sont utilisées
       body.innerHTML = head(R.n + ' prêt' + (rk === 'gelule' ? 'e' : '') + ' ! ' + kdSpr('i_star', 24)) + '<div class="kvStage"><div class="rmBig happy">' + rmFr('d_' + rk + '_' + q, 200) + '</div></div><p class="kvMsg">' + (q === 'ok' ? 'Bravo ! Le remède est parfait, Myah.' : 'Il est un peu de travers, mais il va faire du bien quand même !') + '</p><div class="kvBtns"><button class="kvBtn" id="rmOk">Super !</button></div>';
       sfx.star();
       $('#rmOk').onclick = () => { stop(); $('#remOv').style.display = 'none';
