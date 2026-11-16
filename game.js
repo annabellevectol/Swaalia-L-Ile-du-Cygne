@@ -3281,7 +3281,7 @@ function kobDrawPlants() {
     }
   const near = kobPlantNear();
   KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = f.h || 20, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
-  KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
+  if (0) KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A * (p.k === 'mousse' ? .85 : 1); if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
@@ -5813,7 +5813,7 @@ function tapSpots() {
   if (SC === SC_MK4 && (wmNear() || dist(IN.x, IN.y, WM.sx, WM.sy) < 120 || dist(IN.x, IN.y, WM.x, WM.y) < 100)) L.push({ id: 'wm', big: 1, x: WM.x, y: WM.y - 28, go: () => { actQueued = false; if (!wmAct()) 0; } });   // le walkman posé au sol
   if (IN.floor !== 0) return L;   // petit halo + rond doré devant chaque mini-jeu (comme sur l'île du Cygne)
   if (SC === SC_KOBHAK && IN.floor === 0) KOB_FL.forEach((f, n) => { if (dist(IN.x, IN.y, f.x, f.y) < 38 && kobGrown({ k: 'fl' + n })) L.push({ id: 'kfl' + n, x: f.x, y: f.y - 14, dot: true, go: () => { actQueued = false; kobFlPick(f, n); } }); });   // fleurs sauvages à cueillir
-  if (SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0) KOB_BEDS.forEach(b => { if (dist(IN.x, IN.y, b.x, b.y) < 45 && kobGrown({ k: b.ck })) L.push({ id: 'kbed_' + b.ck, x: b.x, y: b.y - 18, dot: true, go: () => { actQueued = false; kobBedPick(b); } }); });   // les jardinières de Tomba
+  if (SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 && KOB_BEDS.some(b => dist(IN.x, IN.y, b.x, b.y) < 45)) { const b = KOB_BEDS.reduce((a, c) => dist(IN.x, IN.y, c.x, c.y) < dist(IN.x, IN.y, a.x, a.y) ? c : a); L.push({ id: 'kbed', x: b.x, y: b.y - 18, dot: true, go: () => { actQueued = false; openGarden(true); } }); }   // les jardinières de Tomba : on plante, on arrose, on cueille
   if (SC === SC_KOBHAK && !handsFull()) KOB_PL.forEach(q => { if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) < (q.r || 32) + 55 || (q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 85)) L.push({ id: 'kpl_' + q.txt, big: 0, x: q.hl ? q.hl[0] : q.spot[0], y: q.hl ? q.hl[1] : q.spot[1] - 6, go: () => { actQueued = false; if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) > (q.r || 32) + 30 && !(q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 70)) { 0; return; } askDisp(true, q); } }); });   // halo doré + rond devant chaque porte de l'île aux Koalas
   if (IN.shower) return [{ id: 'shower', x: SHOWER.x, y: SHOWER.y - 128, on: 1, go: () => { tutDone('shower'); showerOff(); } }];
   if (IN.wash) return [{ id: 'wash', x: IN.wash.w.hl[0], y: IN.wash.w.hl[1], on: 1, go: washOff }];
@@ -7366,7 +7366,7 @@ const G = { el: null, sel: -1, busy: 0, msg: '', tick: 0 };
 let _gLast = performance.now(), _gSave = 0;
 setInterval(() => {   // le temps de pousse compte quand on joue (le jeu est ouvert)
   const now = performance.now(), dt = Math.min(.5, (now - _gLast) / 1000); _gLast = now; if (!started || document.hidden) return;
-  let any = false; gd.forEach(p => { if (p.c >= 0 && p.w && (p.e || 0) < GTOT) { p.e = (p.e || 0) + dt; any = true; } });
+  let any = false; gd.concat(kobD && kobD.gd || []).forEach(p => { if (p.c >= 0 && p.w && (p.e || 0) < GTOT) { p.e = (p.e || 0) + dt; any = true; } });
   if (any && (_gSave += dt) > 10) { _gSave = 0; save(); }
 }, 250);
 function gardenBuild() {
@@ -7395,14 +7395,19 @@ function gardenFit() {
   bed.style.height = h + 'px'; bed.style.width = h * 1.0667 + 'px'; bed.style.setProperty('--s', (h * 1.0667 * .19) + 'px');
 }
 function gardenMsg(t) { G.msg = t; const m = $('#gMsg'); if (m) m.textContent = t; }
+const VEGK = [{ k: 'patate', n: 'Patate douce violette', e: '🍠', img: 'pv' }, { k: 'citronnelle', n: 'Citronnelle', e: '🌾', img: 'cn' }];   // potager de l'île aux Koalas
+const GPTS_K = [[51.2, 31.8], [61.8, 37.8], [72.4, 43.8], [39.9, 37.7], [50.5, 43.7], [61.1, 49.8], [28.6, 43.6], [39.2, 49.6], [49.8, 55.7]];
+let GK = false;   // true : le potager ouvert est la jardinière de l'île aux Koalas
+const GD = () => GK ? (kobD.gd || (kobD.gd = gdEmpty())) : gd, GV = () => GK ? VEGK : VEG, GP = () => GK ? GPTS_K : GPTS;
 function gardenRender() {
   const bed = $('#gBed'); let ready = 0, dry = 0;
   [...bed.querySelectorAll('.gp')].forEach((d, i) => {
-    const p = gd[i], s = gStage(p), prev = d.dataset.st === undefined ? null : +d.dataset.st;
+    const p = GD()[i], s = gStage(p), prev = d.dataset.st === undefined ? null : +d.dataset.st;
     d.className = 'gp' + (s >= 1 ? ' w' : '') + (s === 0 ? ' seed' : '') + (s === 4 ? ' ready' : '') + (G.sel === i ? ' sel' : '') + (prev !== null && prev !== s && s >= 2 ? ' pop' : '');
     d.dataset.st = s;
     const v = d.querySelector('.gv2'), ic = d.querySelector('.gi');
-    if (s >= 2) { const sh = s === 2 ? 'sprout' : s === 3 ? 'half' : 'ripe', k = s === 2 ? .75 : s === 3 ? .85 : .8, S = 'calc(var(--s)*' + k + ')';
+    if (s >= 2 && GK) { const k = s === 2 ? .4 : s === 3 ? .65 : .95, S = 'calc(var(--s)*' + k + ')'; v.style.width = v.style.height = S; v.style.backgroundImage = 'url(assets/kob4/' + VEGK[p.c].img + '.png)'; v.style.backgroundSize = 'contain'; v.style.backgroundRepeat = 'no-repeat'; v.style.backgroundPosition = 'center bottom'; v.style.display = 'block'; }
+    else if (s >= 2) { v.style.backgroundSize = ''; v.style.backgroundRepeat = ''; const sh = s === 2 ? 'sprout' : s === 3 ? 'half' : 'ripe', k = s === 2 ? .75 : s === 3 ? .85 : .8, S = 'calc(var(--s)*' + k + ')';
       v.style.width = v.style.height = S; v.style.backgroundImage = 'url(assets/garden/veg_' + sh + '.png?v=91)'; v.style.backgroundSize = 'calc(' + S + '*4) calc(' + S + '*7)'; v.style.backgroundPosition = 'calc(' + S + '*-' + p.v + ') calc(' + S + '*-' + p.c + ')'; v.style.display = 'block'; }
     else v.style.display = 'none';
     const rem = Math.max(0, Math.ceil(GTOT - (p.e || 0))); ic.className = 'gi' + (s >= 1 && s <= 3 ? ' tm' : s === 4 ? ' ok' : '');
@@ -7410,52 +7415,55 @@ function gardenRender() {
     if (s === 4) ready++; if (s === 0) dry++;
   });
   $('#gHarv').style.display = ready > 1 ? '' : 'none'; $('#gWater').style.display = dry > 1 ? '' : 'none';
-  $('#gPick').classList.toggle('on', G.sel >= 0 && gStage(gd[G.sel]) === -1);
+  $('#gPick').classList.toggle('on', G.sel >= 0 && gStage(GD()[G.sel]) === -1);
 }
-function openGarden() {
+function openGarden(kob) {
   clearInput();
-  if (!G.el) gardenBuild(); gardenFit();
+  if (!G.el) gardenBuild(); GK = !!kob; gardenFit();
+  { const bed = $('#gBed'); bed.style.backgroundImage = GK ? 'url(assets/garden/bed_kob.jpg)' : ''; bed.querySelectorAll('.gp').forEach((d, i) => { d.style.left = GP()[i][0] + '%'; d.style.top = GP()[i][1] + '%'; delete d.dataset.st; });
+    const pk = $('#gPick'); pk.innerHTML = ''; GV().forEach((v, j) => { const b = document.createElement('button'); b.innerHTML = GK ? '<img src="assets/spr/' + (v.img === 'pv' ? 'ing_patviol' : 'ing_citronnelle') + '.png" alt="" style="height:1.6em;vertical-align:middle;margin-right:4px">' + v.n : '<i style="background-position:0 calc(var(--ip) * -' + j + ')"></i>' + v.n; b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); gardenPlant(j); }); pk.appendChild(b); });
+    const tt = G.el.querySelector('.gtit'); if (tt) tt.textContent = GK ? '🌱 La jardinière de Tomba' : '🌱 Le potager'; }
   player.state = 'talk'; setAnim('idle'); G.sel = -1; G.busy = 0;
   G.el.classList.add('on'); gardenRender(); sfx.unlock();
-  gardenMsg(gd.every(p => p.c < 0) ? 'Touche une case de terre pour planter un légume 🌱' : 'Touche une case : plante, arrose ou cueille !');
+  gardenMsg(GD().every(p => p.c < 0) ? 'Touche une case de terre pour planter un légume 🌱' : 'Touche une case : plante, arrose ou cueille !');
   clearInterval(G.tick); G.tick = setInterval(() => { if (G.el.classList.contains('on')) gardenRender(); }, 400);
 }
 function closeGarden() { clearInput(); if (!G.el) return; G.el.classList.remove('on'); clearInterval(G.tick); G.sel = -1; if (player.state === 'talk') player.state = 'free'; save(); renderHud(); }
 function gardenFly(i, txt) {
-  const bed = $('#gBed'), pt = GPTS[i], e = document.createElement('div'); e.className = 'gfly'; e.textContent = txt;
+  const bed = $('#gBed'), pt = GP()[i], e = document.createElement('div'); e.className = 'gfly'; e.textContent = txt;
   e.style.left = pt[0] + '%'; e.style.top = (pt[1] - 14) + '%'; e.style.transform = 'translateX(-50%)'; e.addEventListener('animationend', () => e.remove()); bed.appendChild(e);
 }
 function gardenTap(i) {
-  const p = gd[i], s = gStage(p); if (G.busy > Date.now()) return;
+  const p = GD()[i], s = gStage(p); if (G.busy > Date.now()) return;
   if (s === -1) { G.sel = i; gardenRender(); gardenMsg('Quel légume veux-tu planter ?'); sfx.talk(); }
   else if (s === 0) gardenWater([i]);
   else if (s === 4) gardenHarvest(i);
   else { G.sel = -1; gardenRender(); sfx.talk(); const left = Math.max(1, Math.ceil(GTOT - (p.e || 0))); gardenMsg(s === 1 ? 'La terre est bien arrosée 💧 Patience, une pousse va sortir !' : s === 2 ? 'Une petite pousse ! 🌱 Le légume va bientôt sortir…' : 'Le légume sort de terre ! Encore un peu de patience… ⏳'); }
 }
 function gardenPlant(j) {
-  const i = G.sel; if (i < 0 || gStage(gd[i]) !== -1) return;
-  gd[i] = { c: j, w: 0, e: 0, v: (i + j * 2) & 3 }; G.sel = -1; save(); gardenRender(); sfx.pick(); gardenFly(i, VEG[j].e);
-  gardenMsg(VEG[j].n + ' planté ! Arrose la terre 💧 en touchant la case.');
+  const i = G.sel; if (i < 0 || gStage(GD()[i]) !== -1) return;
+  GD()[i] = { c: j, w: 0, e: 0, v: (i + j * 2) & 3 }; G.sel = -1; save(); gardenRender(); sfx.pick(); gardenFly(i, GV()[j].e);
+  gardenMsg(GV()[j].n + ' planté ! Arrose la terre 💧 en touchant la case.');
 }
-function gardenWaterAll() { const l = gd.map((p, i) => gStage(p) === 0 ? i : -1).filter(i => i >= 0); if (l.length) gardenWater(l); else gardenMsg('Rien à arroser pour le moment 🙂'); }
+function gardenWaterAll() { const l = GD().map((p, i) => gStage(p) === 0 ? i : -1).filter(i => i >= 0); if (l.length) gardenWater(l); else gardenMsg('Rien à arroser pour le moment 🙂'); }
 function gardenWater(list) {   // l'arrosoir s'incline au-dessus de chaque case
   const bed = $('#gBed'), can = bed.querySelector('.gcan'), BW = bed.clientWidth, BH = bed.clientHeight, k = BW * .19 / 246 * 1.0;
   G.sel = -1; gardenRender(); G.busy = Date.now() + 1350 * list.length;
   const FR = [0, 1, 2, 3, 3];   // droit → penché → début du versement → versement
   list.forEach((i, n) => setTimeout(() => {
-    const pt = GPTS[i], px = pt[0] / 100 * BW, py = pt[1] / 100 * BH, sx = px + (75 - 47) * k - 6, sy = py - (384 - 138) * k + 4;   // bec posé au-dessus de la case
+    const pt = GP()[i], px = pt[0] / 100 * BW, py = pt[1] / 100 * BH, sx = px + (75 - 47) * k - 6, sy = py - (384 - 138) * k + 4;   // bec posé au-dessus de la case
     let f = 0; sfx.splash();
     const show = fr => { const c = GCAN[FR[fr]]; can.style.width = c[2] * k + 'px'; can.style.height = c[3] * k + 'px'; can.style.backgroundSize = (902 * k) + 'px ' + (396 * k) + 'px'; can.style.backgroundPosition = (-c[0] * k) + 'px 0'; can.style.left = (sx - c[4] * k) + 'px'; can.style.top = (sy - c[5] * k) + 'px'; can.style.opacity = 1; };
     show(0); const iv = setInterval(() => { f++; if (f < FR.length) { show(f); if (f === 3) { sfx.splash(); gardenFly(i, '💧'); } } else { clearInterval(iv); } }, 260);
-    setTimeout(() => { can.style.opacity = 0; gd[i].w = 1; gd[i].e = 0; save(); gardenRender(); gardenFly(i, '✨'); if (n === list.length - 1) gardenMsg('Bien arrosé ! 💦 Reviens dans un instant : ça pousse tout seul.'); }, 1250);
+    setTimeout(() => { can.style.opacity = 0; GD()[i].w = 1; GD()[i].e = 0; save(); gardenRender(); gardenFly(i, '✨'); if (n === list.length - 1) gardenMsg('Bien arrosé ! 💦 Reviens dans un instant : ça pousse tout seul.'); }, 1250);
   }, n * 1350));
 }
 function gardenHarvest(i, quiet) {
-  const p = gd[i], v = VEG[p.c]; inv[v.k]++; gd[i] = { c: -1, w: 0, e: 0, v: 0 };
+  const p = GD()[i], v = GV()[p.c]; inv[v.k]++; GD()[i] = { c: -1, w: 0, e: 0, v: 0 };
   sfx.catchb(); gardenFly(i, '+1 ' + v.e); gardenRender(); save(); renderHud();
   if (!quiet) gardenMsg('Cueilli : ' + v.n + ' ! Tu peux l\'offrir ou l\'utiliser pour une mission 🎁');
 }
-function gardenHarvestAll() { let n = 0; gd.forEach((p, i) => { if (gStage(p) === 4) { gardenHarvest(i, true); n++; } }); if (n) gardenMsg('Quelle belle récolte : ' + n + ' légumes ! 🧺'); }
+function gardenHarvestAll() { let n = 0; GD().forEach((p, i) => { if (gStage(p) === 4) { gardenHarvest(i, true); n++; } }); if (n) gardenMsg('Quelle belle récolte : ' + n + ' légumes ! 🧺'); }
 
 
 /* ----- remettre des objets à un habitant : petit panneau d'inventaire ----- */
