@@ -125,7 +125,7 @@
   #tipsB{top:calc(max(10px,env(safe-area-inset-top)) + 56px)}
   #bAct{display:none !important}
 
-  #dialog{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));width:min(680px,94vw);padding:10px 14px;display:none;cursor:pointer;z-index:5}
+  #dialog{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(10px,env(safe-area-inset-bottom)) + clamp(84px,12vw,110px));width:min(680px,94vw);padding:10px 14px;display:none;cursor:pointer;z-index:5}
   #dialog .row{display:flex;gap:12px;align-items:flex-start}
   #dialog .pt{width:76px;height:76px;border-radius:14px;border:3px solid #7a4b24;flex:0 0 auto;background:#fff;display:none;object-fit:cover}
   #dialog .tx{flex:1;min-width:0}
@@ -1144,7 +1144,7 @@
 <script src="mymask.js"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=150"></script>
+<script src="game.js?v=151"></script>
 </body>
 </html>
 
