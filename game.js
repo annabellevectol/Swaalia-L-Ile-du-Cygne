@@ -3278,7 +3278,7 @@ function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, e
   const step = i => { if (i >= 4) { IN.hive = null; player.state = 'free'; actBlock = time + .5; done && done(); return; } IN.hive.i = i; say(T[i], 1.6); if (i === 2) sfx.pick && sfx.pick(); setTimeout(() => step(i + 1), 1600); };
   step(0);
 }
-function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .155; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(388, 418, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.drawImage(m, 388 - 180 * k, 418 - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }
+function drawHiveMyah() { const m = ECH[IN.hive.i]; if (!m.complete || !m.naturalWidth) return; const k = .155; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(414, 418, 13, 3.5, 0, 0, TAU); ctx.fill(); ctx.translate(414, 0); ctx.scale(-1, 1); ctx.drawImage(m, -180 * k, 418 - 754 * k, m.naturalWidth * k, m.naturalHeight * k); ctx.restore(); }   // en miroir : l'échelle part du côté du poste de soin et s'appuie en diagonale contre l'arbre
 function kobPrep(id) {   // mini-jeu « façon Cooking Mama » lancé depuis le poste de soin
   $('#remOv').style.display = 'none'; if (id === 'xmiel') kobHS().rayon = Math.max(0, (kobHS().rayon | 0) - 1);
   prefetch(MG_FILES.cook, true); if (!CK.el) cookBuild(); cookStop(); player.state = 'talk'; audio(); CK.el.classList.add('on'); cookStart(id);
