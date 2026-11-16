@@ -3236,6 +3236,16 @@ KOB_TALK.mini = { who: 'Mini', first: ['Atchoum ! Hihi...', 'Je suis Mini. J\'ai
 const kobSeen = {};
 
 // ---- Cueillette des plantes de l'île Kobhak + carnet
+const KOB_OC = document.createElement('canvas'), KOB_OX = KOB_OC.getContext('2d');
+function kobOutl(m, x, y, w, h) {   // plante avec un léger contour sombre, pour la repérer dans le décor
+  const s = Math.max(1, (ctx.getTransform().a || 1)), W = Math.ceil(w * s) + 4, H = Math.ceil(h * s) + 4;
+  if (KOB_OC.width < W || KOB_OC.height < H) { KOB_OC.width = Math.max(W, KOB_OC.width); KOB_OC.height = Math.max(H, KOB_OC.height); }
+  const o = KOB_OX; o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, KOB_OC.width, KOB_OC.height); o.globalCompositeOperation = 'source-over';
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]]) o.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], 2 + dx * 1.2, 2 + dy * 1.2, w * s, h * s);
+  o.globalCompositeOperation = 'source-in'; o.fillStyle = 'rgba(40,25,15,.75)'; o.fillRect(0, 0, W, H);
+  o.globalCompositeOperation = 'source-over'; o.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], 2, 2, w * s, h * s);
+  ctx.drawImage(KOB_OC, 0, 0, W, H, x - 2 / s, y - 2 / s, W / s, H / s);
+}
 const KOB_PLT = [
   { k: 'euca', n: 'Eucalyptus argenté', x: 693, y: 326, d: 'Ses feuilles argentées font du bien quand on tousse.' },
   { k: 'baies', n: 'Baies roses', x: 188, y: 346, d: 'Petites et sucrées : elles donnent du courage.' },
@@ -3264,7 +3274,7 @@ function kobDrawPlants() {
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A * (p.k === 'mousse' ? .85 : 1); if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
-    ctx.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], p.x - w / 2, p.y - h + 3, w, h); ctx.restore();
+    kobOutl(m, p.x - w / 2, p.y - h + 3, w, h); ctx.restore();
   });
   // un halo doré (dessiné avec les autres halos) montre ce qu'on peut cueillir
 }
