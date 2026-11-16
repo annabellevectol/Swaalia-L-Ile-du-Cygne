@@ -7598,7 +7598,7 @@ function offerVeg(who, portrait, after, go, label) {   // menu à onglets : [qu�
 /* ================= CUISINE : Tukaï et Katouka (façon Cooking Mama) ================= */
 const COOK_SPOT = [213, 590], COOK_HL = [194, 511];
 const CKLV = [{ n: 'Facile', zw: .96, sp: .25, spd: 0, nm: .3, tm: 10, tn: .4, tc: .5, hl: .05, hh: .99, up: .9, dn: .05, th: 0, fl: .65, easy: 1 }, { n: 'Moyen', zw: .4, sp: .5, spd: .08, nm: .7, tm: 2, tn: .7, tc: .8, hl: .3, hh: .78, up: .55, dn: .3, th: .4, fl: .2 }, { n: 'Difficile', zw: .3, sp: .7, spd: .1, nm: 1, tm: 0, tn: 1, tc: 1, hl: .38, hh: .72, up: .5, dn: .36, th: .55, fl: 0 }];
-const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 2], papi: [0, 2, 3, 4, 5] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
+const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 3, 5, 6], papi: [0, 2, 3, 4, 5] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
@@ -7684,10 +7684,14 @@ const RECIPES = {
       ['Mélange la pâte', '', 'reveal', { strip: 'gm_mix', n: 3, ar: '390/290', t: 14, fx: 'milk', tool: 'hand_whisk', tw: 48, tr: 'translate(-12%,-72%)' }],
       ['Verse la pâte dans le moule', '', 'reveal', { strip: 'gm_pour', n: 2, ar: '390/290', t: 10, fx: 'milk' }],
       ['Cuis le gâteau', '', 'oven', { strip: 'gm_oven', n: 6, ar: '390/290', t: 8, fx: ['steam'] }]] },
-  barra: { nuna: 1, name: 'Barra-Grill', sub: 'barramundi grillé et purée violette', emoji: '🐟', need: { fish: 1, patate: 1 }, ok: 'd_barra', ko: 'd_barra_ko',
+  barra: { nuna: 1, name: 'Barra-Grill', sub: 'barramundi grillé et purée violette', emoji: '🐟', need: { fish: 1, patate: 1, coconut: 1 }, ok: 'd_barra', ko: 'd_barra_ko',
     steps: [['Farcis le poisson à la citronnelle', '', 'reveal', { strip: 'br_stuff', n: 2, ar: '390/290', t: 12, fx: 'peel' }],
       ['Fais griller le barramundi', '', 'oven', { strip: 'br_pan', n: 6, ar: '390/290', t: 8, fx: ['steam'] }],
-      ['Écrase la patate douce violette', '', 'reveal', { strip: 'br_mash', n: 2, ar: '390/290', t: 12, fx: 'peel' }]] },
+      ['Épluche la patate douce violette', '', 'reveal', { strip: 'pv_peel', n: 2, ar: '390/290', t: 12, fx: 'peel' }],
+      ['Coupe-la en cubes', '', 'reveal', { strip: 'pv_cut', n: 2, ar: '390/290', t: 12, fx: 'cubes2', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
+      ['Fais cuire les cubes dans l\'eau', '', 'oven', { strip: 'pv_boil', n: 6, ar: '390/290', t: 8, fx: ['steam'] }],
+      ['Écrase la patate douce', '', 'reveal', { strip: 'br_mash', n: 2, ar: '390/290', t: 12, fx: 'peel' }],
+      ['Ajoute le lait de coco', '', 'reveal', { strip: 'pv_coco', n: 2, ar: '390/290', t: 10, fx: 'milk' }]] },
   papi: { nuna: 1, name: 'Papillote des récifs', sub: 'poisson en feuille de bananier, coco et citron vert', emoji: '🍃', need: { fish: 1, citron: 1, coconut: 1 }, ok: 'd_papi', ko: 'd_barra_ko',
     steps: [['Pose le poisson sur la feuille de bananier', '', 'reveal', { strip: 'pp_fish', n: 2, ar: '390/290', t: 10, fx: 'peel' }],
       ['Ajoute le citron vert et la citronnelle', '', 'reveal', { strip: 'pp_lime', n: 2, ar: '390/290', t: 10, fx: 'cubes2', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
