@@ -192,9 +192,9 @@
   .mgSeed{height:64px;display:grid;place-items:center}.mgPots{display:flex;gap:12px;justify-content:center}.mgPot{border:0;background:none;padding:0;cursor:pointer}
   .mgPot.pop{animation:mgPop .25s}@keyframes mgPop{50%{transform:scale(1.12)}}
   .mgShake{animation:mgSh .35s}@keyframes mgSh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .mgBq{display:flex;gap:10px;align-items:center;justify-content:center}.mgSlip{background:#fffdf4;border:2px dashed #c99a4a;border-radius:10px;padding:6px 8px;font-size:13px;min-width:92px}
+  .mgBq{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}.mgSlip{background:#fffdf4;border:2px dashed #c99a4a;border-radius:10px;padding:6px 8px;font-size:13px;min-width:92px}
   .mgSl{display:flex;align-items:center;gap:4px}.mgSl.ok span{color:#2e9e6b;font-weight:900}
-  .mgVase{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:96px;height:130px}.mgBou{display:flex;justify-content:center;min-height:44px;margin-bottom:-14px;position:relative;z-index:1}
+  .mgVase{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:96px;height:130px}.mgBou{position:relative;width:96px;height:66px;margin-bottom:-22px;z-index:0}
   .mgPl{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.mgPb{display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid #e6c888;border-radius:12px;background:#fffaf0;color:#5a3a1a;font:700 10px "Trebuchet MS",sans-serif;padding:3px 4px;cursor:pointer;width:62px}.mgPb:active{transform:scale(.95)}
   #vetOv,#remOv{display:none;position:fixed;inset:0;place-items:center;background:rgba(7,40,60,.6);backdrop-filter:blur(3px);z-index:13}
   #vetCard,#remCard{position:relative;width:min(94vw,500px);max-height:94vh;overflow:auto;background:linear-gradient(#fff6de,#f3dcaa);border:3px solid #c99a4a;border-radius:22px;padding:14px 14px 16px;color:#5a3a1a;font-family:"Trebuchet MS",system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4)}
@@ -1144,7 +1144,7 @@
 <script src="mymask.js"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=168"></script>
+<script src="game.js?v=169"></script>
 </body>
 </html>
 

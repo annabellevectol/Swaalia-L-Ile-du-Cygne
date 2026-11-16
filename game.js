@@ -3736,8 +3736,10 @@ function mgGraines(p) {
   round();
 }
 // 6. Le bouquet pour Koki (table de Tomba) : Myah le compose, puis le livre à la boutique
-const BQ_ORD = [{ baies: 2, miel: 1 }, { euca: 2, mousse: 1 }, { miel: 2, baies: 1 }, { racine: 1, coq: 1, euca: 1 }, { mousse: 2, coq: 1 }, { baies: 1, miel: 1, euca: 1, mousse: 1 }];
-const bqName = k => KOB_PLT.find(p => p.k === k).n;
+const BQF = [{ k: 'bq0', n: 'Patte de kangourou', s: 'Kangourou' }, { k: 'bq1', n: 'Waratah', s: 'Waratah' }, { k: 'bq2', n: 'Mimosa doré', s: 'Mimosa' }, { k: 'bq3', n: 'Grevillea', s: 'Grevillea' }, { k: 'bq4', n: 'Banksia', s: 'Banksia' }, { k: 'bq5', n: 'Immortelle rose', s: 'Immortelle' }];   // fleurs sauvages d'Australie, sur tige
+const BQ_ORD = [{ bq1: 1, bq2: 2 }, { bq5: 2, bq0: 1 }, { bq4: 1, bq3: 2 }, { bq1: 1, bq5: 1, bq2: 1 }, { bq0: 2, bq4: 1 }, { bq3: 1, bq2: 1, bq5: 1, bq1: 1 }];
+const bqName = k => BQF.find(p => p.k === k).n;
+const bqImg = (k, h) => '<img src="assets/kob4/' + k + '.png" alt="" style="height:' + h + 'px;vertical-align:middle">';
 function mgBouquet(p) {
   kobD.bq = kobD.bq || { n: 0, carry: false };
   if (kobD.bq.carry) { openDialog('Tomba', ['Tu as déjà ton joli bouquet ! Va vite l\'offrir à Koki, à la boutique.'], null, kobPortrait('tomba')); return; }
@@ -3746,16 +3748,16 @@ function mgBouquet(p) {
 }
 function mgBqPlay(p, want, need) {
   let got = []; mgRestart = () => mgBqPlay(p, want, need);
-  mgShow('Un bouquet pour Koki', '<div class="mgBq"><div class="mgSlip"><b>La commande</b>' + Object.keys(want).map(k => '<div class="mgSl" data-k="' + k + '">' + mgPlant(k, 30) + '<span>× ' + want[k] + '</span></div>').join('') + '</div><div class="mgVase"><div class="mgBou" id="mgBou"></div>' + mgS('vase', 78) + '</div><div class="mgPl">' + KOB_PLT.map(q => '<button class="mgPb" data-k="' + q.k + '">' + mgPlant(q.k, 34) + '<span>' + q.n.split(' ')[0] + '</span></button>').join('') + '</div></div><p class="kvMsg" id="mgM">Touche les plantes pour les mettre dans le vase.</p><div class="kvBtns"><button class="kvBtn alt" id="mgUn">Enlever</button><button class="kvBtn" id="mgGo">C\'est prêt !</button></div>');
+  mgShow('Un bouquet pour Koki', '<div class="mgBq"><div class="mgSlip"><b>La commande</b>' + Object.keys(want).map(k => '<div class="mgSl" data-k="' + k + '">' + bqImg(k, 34) + '<span>× ' + want[k] + '</span></div>').join('') + '</div><div class="mgVase"><div class="mgBou" id="mgBou"></div>' + mgS('vase', 78) + '</div><div class="mgPl">' + BQF.map(q => '<button class="mgPb" data-k="' + q.k + '">' + bqImg(q.k, 44) + '<span>' + q.s + '</span></button>').join('') + '</div></div><p class="kvMsg" id="mgM">Touche les fleurs pour les mettre dans le vase.</p><div class="kvBtns"><button class="kvBtn alt" id="mgUn">Enlever</button><button class="kvBtn" id="mgGo">C\'est prêt !</button></div>');
   const cnt = k => got.filter(x => x === k).length;
-  const draw = () => { $('#mgBou').innerHTML = got.map((k, i) => '<i style="margin-left:' + (i ? -12 : 0) + 'px">' + mgPlant(k, 40) + '</i>').join(''); document.querySelectorAll('.mgSl').forEach(s => { const k = s.dataset.k; s.classList.toggle('ok', cnt(k) === want[k]); s.querySelector('span').textContent = cnt(k) + ' / ' + want[k]; }); };
+  const draw = () => { $('#mgBou').innerHTML = got.map((k, i) => { const a = (i - (got.length - 1) / 2) * 16; return '<i style="position:absolute;left:50%;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotate(' + a + 'deg)">' + bqImg(k, 62) + '</i>'; }).join(''); document.querySelectorAll('.mgSl').forEach(s => { const k = s.dataset.k; s.classList.toggle('ok', cnt(k) === want[k]); s.querySelector('span').textContent = cnt(k) + ' / ' + want[k]; }); };
   draw();
   document.querySelectorAll('.mgPb').forEach(b => b.onclick = () => { if (got.length >= need + 2) { $('#mgM').textContent = 'Le vase est plein !'; return; } got.push(b.dataset.k); sfx.pick(); draw(); });
   $('#mgUn').onclick = () => { got.pop(); sfx.pick(); draw(); };
   $('#mgGo').onclick = () => {
     const ok = Object.keys(want).every(k => cnt(k) === want[k]) && got.length === need;
-    if (!ok) { sfx.no(); $('#mgM').textContent = 'Relis bien la commande : il y a des plantes en trop ou en moins.'; return; }
-    sfx.chest(); $('#mgBody').innerHTML = '<div class="kvH">Le bouquet est prêt !</div><div class="kvStage">' + mgS('bouq', 150) + '</div><p class="kvMsg"><b>Va vite l\'offrir à Koki, à la boutique !</b></p><div class="kvBtns"><button class="kvBtn" id="mgOk">D\'accord !</button></div>';
+    if (!ok) { sfx.no(); $('#mgM').textContent = 'Relis bien la commande : il y a des fleurs en trop ou en moins.'; return; }
+    sfx.chest(); $('#mgBody').innerHTML = '<div class="kvH">Le bouquet est prêt !</div><div class="kvStage">' + '<div class="mgVase" style="transform:scale(1.4);margin:30px auto 10px">' + $('#mgBou').outerHTML.replace('id="mgBou"', '') + mgS('vase', 78) + '</div>' + '</div><p class="kvMsg"><b>Va vite l\'offrir à Koki, à la boutique !</b></p><div class="kvBtns"><button class="kvBtn" id="mgOk">D\'accord !</button></div>';
     $('#mgX').style.display = 'none'; kobD.bq.carry = true; save(); $('#mgOk').onclick = mgClose;
   };
 }
