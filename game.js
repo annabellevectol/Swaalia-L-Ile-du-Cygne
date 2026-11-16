@@ -3257,7 +3257,7 @@ function kobFlPick(f, n) { const k = 'bq' + f.i.slice(2); kobD.fls = kobD.fls ||
 function kobBedPick(b) { inv[b.k] = (inv[b.k] || 0) + 1; kobCut()[b.ck] = Date.now(); save(); renderHud(); sfx.pick && sfx.pick(); say(b.n + ' récoltée ! Tu en as ' + inv[b.k] + '. Elle repoussera bientôt 🌱', 3.4); }
 const KOB_PLT = [
   { k: 'euca', n: 'Eucalyptus argenté', x: 693, y: 326, d: 'Ses feuilles argentées font du bien quand on tousse.' },
-  { k: 'baies', n: 'Baies roses', x: 188, y: 346, d: 'Petites et sucrées : elles donnent du courage.' },
+  { k: 'baies', n: 'Baies roses', x: 188, y: 346, d: 'Petites et sucrées, pleines de vitamines pour reprendre des forces.' },
   { k: 'miel', n: 'Fleur de miel', x: 545, y: 452, d: 'Elle adoucit la gorge, comme un bonbon.' },
   { k: 'mousse', n: 'Mousse douce', x: 824, y: 455, d: 'Douce comme un nuage, elle apaise le nez qui coule.' },
   { k: 'racine', n: 'Racine tendre', x: 775, y: 360, d: 'Elle réchauffe le ventre des petits koalas.' },
@@ -3280,7 +3280,7 @@ function kobDrawPlants() {
     if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
-  KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = f.h || 20, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
+  KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = (f.h || 20) * 1.1, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
   if (0) KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
@@ -3347,7 +3347,7 @@ function kobBkRender() {
     pg.appendChild(e);
   });
   $('#kobC').textContent = KOB_PLT.filter(p => kobPick[p.k]).length + ' / ' + KOB_PLT.length;
-  $('#kobSt').innerHTML = kdSpr('i_star', 22) + ' ' + kobD.st + '&nbsp;&nbsp; ' + kdSpr('ic_fish', 22) + ' ' + nFish() + '/6&nbsp;&nbsp; ' + kdSpr('ic_fruit', 22) + ' ' + nFruit() + '/3';
+  $('#kobSt').innerHTML = '<img src="assets/kob5/chapeau.png" alt="stickers" style="height:22px;vertical-align:middle"> ' + STK_KB.filter(d => post.stk.includes(d.id)).length + '/12&nbsp;&nbsp; ' + kdSpr('ic_fish', 22) + ' ' + nFish() + '/6&nbsp;&nbsp; ' + kdSpr('ic_fruit', 22) + ' ' + nFruit() + '/3';
 }
 function kobBkOpenNow() { $('#kobBk').style.display = 'grid'; kobBkRender(); player.mvx = player.mvy = 0; kobNew = {}; kobHud(); }
 function kobBkClose() { $('#kobBk').style.display = 'none'; }
@@ -5814,7 +5814,7 @@ function tapSpots() {
   if (!kobHF()) MGP.forEach(p => { if (mgOn(p) && dist(IN.x, IN.y, p.sx, p.sy) < (p.r || 46) + 45) L.push({ id: 'mg_' + p.k, big: 1, x: p.x, y: p.y - (p.kind === 'chest' ? p.h * .55 : p.kind === 'vase' ? 30 : 16), go: () => { actQueued = false; if (dist(IN.x, IN.y, p.sx, p.sy) > (p.r || 46)) { 0; return; } mgAct(); } }); });
   if (SC === SC_MK4 && (wmNear() || dist(IN.x, IN.y, WM.sx, WM.sy) < 120 || dist(IN.x, IN.y, WM.x, WM.y) < 100)) L.push({ id: 'wm', big: 1, x: WM.x, y: WM.y - 28, go: () => { actQueued = false; if (!wmAct()) 0; } });   // le walkman posé au sol
   if (IN.floor !== 0) return L;   // petit halo + rond doré devant chaque mini-jeu (comme sur l'île du Cygne)
-  if (SC === SC_KOBHAK && IN.floor === 0) KOB_FL.forEach((f, n) => { if (dist(IN.x, IN.y, f.x, f.y) < 38 && kobGrown({ k: 'fl' + n })) L.push({ id: 'kfl' + n, x: f.x, y: f.y - 14, dot: true, go: () => { actQueued = false; kobFlPick(f, n); } }); });   // fleurs sauvages à cueillir
+  if (SC === SC_KOBHAK && IN.floor === 0) KOB_FL.forEach((f, n) => { if (tool === 'basket' && dist(IN.x, IN.y, f.x, f.y) < 38 && kobGrown({ k: 'fl' + n })) L.push({ id: 'kfl' + n, x: f.x, y: f.y - (f.h || 20) * 1.1 - 8, dot: true, go: () => { actQueued = false; kobFlPick(f, n); } }); });   // fleurs sauvages à cueillir
   if (SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 && KOB_BEDS.some(b => dist(IN.x, IN.y, b.x, b.y) < 45)) { const b = KOB_BEDS.reduce((a, c) => dist(IN.x, IN.y, c.x, c.y) < dist(IN.x, IN.y, a.x, a.y) ? c : a); L.push({ id: 'kbed', x: b.x, y: b.y - 18, dot: true, go: () => { actQueued = false; openGarden(true); } }); }   // les jardinières de Tomba : on plante, on arrose, on cueille
   if (SC === SC_KOBHAK && !handsFull()) KOB_PL.forEach(q => { if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) < (q.r || 32) + 55 || (q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 85)) L.push({ id: 'kpl_' + q.txt, big: 0, x: q.hl ? q.hl[0] : q.spot[0], y: q.hl ? q.hl[1] : q.spot[1] - 6, go: () => { actQueued = false; if (dist(IN.x, IN.y, q.spot[0], q.spot[1]) > (q.r || 32) + 30 && !(q.hl && dist(IN.x, IN.y, q.hl[0], q.hl[1]) < 70)) { 0; return; } askDisp(true, q); } }); });   // halo doré + rond devant chaque porte de l'île aux Koalas
   if (IN.shower) return [{ id: 'shower', x: SHOWER.x, y: SHOWER.y - 128, on: 1, go: () => { tutDone('shower'); showerOff(); } }];
