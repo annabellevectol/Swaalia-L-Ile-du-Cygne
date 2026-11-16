@@ -3247,12 +3247,7 @@ const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
-  if (kobQ >= 2 && !IN.hive) {   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
-    const bx = LAD.x, by = LAD.y, tx = LAD.x - 19, ty = LAD.y - 76, w = 7; ctx.save(); ctx.globalAlpha = KD_A; ctx.lineCap = 'round';
-    ctx.strokeStyle = '#5a3a1c'; ctx.lineWidth = 3.4; [-w, w].forEach(o => { ctx.beginPath(); ctx.moveTo(bx + o, by); ctx.lineTo(tx + o, ty); ctx.stroke(); });
-    ctx.strokeStyle = '#a8743d'; ctx.lineWidth = 2; [-w, w].forEach(o => { ctx.beginPath(); ctx.moveTo(bx + o, by); ctx.lineTo(tx + o, ty); ctx.stroke(); });
-    for (let i = 1; i < 7; i++) { const f = i / 7, x = bx + (tx - bx) * f, y = by + (ty - by) * f; ctx.strokeStyle = '#5a3a1c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.stroke(); ctx.strokeStyle = '#b98248'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.stroke(); }
-    ctx.restore(); }
+  if (kobQ >= 2 && !IN.hive && ECHL.complete && ECHL.naturalWidth) { const k = .155; ctx.save(); ctx.globalAlpha = KD_A; ctx.translate(LAD.x, 0); ctx.scale(-1, 1); ctx.drawImage(ECHL, -180 * k, LAD.y - 754 * k, ECHL.naturalWidth * k, ECHL.naturalHeight * k); ctx.restore(); }   // l'échelle posée sur l'herbe, appuyée contre l'eucalyptus
   if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 46, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
@@ -3277,6 +3272,7 @@ function kobGather() {
   if (!left) { kobQ = 2; say('Tout est cueilli ! Retourne voir le docteur Tarah !', 5); } else say(p.n + ' cueilli (encore ' + left + ')', 3);
   kobHud(); save(); return true;
 }
+const ECHL = new Image(); ECHL.src = 'assets/kob2/echelle.png?v=1';
 const ECH = [0, 1, 2, 3].map(i => { const m = new Image(); m.src = 'assets/kob2/ech' + i + '.png?v=2'; return m; });
 function kobLadder(done) {   // Myah grimpe à l'échelle contre l'eucalyptus, enfume la ruche, découpe un rayon et redescend
   const T = ['Myah grimpe à l\'échelle…', 'Un peu de fumée pour calmer les abeilles…', 'Elle découpe un morceau de rayon…', 'Et redescend avec le rayon !'];
