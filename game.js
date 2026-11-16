@@ -3241,10 +3241,10 @@ let kobPick = {}, kobNew = {}, kobQ = 0;   // plantes cueillies, « nouveau » d
 const KOB_REGROW = 90000;
 const RUCHE = { x: 398, y: 346 }, LAD = { x: 421, y: 400 }, K2 = {}; ['ruche', 'ruche_vide', 'cire', 'miel', 'huile', 'racine'].forEach(k => { K2[k] = new Image(); K2[k].src = 'assets/kob2/' + k + '.png?v=2'; });   // la ruche de l'île : cire et miel   // une plante cueillie repousse en 1 min 30
 const kobHS = () => kobD.hs || (kobD.hs = {}), kobCut = () => kobD.cut || (kobD.cut = {});   // plantes dans le panier, et moment de la cueillette
-const kobGrown = p => !kobCut()[p.k] || Date.now() - kobCut()[p.k] > KOB_REGROW;
+const kobGrown = p => !kobCut()[p.ck || p.k] || Date.now() - kobCut()[p.ck || p.k] > KOB_REGROW;
 const kobAvail = p => kobQ === 1 ? !kobPick[p.k] : kobQ >= 2 && kobGrown(p);
 const rucheNear = () => SC === SC_KOBHAK && kobQ >= 2 && IN.floor === 0 && dist(IN.x, IN.y, LAD.x, LAD.y + 8) < 40;
-const KOB_PLT_ALL = KOB_PLT.concat([Object.assign({}, KOB_PLT[1], { x: 667, y: 492 }), Object.assign({}, KOB_PLT[3], { x: 123, y: 282 })]);   // 2e buisson de baies, 2e mousse en haut de la falaise
+const KOB_PLT_ALL = KOB_PLT.concat([Object.assign({}, KOB_PLT[1], { x: 667, y: 492, ck: 'baies2' }), Object.assign({}, KOB_PLT[3], { x: 123, y: 282, ck: 'mousse2' })]);   // 2e buisson de baies, 2e mousse en haut de la falaise
 const kobPlantNear = () => SC === SC_KOBHAK && kobQ >= 1 && IN.floor === 0 ? KOB_PLT_ALL.find(p => kobAvail(p) && dist(IN.x, IN.y, p.x, p.y) < 46) : null;
 function kobDrawPlants() {
   if (SC !== SC_KOBHAK || kobQ < 1 || !KOB_PIMG.complete || !KOB_PIMG.naturalWidth) return;
@@ -3264,7 +3264,7 @@ function kobGather() {
   const p = kobPlantNear(); if (!p) return false;
   if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les plantes ! 🧺', 3.2); return true; }
   const first = !kobPick[p.k]; kobPick[p.k] = true; if (first) kobNew[p.k] = true; sfx.pick(); player.dir4 = 'down';
-  kobHS()[p.k] = (kobHS()[p.k] | 0) + 1; kobCut()[p.k] = Date.now();
+  kobHS()[p.k] = (kobHS()[p.k] | 0) + 1; kobCut()[p.ck || p.k] = Date.now();
   if (kobQ >= 2 && p.k === 'racine') { kobHud(); save(); kobHold(3, 'Racine tendre cueillie ! Tu en as ' + kobHS()[p.k] + '.'); return true; }
   if (kobQ >= 2) { say(p.n + ' cueilli ! Tu en as ' + kobHS()[p.k] + ' dans ton panier. La plante repoussera bientôt 🌱', 3.4); kobHud(); save(); return true; }
   const left = KOB_PLT.filter(q => !kobPick[q.k]).length;
