@@ -1396,6 +1396,8 @@ addEventListener('blur', () => { touchAct = false; });
 press($('#bJump'), () => { jumpQueued = true; });
 press($('#bSwan'), () => { swanQueued = true; });
 press($('#bFly'), () => { wingsToggle(); });
+press($('#flyY'), () => { $('#flyAsk').classList.remove('on'); if (player.mount === 'wings' || IN.wf) wingsToggle(); });
+press($('#flyN'), () => { $('#flyAsk').classList.remove('on'); player.askNo = time; });
 function fitTipIcons() {   // dans 💡 Astuces : les mêmes images de Myah que les boutons d'outils du bas
   document.querySelectorAll('#tipsBody .tico').forEach(b => {
     try { let ico = b.querySelector('.ico'); if (!ico) { ico = document.createElement('span'); ico.className = 'ico'; b.appendChild(ico); }
@@ -1747,7 +1749,7 @@ function renderHud() {
   $('#quests').innerHTML = emoFix(t);
   }
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
-  $('#bFly').classList.toggle('on', wingsOk());
+  $('#bFly').classList.toggle('on', wingsOk()); $('#bFly').classList.toggle('kob', IN.on && SC === SC_KOBHAK && IN.floor === 0);
   const act = QUESTS.filter(q => qState[q.id] === 'active').length + QUESTS.filter(q => qState[q.id] === 'done' && !opened[q.id]).length;
   { const sn = $('#scrN'); sn.textContent = act || '!'; sn.classList.toggle('show', act > 0); }
 }
@@ -2567,7 +2569,13 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
 const wingsOk = () => (typeof endingSeen !== 'undefined' && endingSeen) || level === 'balade';
 const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}; ['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/myah/fly/' + k + i + '.png' })); });
 function wingsToggle() {
-  const p = player; if (IN.on || cine || dlg.open || !wingsOk()) return;
+  const p = player; if (cine || dlg.open || !wingsOk()) return;
+  if (IN.on) {   // sur l'île aux Koalas (dehors)
+    if (SC !== SC_KOBHAK || IN.floor !== 0 || CARE || IN.hive) return;
+    if (IN.wf) { IN.wf.altT = 0; IN.wf.land = true; sfx.hop(); return; }
+    IN.wf = { alt: 0, altT: 34 * SC.K, land: false, fd: 'down', wT: time }; IN.smoke = time; sfx.mount && sfx.mount(); say('🪽 Myah s\'envole ! Touche « Voler » pour te poser.', 3); return;
+  }
+  if (IN.on) return;
   if (p.mount === 'wings') { p.altT = 0; p.wland = true; sfx.hop(); return; }
   if (p.mount || p.state !== 'free') return;
   p.puff = time; p.mount = 'wings'; p.alt = 0; p.altT = 34; p.wland = false; p.wT = time; p.fd = 'down'; sfx.mount && sfx.mount(); say('🪽 Myah s\'envole avec les ailes de Gaïkin ! Touche « Voler » pour te poser.', 3.5);
@@ -5753,6 +5761,20 @@ function updateInterior(dt) {
     else IN.floor = c.u > .5 ? 1 : 0;
     return;
   }
+  { const bf = $('#bFly'), k = SC === SC_KOBHAK && IN.floor === 0 && wingsOk(); if (bf.classList.contains('kob') !== k) { bf.classList.toggle('kob', k); bf.classList.toggle('on', k || (!IN.on && wingsOk())); } }
+  if (IN.wf) {   // en vol au-dessus de l'île aux Koalas : on passe partout, on se pose sur un endroit où marcher
+    const f = IN.wf, sp2 = (run ? 170 : 120) * SC.K * .85 * mag, ok0 = (x, y) => inPoly(IN_FLOORS[0], x, y) && !(SC.blocks && SC.blocks.some(b => inPoly(b, x, y)));
+    if (moving) { IN.x = clamp(IN.x + ix * sp2 * dt, 10, SC.W - 10); IN.y = clamp(IN.y + iy * sp2 * dt, 10, SC.H - 10); f.fd = Math.abs(iy) > Math.abs(ix) * 1.2 ? (iy > 0 ? 'down' : 'up') : 'side'; }
+    f.alt += (f.altT - f.alt) * Math.min(1, dt * 5);
+    { const fa = $('#flyAsk'), want = !f.land && moving && iy > .5 && Math.abs(iy) > Math.abs(ix) && ok0(IN.x, IN.y) && time - (p.askNo || -9) > 4 && time - f.wT > 1;
+      if (want && !fa.classList.contains('on')) fa.classList.add('on'); else if (fa.classList.contains('on') && (!ok0(IN.x, IN.y) || f.land)) fa.classList.remove('on'); }
+    if (f.land && f.alt < 2) {
+      let w = ok0(IN.x, IN.y) ? [IN.x, IN.y] : null;
+      for (let r = 8; !w && r < 260; r += 8) for (let a = 0; a < TAU && !w; a += .4) { const x = IN.x + Math.cos(a) * r, y = IN.y + Math.sin(a) * r; if (ok0(x, y)) w = [x, y]; }
+      if (w) { IN.x = w[0]; IN.y = w[1]; IN.wf = null; IN.smoke = time; $('#flyAsk').classList.remove('on'); } else { f.land = false; f.altT = 34 * SC.K; say('Pas d\'endroit où se poser ici !', 2.5); }
+    }
+    actQueued = false; return;
+  }
   const poly = IN_FLOORS[IN.floor], sp = (run ? 62 : 43) * SC.K * .85 * mag;   // même vitesse qu'à l'extérieur, comptée en longueurs de Myah (la pièce est agrandie d'un facteur K)
   const bl = IN.floor === 0 ? ((SC === SC_HOME || SC === SC_UKAI) && (IN.sdb || 0) < .5 ? SC.blocks.concat(SC.walls) : SC.blocks) : SC.blocks1, okAt = (x, y) => inPoly(poly, x, y) && !(bl && bl.some(b => inPoly(b, x, y)));
   if (moving) {
@@ -6062,7 +6084,7 @@ function renderInterior(vw, vh) {
   const drawMy = () => { if (IN.apiT && IN.apiT > 0 && time >= IN.apiT) { IN.apiT = 0; IN.smoke = time; }   // au bout de 4 s, pouf : retour à la salopette
     drawMy0(); if (IN.smoke && time - IN.smoke < .9) { const k = (time - IN.smoke) / .9, x = IN.hive ? LAD.x : IN.x, y = IN.hive ? LAD.y : IN.y; if (FLYC.complete && FLYC.naturalWidth) { const h = 58 + k * 16, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .9 * (1 - k * k); ctx.drawImage(FLYC, x - w / 2, y - h * .92, w, h); ctx.restore(); } } if (SC === SC_KOBHAK && IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 16, r: 11, dot: true });   // en haut de l'échelle : le point lumineux sur la ruche, par-dessus Myah
   if (SC === SC_MK2 && IN.x > 1040 && IN.y > 640 && SC.img.complete) { ctx.save(); ctx.beginPath(); ROPE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); } for (const [P, ok] of [[TOMBA_FG, IN.y < 525 && IN.x > 985 && IN.x < 1185], [SHOP_FG, IN.y < 500 && IN.x > 275 && IN.x < 450], [TREE_FG, IN.y < 292 && IN.x > 330 && IN.x < 440]]) if (SC === SC_KOBHAK && ok) { ctx.save(); ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); const ds = dayState(), a = KOB_IMG[ds.A.n], b = KOB_IMG[ds.B.n]; if (a && a.naturalWidth) ctx.drawImage(a, 0, 0, IN_W, IN_H); if (b && b !== a && ds.u > 0 && b.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(b, 0, 0, IN_W, IN_H); } ctx.restore(); } };
-  const drawMy0 = () => { if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
+  const drawMy0 = () => { if (IN.wf) { const f = IN.wf, set = FLYI[f.fd === 'up' ? 'up' : f.fd === 'side' ? 'side' : 'down'], im = set[Math.floor(time * 9) % 4], fl = f.fd === 'side' && player.face < 0; ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y, 14, 5, 0, 0, TAU); ctx.fill(); ctx.restore(); if (im.complete && im.naturalWidth) { const h = 36 * SC.K, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.translate(IN.x, IN.y - f.alt - Math.sin(time * 4) * 2); if (fl) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore(); } return; } if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
     const bh = 46 * IN_K * .76, d4 = player.dir4 || 'down', bwob = Math.abs(Math.sin(time * 8)) * 1.3 * (Math.hypot(player.mvx || 0, player.mvy || 0) > .1 ? 1 : 0);
     
@@ -6222,8 +6244,10 @@ function update(dt) {
   if (phase === 'seek' && !IN.on && !cine && !dlg.open && p.state === 'free' && dist(p.x, p.y, D.perch[0], D.perch[1]) < 260) startReveal();   // Myah arrive au bord du lac : Gaïkin apparaît
   if (p.mount === 'wings') {
     if (moving) tryMove(run ? 170 : 120);
+    { const fa = $('#flyAsk'), want = !p.wland && moving && iy > .5 && Math.abs(iy) > Math.abs(ix) && walkable(p.x, p.y) && time - (p.askNo || -9) > 4 && time - p.wT > 1;   // en descendant au-dessus d'un endroit où marcher
+      if (want && !fa.classList.contains('on')) fa.classList.add('on'); else if (fa.classList.contains('on') && (!walkable(p.x, p.y) || p.wland)) fa.classList.remove('on'); }
     p.alt += (p.altT - p.alt) * Math.min(1, dt * 5);
-    if (p.wland && p.alt < 2) { const w = walkable(p.x, p.y) ? [p.x, p.y] : nearestWalk(p.x, p.y, 200); if (w) { p.x = w[0]; p.y = w[1]; p.puff = time; p.mount = null; p.alt = 0; p.wland = false; setAnim('idle'); } else { p.altT = 34; p.wland = false; say('Pas d\'endroit où se poser ici : vole jusqu\'à la terre ferme !', 3); } }
+    if (p.wland && p.alt < 2) { const w = walkable(p.x, p.y) ? [p.x, p.y] : nearestWalk(p.x, p.y, 200); if (w) { $('#flyAsk').classList.remove('on'); p.x = w[0]; p.y = w[1]; p.puff = time; p.mount = null; p.alt = 0; p.wland = false; setAnim('idle'); } else { p.altT = 34; p.wland = false; say('Pas d\'endroit où se poser ici : vole jusqu\'à la terre ferme !', 3); } }
   } else if (p.mount) {
     if (phase === 'returned' && !endingSeen && storyOn() && p.state === 'free' && !dlg.open && !cine && !document.getElementById('stOv')) { rideT += dt; if (rideT > 28) { rideT = 0; startEnding(); } }
     if (moving) tryMove(p.mount === 'fly' ? (run ? 220 : 155) : (run ? 66 : 47));
