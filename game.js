@@ -150,7 +150,7 @@ const sfx = {
 /* ================= histoire et quêtes ================= */
 const SAVE_KEY = 'ile-du-cygne-myah-v3';
 const VEG = [{ k: 'patate', n: 'Patate douce', e: '🍠' }, { k: 'gingembre', n: 'Gingembre', e: '🫚' }, { k: 'arachide', n: 'Cacahuètes', e: '🥜' }, { k: 'taro', n: 'Igname', e: '🥔' }, { k: 'mais', n: 'Maïs', e: '🌽' }, { k: 'plantain', n: 'Banane plantain', e: '🍌' }, { k: 'csucre', n: 'Canne à sucre', e: '🎋' }];   // les 6 légumes du potager (ordre = lignes des planches)
-const inv = { banana: 0, flower: 0, butterfly: 0, firefly: 0, jar: 0, aqua: 0, treat0: 0, treat1: 0, treat2: 0, fish: 0, coconut: 0, mango: 0, patate: 0, gingembre: 0, arachide: 0, taro: 0, mais: 0, csucre: 0, farine: 0, sucre: 0, oeuf: 0, epices: 0, citron: 0, plantain: 0, shell: 0, crab: 0, tukai: 0, katouka: 0, gmangue: 0, gbanane: 0, tipaiki: 0, soupe: 0, gmiel: 0, barra: 0 };
+const inv = { banana: 0, flower: 0, butterfly: 0, firefly: 0, jar: 0, aqua: 0, treat0: 0, treat1: 0, treat2: 0, fish: 0, coconut: 0, mango: 0, patate: 0, gingembre: 0, arachide: 0, taro: 0, mais: 0, csucre: 0, farine: 0, sucre: 0, oeuf: 0, epices: 0, citron: 0, plantain: 0, shell: 0, crab: 0, tukai: 0, katouka: 0, gmangue: 0, gbanane: 0, tipaiki: 0, soupe: 0, gmiel: 0, barra: 0, papi: 0 };
 const gdEmpty = () => Array.from({ length: 9 }, () => ({ c: -1, w: 0, e: 0, v: 0 })); let gd = gdEmpty();   // potager : 9 cases { c: légume (-1 = vide), w: moment de l'arrosage, v: variante }
 const ICO_TXT = { panier: 'panier', filet: 'filet', canne: 'canne', coffre: 'coffre', 'a-tresor': 'Ouvrir', 'a-parler': 'Parler', 'a-prendre': 'Prendre', 'a-cueillir': 'Cueillir', 'a-donner': 'Donner', 'a-attraper': 'Attraper', 'a-pecher': 'Pêcher' };
 /* ----- pas d'emojis dans les textes : les objets à récolter sont remplacés par leur miniature, le reste est retiré ----- */
@@ -200,7 +200,7 @@ const emoFix = html => String(html).split(/(<[^>]*>)/).map((p, i) => i % 2 ? p :
 })();
 const ico = (t) => emoText(String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/(panier|filet|canne) \[\1\]/g, '$1').replace(/\[(panier|filet|canne|coffre|a-tresor|a-parler|a-prendre|a-cueillir|a-donner|a-attraper|a-pecher)\]/g, (m, k) => ICO_TXT[k]), true, true);   // textes simples, plus d'icônes ni d'emojis
 
-const ICON = { graine: '<img src="assets/spr/graines.png?v=50" alt="" style="height:1.3em;vertical-align:-3px">', firefly: '<img src="assets/spr/jar_glow.png" alt="" style="height:1.1em;vertical-align:-2px">', jar: '<img src="assets/spr/jar_empty.png" alt="" style="height:1.1em;vertical-align:-2px">', aqua: '<img src="assets/spr/aqua.png" alt="" style="height:1.1em;vertical-align:-2px">', treat0: '<img src="assets/spr/treat0.png" alt="" style="height:1.3em;vertical-align:-3px">', treat1: '<img src="assets/spr/treat1.png" alt="" style="height:1.3em;vertical-align:-3px">', treat2: '<img src="assets/spr/treat2.png" alt="" style="height:1.3em;vertical-align:-3px">', banana: '🍌', flower: '🌸', butterfly: '🦋', fish: '🐟', coconut: '🥥', mango: '🥭', patate: '🍠', gingembre: '🫚', arachide: '🥜', taro: '🥔', mais: '🌽', csucre: '🎋', farine: '<img src="assets/spr/ing_farine.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', sucre: '<img src="assets/spr/ing_sucre.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', citron: '<img src="assets/spr/ing_citron.png?v=2" alt="" style="height:1.3em;width:auto;max-width:60%;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', oeuf: '<img src="assets/spr/ing_oeufs.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', epices: '<img src="assets/spr/ing_epices.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', plantain: '🍌', shell: '🐚', crab: '🦀', tukai: '🍲', katouka: '🥘', gmangue: '🍰', gbanane: '🧁', tipaiki: '🐟', gmiel: '🍯', barra: '🐟', soupe: '🦀' };
+const ICON = { graine: '<img src="assets/spr/graines.png?v=50" alt="" style="height:1.3em;vertical-align:-3px">', firefly: '<img src="assets/spr/jar_glow.png" alt="" style="height:1.1em;vertical-align:-2px">', jar: '<img src="assets/spr/jar_empty.png" alt="" style="height:1.1em;vertical-align:-2px">', aqua: '<img src="assets/spr/aqua.png" alt="" style="height:1.1em;vertical-align:-2px">', treat0: '<img src="assets/spr/treat0.png" alt="" style="height:1.3em;vertical-align:-3px">', treat1: '<img src="assets/spr/treat1.png" alt="" style="height:1.3em;vertical-align:-3px">', treat2: '<img src="assets/spr/treat2.png" alt="" style="height:1.3em;vertical-align:-3px">', banana: '🍌', flower: '🌸', butterfly: '🦋', fish: '🐟', coconut: '🥥', mango: '🥭', patate: '🍠', gingembre: '🫚', arachide: '🥜', taro: '🥔', mais: '🌽', csucre: '🎋', farine: '<img src="assets/spr/ing_farine.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', sucre: '<img src="assets/spr/ing_sucre.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', citron: '<img src="assets/spr/ing_citron.png?v=2" alt="" style="height:1.3em;width:auto;max-width:60%;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', oeuf: '<img src="assets/spr/ing_oeufs.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', epices: '<img src="assets/spr/ing_epices.png" alt="" style="height:1.3em;width:auto;vertical-align:-4px;display:inline;margin:0;border-radius:0;box-shadow:none;object-fit:contain">', plantain: '🍌', shell: '🐚', crab: '🦀', tukai: '🍲', katouka: '🥘', gmangue: '🍰', gbanane: '🧁', tipaiki: '🐟', gmiel: '🍯', barra: '🐟', papi: '🍃', soupe: '🦀' };
 const FCOLOR = [['#ff7eb6', '#ffd6e8'], ['#4aa3ff', '#cfe6ff'], ['#ffd23d', '#fff1b0'], ['#3ed6b0', '#c9f5ea'], ['#b980ff', '#e9d8ff']];
 const FNAME = ['rose', 'bleue', 'dorée', 'turquoise', 'violette'];
 
@@ -1596,7 +1596,7 @@ const BAG_CATS = [['fruits', '🍌 Fruits', [['banana', 'Bananes'], ['mango', 'M
   ['legumes', '🥕 Légumes', VEG.map(v => [v.k, v.n])],
   ['epicerie', '🧺 Épicerie', [['farine', 'Farine de maïs'], ['sucre', 'Sucre de canne'], ['oeuf', 'Œufs'], ['epices', 'Épices'], ['citron', 'Citrons verts']]],
   ['plats', '🍲 Repas', [['gmangue', 'Maïmaïa'], ['gbanane', 'Maïbuï'], ['tipaiki', 'Tipa Iki'], ['soupe', 'Uja-Jiji']]]];
-const BAG_SUB = { gmangue: 'dessert · gâteau de maïs mangue', gbanane: 'dessert · gâteau de maïs banane', tipaiki: 'plat chaud · plantain et poisson grillé', soupe: 'plat chaud · soupe de crabe, patate douce et igname', gmiel: 'dessert · gâteau doré au miel', barra: 'plat chaud · barramundi grillé et purée violette' };
+const BAG_SUB = { gmangue: 'dessert · gâteau de maïs mangue', gbanane: 'dessert · gâteau de maïs banane', tipaiki: 'plat chaud · plantain et poisson grillé', soupe: 'plat chaud · soupe de crabe, patate douce et igname', gmiel: 'dessert · gâteau doré au miel', barra: 'plat chaud · barramundi grillé et purée violette', papi: 'plat chaud · papillote de poisson coco-citron vert' };
 function bagIco(k) { const i = VEG.findIndex(v => v.k === k); return i >= 0 ? '<i class="gv" style="background-position:0 -' + (i * 20) + 'px"></i>' : (ICON[k] || '•'); }
 /* ----- petits bocaux : lucioles (4 max) ou papillons (2 max), à poser sur la table basse ou à offrir ----- */
 const JAR_MAX = { fly: 4, bfly: 2 }, JAR_DAYS = 3, JAR_CAP = 4;
@@ -1681,7 +1681,7 @@ function bocauxHtml() {
   L.forEach(j => { const where = j.at === 'bag' ? 'dans le sac' : j.at === 'tbl' ? (treLoad(), TRE.tb2.includes('jar:' + j.id) ? 'sur la table' : 'sur la table basse') : 'chez ' + (((ALLNPC().find(n => npcKeyOf(n) === j.at) || {}).who || '').split(',')[0] || 'un habitant') + ' (' + Math.max(0, JAR_DAYS - ((mini.dayNo || 0) - (j.d || 0))) + ' j)'; h += '<div class="bi jr"><span><img class="ji" src="' + jarIconUrl(j) + '" alt=""> ' + jarName(j) + '<br><small>' + where + '</small></span>' + (j.at === 'bag' || j.at === 'tbl' ? '<button class="jfree" data-jid="' + j.id + '">Libérer</button>' : '') + '</div>'; });
   return h;
 }
-const dishImg = k => '<img class="dimg" src="assets/cook/' + ({ gbanane: 'd_banane', tipaiki: 'd_tipa', soupe: 'd_soupe', gmiel: 'd_gmiel', barra: 'd_barra' }[k] || 'd_cake') + '.jpg" alt="">';
+const dishImg = k => '<img class="dimg" src="assets/cook/' + ({ gbanane: 'd_banane', tipaiki: 'd_tipa', soupe: 'd_soupe', gmiel: 'd_gmiel', barra: 'd_barra', papi: 'd_papi' }[k] || 'd_cake') + '.jpg" alt="">';
 const BAG_TAB = { fruits: ['Fruits', () => ICON.banana], poissons: ['Poissons', () => ICON.fish], coquillages: ['Coquillages', () => ICON.shell], plantes: ['Plantes', () => ICON.flower], insectes: ['Insectes', () => ICON.butterfly], bocaux: ['Bocaux', () => ICON.jar], friand: ['Friandises', () => ICON.treat2], legumes: ['Légumes', () => bagIco('patate')], epicerie: ['Épicerie', () => ICON.farine], plats: ['Repas', () => dishImg('gmangue')] };
 function bagItemsHtml() {
   let h = '<div class="bagT">Mon sac</div><div class="btabs">';
@@ -7598,14 +7598,14 @@ function offerVeg(who, portrait, after, go, label) {   // menu à onglets : [qu�
 /* ================= CUISINE : Tukaï et Katouka (façon Cooking Mama) ================= */
 const COOK_SPOT = [213, 590], COOK_HL = [194, 511];
 const CKLV = [{ n: 'Facile', zw: .96, sp: .25, spd: 0, nm: .3, tm: 10, tn: .4, tc: .5, hl: .05, hh: .99, up: .9, dn: .05, th: 0, fl: .65, easy: 1 }, { n: 'Moyen', zw: .4, sp: .5, spd: .08, nm: .7, tm: 2, tn: .7, tc: .8, hl: .3, hh: .78, up: .55, dn: .3, th: .4, fl: .2 }, { n: 'Difficile', zw: .3, sp: .7, spd: .1, nm: 1, tm: 0, tn: 1, tc: 1, hl: .38, hh: .72, up: .5, dn: .36, th: .55, fl: 0 }];
-const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 2] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
+const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 2], papi: [0, 2, 3, 4, 5] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
 const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' ? '?v=2' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
-const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji', gmiel: 'du Gâteau doré au miel', barra: 'du Barra-Grill' };
+const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji', gmiel: 'du Gâteau doré au miel', barra: 'du Barra-Grill', papi: 'de la Papillote des récifs' };
 function dishList(k) { mini.dq = mini.dq || {}; const a = mini.dq[k] = (mini.dq[k] || []).slice(0, inv[k] || 0); while (a.length < (inv[k] || 0)) a.push(2); return a; }
 function dishAdd(k, st) { dishList(k); mini.dq[k].push(st || 1); }
 function dishPop(k) { dishList(k); mini.dq[k].pop(); }
@@ -7678,16 +7678,23 @@ const RECIPES = {
       ['Décortique les crabes', '', 'reveal', { strip: 'crab_s', n: 6, ar: '520/330', t: 16, fx: 'peel', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
       ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 6, ar: '520/330', t: 14, fx: 'cubes2' }],
       ['Fais mijoter la soupe', '', 'oven', { strip: 'pot_s', n: 6, ar: '400/380', t: 10, fx: ['steam'] }]] },
-  gmiel: { nuna: 1, name: 'Gâteau doré au miel', sub: 'gâteau de maïs nappé de miel', emoji: '🍯', dessert: 1, need: { farine: 1, oeuf: 3, epices: 1 }, kneed: { miel: 1 }, ok: 'd_gmiel', ko: 'd_burnt',
+  gmiel: { nuna: 1, name: 'Gâteau doré au miel', sub: 'gâteau de maïs nappé de miel', emoji: '🍯', dessert: 1, need: { farine: 1, oeuf: 3, epices: 1 }, kneed: { miel: 1 }, ok: 'd_gmiel', ko: 'd_gmiel_ko',
     steps: [['Verse le miel sur la farine', '', 'reveal', { strip: 'gm_honey', n: 2, ar: '390/290', t: 10, fx: 'milk' }],
       ['Casse les œufs', '', 'reveal', { strip: 'gm_egg', n: 2, ar: '390/290', t: 10, fx: 'peel' }],
       ['Mélange la pâte', '', 'reveal', { strip: 'gm_mix', n: 3, ar: '390/290', t: 14, fx: 'milk', tool: 'hand_whisk', tw: 48, tr: 'translate(-12%,-72%)' }],
       ['Verse la pâte dans le moule', '', 'reveal', { strip: 'gm_pour', n: 2, ar: '390/290', t: 10, fx: 'milk' }],
       ['Cuis le gâteau', '', 'oven', { strip: 'gm_oven', n: 6, ar: '390/290', t: 8, fx: ['steam'] }]] },
-  barra: { nuna: 1, name: 'Barra-Grill', sub: 'barramundi grillé et purée violette', emoji: '🐟', need: { fish: 1, patate: 1 }, ok: 'd_barra', ko: 'd_tipa_ko',
+  barra: { nuna: 1, name: 'Barra-Grill', sub: 'barramundi grillé et purée violette', emoji: '🐟', need: { fish: 1, patate: 1 }, ok: 'd_barra', ko: 'd_barra_ko',
     steps: [['Farcis le poisson à la citronnelle', '', 'reveal', { strip: 'br_stuff', n: 2, ar: '390/290', t: 12, fx: 'peel' }],
       ['Fais griller le barramundi', '', 'oven', { strip: 'br_pan', n: 6, ar: '390/290', t: 8, fx: ['steam'] }],
       ['Écrase la patate douce violette', '', 'reveal', { strip: 'br_mash', n: 2, ar: '390/290', t: 12, fx: 'peel' }]] },
+  papi: { nuna: 1, name: 'Papillote des récifs', sub: 'poisson en feuille de bananier, coco et citron vert', emoji: '🍃', need: { fish: 1, citron: 1, coconut: 1 }, ok: 'd_papi', ko: 'd_barra_ko',
+    steps: [['Pose le poisson sur la feuille de bananier', '', 'reveal', { strip: 'pp_fish', n: 2, ar: '390/290', t: 10, fx: 'peel' }],
+      ['Ajoute le citron vert et la citronnelle', '', 'reveal', { strip: 'pp_lime', n: 2, ar: '390/290', t: 10, fx: 'cubes2', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
+      ['Verse le lait de coco', '', 'reveal', { strip: 'pp_coco', n: 2, ar: '390/290', t: 10, fx: 'milk' }],
+      ['Ferme la papillote', '', 'reveal', { strip: 'pp_fold', n: 2, ar: '390/290', t: 10, fx: 'peel' }],
+      ['Fais griller sur les braises', '', 'oven', { strip: 'pp_grill', n: 6, ar: '390/290', t: 9, fx: ['steam'] }],
+      ['Ouvre la papillote', '', 'reveal', { strip: 'pp_open', n: 2, ar: '390/290', t: 10, fx: 'peel' }]] },
   xmiel: { kob: 'miel', name: 'Miel et cire', emoji: '🍯', need: {}, ok: 'd_mx', ko: 'd_mx',
     steps: [['Découpe le rayon de miel', '', 'reveal', { strip: 'mx_cut', n: 3, ar: '520/420', t: 12, fx: 'rounds', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Presse le rayon : le miel coule !', '', 'reveal', { strip: 'mx_press', n: 3, ar: '520/420', t: 12, fx: 'peel' }],
