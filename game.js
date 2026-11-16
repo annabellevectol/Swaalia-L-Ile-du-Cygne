@@ -3177,7 +3177,7 @@ const KOB_PL = [
   { sc: SC_MK3, closed: 'La maison du jardinier est fermée le soir. Reviens demain matin !', spot: [1038, 578], hl: [1046, 534], txt: 'la maison du jardinier', inP: [432, 902], outP: [1028, 592] },
   { sc: SC_MK4, spot: [1140, 152], hl: [1140, 118], txt: 'le phare', inP: [190, 745], outP: [1092, 162] },
   { sc: SC_MK5, closed: 'La boutique de Koki est fermée le soir. Reviens demain matin !', spot: [440, 514], r: 34, sm: 1, txt: 'la boutique souvenir', inP: [880, 520], outP: [395, 590] },
-  { sc: SC_MK2, spot: [908, 165], hl: [900, 132], eve: 'La maison dans l\'arbre est fermée. Reviens le soir !', txt: 'la maison dans l\'arbre', inP: [1040, 695], outP: [930, 166] },
+  { sc: SC_MK2, spot: [908, 165], hl: [900, 132], txt: 'la maison dans l\'arbre', inP: [1040, 695], outP: [930, 166] },
 ];
 let KOB_CUR = null;
 const kobZone = { q: null, t: 0 };
