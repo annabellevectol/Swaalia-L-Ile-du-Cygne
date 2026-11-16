@@ -1395,6 +1395,7 @@ press($('#bAct'), () => { actQueued = true; touchAct = true; });
 addEventListener('blur', () => { touchAct = false; });
 press($('#bJump'), () => { jumpQueued = true; });
 press($('#bSwan'), () => { swanQueued = true; });
+press($('#bFly'), () => { wingsToggle(); });
 function fitTipIcons() {   // dans 💡 Astuces : les mêmes images de Myah que les boutons d'outils du bas
   document.querySelectorAll('#tipsBody .tico').forEach(b => {
     try { let ico = b.querySelector('.ico'); if (!ico) { ico = document.createElement('span'); ico.className = 'ico'; b.appendChild(ico); }
@@ -1746,6 +1747,7 @@ function renderHud() {
   $('#quests').innerHTML = emoFix(t);
   }
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
+  $('#bFly').classList.toggle('on', wingsOk());
   const act = QUESTS.filter(q => qState[q.id] === 'active').length + QUESTS.filter(q => qState[q.id] === 'done' && !opened[q.id]).length;
   { const sn = $('#scrN'); sn.textContent = act || '!'; sn.classList.toggle('show', act > 0); }
 }
@@ -1838,7 +1840,7 @@ function doAction() {
   if (cine) return;
   if (player.state === 'talk') return;
   if (player.state === 'fishing') { fishPress(); return; }
-  if (player.mount) { say('Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
+  if (player.mount) { say(player.mount === 'wings' ? 'Touche « Voler » pour te poser 🪽' : 'Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
   if (player.state !== 'free') return;
   if (postAct() || tamaAct()) return;
 
@@ -2196,7 +2198,7 @@ const ENDING_SLIDES = [
   { img: 'retour', text: 'Myah a rendu ses quatre plumes à Gaïkin. Grâce aux nutriments naturels des plumes, l\'eau du lac redevient claire et propre. Le grand cygne est enfin de retour pour soigner la nature de l\'île !' },
   { img: 'envol', text: 'Ses plumes bien en place, Gaïkin déploie ses ailes aux mille couleurs. Porté par la douce lumière du soleil couchant, il s\'envole au-dessus du lac : le grand gardien est de retour.' },
   { img: 'fete', text: 'Toute l\'île fait la fête sous les étoiles pour célébrer son retour. La nature est sauvée, tout le monde est heureux. Bravo et merci, Myah !' },
-  { img: 'vol', text: 'Pour la remercier, Gaïkin lui offre une magnifique paire d\'ailes douces et légères, et l\'emmène faire un grand tour sur son dos, tout en haut du ciel.' },
+  { img: 'vol', text: 'Pour la remercier, Gaïkin lui offre une magnifique paire d\'ailes douces et légères : désormais, Myah pourra voler au-dessus de l\'île ! Puis il l\'emmène faire un grand tour sur son dos, tout en haut du ciel.' },
   { img: 'dort', text: 'Mais très loin de l\'île, dans une petite chambre bien calme, une petite fille dort paisiblement avec un grand sourire. Elle s\'appelle Jaël.' },
   { img: 'reve', text: 'Dans son rêve, elle vole très haut sur le dos d\'un grand cygne, parmi les étoiles.' },
   { keep: 1, text: 'Myah, c\'était elle. Tout ce voyage, c\'était son beau rêve : celui d\'une petite fille curieuse, courageuse, pleine d\'imagination et d\'aventures.' },
@@ -2515,6 +2517,7 @@ function talkSwan() {
 /* ----- monture ----- */
 function summon() {
   if ((!mountUnlocked && level !== 'balade') || cine || dlg.open) return;
+  if (player.mount === 'wings') return wingsToggle();
   if (player.mount) return dismount();
   if (player.state !== 'free') return;
   swanWait = null;
@@ -2559,6 +2562,27 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
   swanWait = best || [w[0] + 34, w[1]];
   leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true });
   p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; p.dismounting = false; sfx.hop(); setAnim('idle');
+}
+/* Voler avec les ailes offertes par Gaïkin (après la fin de l'histoire, ou dès le début en Balade) */
+const wingsOk = () => (typeof endingSeen !== 'undefined' && endingSeen) || level === 'balade';
+const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}; ['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/myah/fly/' + k + i + '.png' })); });
+function wingsToggle() {
+  const p = player; if (IN.on || cine || dlg.open || !wingsOk()) return;
+  if (p.mount === 'wings') { p.altT = 0; p.wland = true; sfx.hop(); return; }
+  if (p.mount || p.state !== 'free') return;
+  p.puff = time; p.mount = 'wings'; p.alt = 0; p.altT = 34; p.wland = false; p.wT = time; p.fd = 'down'; sfx.mount && sfx.mount(); say('🪽 Myah s\'envole avec les ailes de Gaïkin ! Touche « Voler » pour te poser.', 3.5);
+}
+function wingsPuff() {   // petit nuage de transformation, à l'envol et à l'atterrissage
+  const p = player, k = (time - (p.puff || -9)) / .7; if (k < 0 || k > 1 || !FLYC.complete || !FLYC.naturalWidth) return;
+  const h = 46 + k * 18, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .85 * (1 - k * k); ctx.drawImage(FLYC, p.x - w / 2, p.y - h * .9 - (p.alt || 0) * .5, w, h); ctx.restore();
+}
+function wingsDraw() {   // Myah en vol, avec son ombre au sol
+  const p = player, takeoff = time - p.wT < .35, land = p.wland && p.alt < 10;
+  const set = takeoff ? FLYI.take : land ? FLYI.take : FLYI[p.fd === 'up' ? 'up' : p.fd === 'side' ? 'side' : 'down'];
+  const im = takeoff ? set[1] : land ? set[2] : set[Math.floor(time * 9) % 4]; if (!im.complete || !im.naturalWidth) return;
+  const h = takeoff || land ? 54 : 50, w = h * im.naturalWidth / im.naturalHeight, flip = p.fd === 'side' && p.face < 0;
+  ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 12 - p.alt * .08, 4 - p.alt * .03, 0, 0, TAU); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.translate(p.x, p.y - p.alt - Math.sin(time * 4) * 2); if (flip) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
 }
 function toggleFlight() {
   const p = player;
@@ -6036,7 +6060,7 @@ function renderInterior(vw, vh) {
   const TOMBA_FG = [[1000, 600], [1004, 520], [1018, 470], [1052, 428], [1090, 412], [1128, 420], [1152, 445], [1166, 490], [1168, 600]];   // la maison de Tomba passe devant Myah quand elle est derrière
   const ROPE_FG = [[1103, 606], [1130, 612], [1215, 655], [1300, 688], [1375, 702], [1375, 768], [1103, 768]];   // la rambarde de corde du pont de Nuna passe devant Myah
   const drawMy = () => { if (IN.apiT && IN.apiT > 0 && time >= IN.apiT) { IN.apiT = 0; IN.smoke = time; }   // au bout de 4 s, pouf : retour à la salopette
-    drawMy0(); if (IN.smoke && time - IN.smoke < .9) { const k = (time - IN.smoke) / .9, x = IN.hive ? LAD.x : IN.x, y = IN.hive ? LAD.y : IN.y; ctx.save(); ctx.globalAlpha = .55 * (1 - k); ctx.fillStyle = '#f4f1ea'; for (let i = 0; i < 7; i++) { const a = i / 7 * TAU, r = 8 + 14 * k; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y - 28 + Math.sin(a) * r * .8, 9 + 6 * k, 0, TAU); ctx.fill(); } ctx.restore(); } if (SC === SC_KOBHAK && IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 16, r: 11, dot: true });   // en haut de l'échelle : le point lumineux sur la ruche, par-dessus Myah
+    drawMy0(); if (IN.smoke && time - IN.smoke < .9) { const k = (time - IN.smoke) / .9, x = IN.hive ? LAD.x : IN.x, y = IN.hive ? LAD.y : IN.y; if (FLYC.complete && FLYC.naturalWidth) { const h = 58 + k * 16, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .9 * (1 - k * k); ctx.drawImage(FLYC, x - w / 2, y - h * .92, w, h); ctx.restore(); } } if (SC === SC_KOBHAK && IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 16, r: 11, dot: true });   // en haut de l'échelle : le point lumineux sur la ruche, par-dessus Myah
   if (SC === SC_MK2 && IN.x > 1040 && IN.y > 640 && SC.img.complete) { ctx.save(); ctx.beginPath(); ROPE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); } for (const [P, ok] of [[TOMBA_FG, IN.y < 525 && IN.x > 985 && IN.x < 1185], [SHOP_FG, IN.y < 500 && IN.x > 275 && IN.x < 450], [TREE_FG, IN.y < 292 && IN.x > 330 && IN.x < 440]]) if (SC === SC_KOBHAK && ok) { ctx.save(); ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); const ds = dayState(), a = KOB_IMG[ds.A.n], b = KOB_IMG[ds.B.n]; if (a && a.naturalWidth) ctx.drawImage(a, 0, 0, IN_W, IN_H); if (b && b !== a && ds.u > 0 && b.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(b, 0, 0, IN_W, IN_H); } ctx.restore(); } };
   const drawMy0 = () => { if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
@@ -6178,23 +6202,29 @@ function update(dt) {
   if (swanQueued) { swanQueued = false; summon(); }
   if (jumpQueued) {
     jumpQueued = false;
-    if (!cine && !dlg.open) { if (p.mount) toggleFlight(); else if (p.state === 'free') { p.state = 'jump'; setAnim('jump'); sfx.hop(); } }
+    if (!cine && !dlg.open) { if (p.mount === 'wings') { /* en vol avec les ailes : rien */ } else if (p.mount) toggleFlight(); else if (p.state === 'free') { p.state = 'jump'; setAnim('jump'); sfx.hop(); } }
   }
+  if (wingsOk() && !post.flyTip && p.state === 'free' && !p.mount && !dlg.open && !cine && !IN.on && time > 3) { post.flyTip = 1; save(); openDialog('Gaïkin, le grand Cygne', ['Myah, les ailes que je t\'ai offertes ne sont pas qu\'un joli cadeau : elles te permettent de voler ! 🪽', 'Touche le bouton « Voler » pour t\'envoler au-dessus de l\'île et aller plus vite d\'un endroit à l\'autre.', 'Quand tu veux te poser, touche-le encore : tu atterriras sur la terre ferme.'], null); }
   if (actQueued) { actQueued = false; if (dlg.open) advanceDialog(); else if (time >= actBlock) doAction(); }
 
   const tryMove = (speed) => {
     const nx = p.x + ix * speed * dt, ny = p.y + iy * speed * dt;
     let ok;
-    if (p.mount === 'fly') ok = (x, y) => x > 8 && x < W - 8 && y > 8 && y < H - 8;
+    if (p.mount === 'fly' || p.mount === 'wings') ok = (x, y) => x > 8 && x < W - 8 && y > 8 && y < H - 8;
     else if (p.mount === 'float') ok = (x, y) => isWater(x, y);
     else ok = (x, y) => walkable(x, y) && !npcBlocked(x, y);
     if (ok(nx, p.y)) p.x = nx;
     if (ok(p.x, ny)) p.y = ny;
     if (ix) p.face = ix > 0 ? 1 : -1;
+    if (p.mount === 'wings' && (ix || iy)) p.fd = Math.abs(iy) > Math.abs(ix) * 1.2 ? (iy > 0 ? 'down' : 'up') : 'side';
   };
 
   if (phase === 'seek' && !IN.on && !cine && !dlg.open && p.state === 'free' && dist(p.x, p.y, D.perch[0], D.perch[1]) < 260) startReveal();   // Myah arrive au bord du lac : Gaïkin apparaît
-  if (p.mount) {
+  if (p.mount === 'wings') {
+    if (moving) tryMove(run ? 170 : 120);
+    p.alt += (p.altT - p.alt) * Math.min(1, dt * 5);
+    if (p.wland && p.alt < 2) { const w = walkable(p.x, p.y) ? [p.x, p.y] : nearestWalk(p.x, p.y, 200); if (w) { p.x = w[0]; p.y = w[1]; p.puff = time; p.mount = null; p.alt = 0; p.wland = false; setAnim('idle'); } else { p.altT = 34; p.wland = false; say('Pas d\'endroit où se poser ici : vole jusqu\'à la terre ferme !', 3); } }
+  } else if (p.mount) {
     if (phase === 'returned' && !endingSeen && storyOn() && p.state === 'free' && !dlg.open && !cine && !document.getElementById('stOv')) { rideT += dt; if (rideT > 28) { rideT = 0; startEnding(); } }
     if (moving) tryMove(p.mount === 'fly' ? (run ? 220 : 155) : (run ? 66 : 47));
     p.alt += (p.altT - p.alt) * Math.min(1, dt * 5); if (Math.abs(p.altT - p.alt) < .6) p.alt = p.altT;
@@ -6420,6 +6450,7 @@ function updateHint() {
   const el = $('#hint'); let t = ''; const p = player; hz = null;   // halo = zone interactive en surbrillance (à la place d'une bulle)
   if (cine || dlg.open || p.state === 'talk') t = '';
   else if (p.mount && swanLake()) t = '';   // en vol : message seulement au-dessus de la zone d'atterrissage (voir plus bas)
+  else if (p.mount === 'wings') t = '🪽 En vol ! Va où tu veux, puis touche « Voler » pour te poser';
   else if (p.mount) t = p.mount === 'fly' ? '🦢 En vol ! ⤴ pour te poser sur l\'eau · bouton Cygne pour descendre' : '🦢 Sur l\'eau ! ⤴ pour reprendre l\'envol · bouton Cygne pour descendre';
   else if (p.state === 'fishing') t = fs.phase === 'fight' ? '' : fs.phase === 'bite' ? (IS_TOUCH ? '🐟 Ça mord ! Appuie sur le bouton de pêche !' : '🐟 Ça mord ! Appuie sur Action / Espace !') : (fs.phase === 'wait' ? tutHint('fwait', 'Attends que le poisson morde… [canne]') : '');
   else if (p.state === 'free') {
@@ -6985,6 +7016,8 @@ function render() {
   if (bubble.t > 0 && p.state !== 'fishing' && !p.mount) { /* texte affiché dans la barre d'indice */ }
 
   // cygne monté en vol : au-dessus de tout
+  if (p.mount === 'wings') wingsDraw();
+  wingsPuff();
   if (p.mount === 'fly' && !drawRide(p.x, p.y, 'fly', p.alt)) drawLegendSpr(ctx, { x: p.x, y: p.y, s: SW_MOUNT, t: time, dir: p.face, mode: 'fly', alt: p.alt, phase: time * 8.5, sparkle: .12, rider: drawRider });
   // cygnes qui repartent
   for (const l of leavers) { const k = l.t / 1.4; ctx.save(); ctx.globalAlpha = clamp(1 - k * k, 0, 1); drawLegendSpr(ctx, { x: l.x + l.dir * k * 90, y: l.y - k * 40, s: swanLake() ? SW_SMALL * 1.5 : SW_MOUNT, t: time, dir: l.dir, mode: 'fly', alt: 52 + k * 200, phase: time * 8.5, sparkle: .1 }); ctx.restore(); }
