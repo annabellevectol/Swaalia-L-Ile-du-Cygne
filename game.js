@@ -23,7 +23,7 @@ const TALT = { coconut: { file: 'assets/coco.png', k: .2, s: {"sapling": [35, 15
 const names = ['map', 'mapx_lever', 'mapx_apm', 'mapx_coucher', 'mapx_nuit'].concat(Object.keys(MY).map(k => 'm_' + k), Object.keys(SPR).map(k => 's_' + k), ['t_trees', 't_coconut', 't_mango']);
 const LATE = n => n.startsWith('mapx_') || (n[0] === 'm' && n[1] === '_' && n !== 'm_walk');   // cartes d'autres moments de la journée, tenues d'outils : chargées après le démarrage
 const crit = names.filter(n => !LATE(n)); let loaded = 0, critLeft = crit.length, lateStarted = false;
-const srcOf = n => n === 'map' ? 'assets/map.jpg' : n.startsWith('mapx_') ? 'assets/map_' + n.slice(5) + '.jpg' : n === 't_trees' ? TR.file : n === 't_coconut' ? TALT.coconut.file : n === 't_mango' ? TALT.mango.file : n[0] === 'm' && n[1] === '_' ? MY[n.slice(2)].file : SPR[n.slice(2)].src;
+const srcOf = n => n === 'map' ? 'assets/map.jpg?v=2' : n.startsWith('mapx_') ? 'assets/map_' + n.slice(5) + '.jpg?v=2' : n === 't_trees' ? TR.file : n === 't_coconut' ? TALT.coconut.file : n === 't_mango' ? TALT.mango.file : n[0] === 'm' && n[1] === '_' ? MY[n.slice(2)].file : SPR[n.slice(2)].src;
 const startLate = () => {
   if (lateStarted) return;
   lateStarted = true;
@@ -5963,15 +5963,15 @@ function renderInterior(vw, vh) {
     if (im && im.complete && im.naturalWidth) {
       const pb = (SC.polys || []).map(p => { const xs = p.map(q => q[0]), ys = p.map(q => q[1]); const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys); return [(x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2]; });
       if (SC === SC_HOME || pb.length) {   // hublots de la maison : l'océan jusqu'à l'horizon, avec de petites îles au loin
-        const TW = 420, dy0 = 75;   // bande de mer (la moitié gauche de la carte, sans maison) répétée en miroir ; l'horizon est recalé au milieu de chaque hublot
+        const TW = 420, dy0 = 75, mk = im.naturalWidth / 1375;   // bande de mer (la moitié gauche de la carte, sans maison) répétée en miroir ; l'horizon est recalé au milieu de chaque hublot
         (SC === SC_HOME ? holes : pb).forEach((h, hi) => {
           const sh = h[1] + h[3] * .12 - 105;
           ctx.save(); ctx.beginPath(); if (SC === SC_HOME) ctx.ellipse(h[0], h[1], h[2] + 2, h[3] + 2, 0, 0, TAU); else ctx.rect(h[0] - h[2] - 2, h[1] - h[3] - 2, 2 * h[2] + 4, 2 * h[3] + 4); ctx.clip(); ctx.translate(0, sh);
           for (let n = -1; n <= 3; n++) {
             const B = 259 + TW * n; ctx.save(); if (n % 2) { ctx.translate(B + TW, 0); ctx.scale(-1, 1); } else ctx.translate(B, 0);
-            ctx.drawImage(im, 1, 0, 558, 3, -1, -300, TW + 2, dy0 + 301);
-            ctx.drawImage(im, 1, 0, 558, 80, -1, dy0, TW + 2, 60);
-            ctx.drawImage(im, 1, 76, 558, 4, -1, dy0 + 59, TW + 2, 300);
+            ctx.drawImage(im, 1 * mk, 0, 558 * mk, 3 * mk, -1, -300, TW + 2, dy0 + 301);
+            ctx.drawImage(im, 1 * mk, 0, 558 * mk, 80 * mk, -1, dy0, TW + 2, 60);
+            ctx.drawImage(im, 1 * mk, 76 * mk, 558 * mk, 4 * mk, -1, dy0 + 59, TW + 2, 300);
             ctx.restore();
           }
           if (SC === SC_HOME && hi === 1) ctx.drawImage(im, 580, 15, 250, 70, h[0] - 26, 99.5, 52, 14.5);   // une toute petite île à l'horizon
