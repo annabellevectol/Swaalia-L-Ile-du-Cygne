@@ -6529,7 +6529,7 @@ function updateHint() {
 }
 
 /* ================= dessin ================= */
-function resize() { dpr = Math.min(1.5, window.devicePixelRatio || 1, Math.sqrt(1.5e6 / Math.max(1, innerWidth * innerHeight))); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); fitToolIcons(); }
+function resize() { dpr = Math.min(2, window.devicePixelRatio || 1, Math.sqrt(2.6e6 / Math.max(1, innerWidth * innerHeight))); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); fitToolIcons(); }
 addEventListener('resize', resize); resize();
 
 const MS = 0.26;   // pixels de carte par pixel de case (Myah ≈ 48 px de haut)
