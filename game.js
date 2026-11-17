@@ -4216,7 +4216,7 @@ function kobRem(rk) {
   const bar = () => '<div class="kvBar"><i style="width:0"></i></div>';
   const setBar = p => { const e = $('#remBody .kvBar i'); if (e) e.style.width = Math.max(0, Math.min(100, Math.round(p * 100))) + '%'; };
   const wob = () => { const e = $('#rmFr'); if (!e) return; e.classList.remove('wob'); void e.offsetWidth; e.classList.add('wob'); };
-  const frame = k => { const e = $('#rmFr'); if (e) e.innerHTML = rmFr(k); };
+  const frame = k => { const e = $('#rmFr'); if (!e || e.dataset.k === k) return; e.dataset.k = k; e.innerHTML = rmFr(k); e.classList.remove('fd'); void e.offsetWidth; e.classList.add('fd'); };   // fondu doux entre deux images
   const msg = t => { const e = $('#rmMsg'); if (e) e.innerHTML = t; };
   const head = t => '<div class="kvH">' + t + '</div>';
   const stg = k => '<div class="kvStage"><div id="rmFr" class="rmBig">' + rmFr(k) + '</div></div>';
@@ -4236,13 +4236,32 @@ function kobRem(rk) {
       });
     } else if (t === 'pile' || t === 'mix' || t === 'stir' || t === 'caps' || t === 'set' || t === 'filter') {
       const C = { pile: { n: 8, h: 'Pile avec le pilon !', f: [a + '_whole', a + '_half', a + '_half', a + '_good'], m: 'Tape plusieurs fois sur le mortier', ok: 'Une poudre bien fine !' },
-        mix: { n: 9, h: 'Mélange les poudres !', f: ['p_piles', 'p_mix1', 'p_mix2', 'p_perfect'], m: 'Tape pour mélanger avec la cuillère', ok: 'Bien mélangé !' },
-        stir: { n: 5, h: 'Remue la poudre de racine', f: ['w_perfect', 'w_perfect', 'w_root'], m: 'Tape sur la casserole pour remuer', ok: 'Crémeux et doux !' },
+        mix: { n: 9, h: 'Mélange les poudres !', f: ['p_piles', 'p_mix1', 'p_mix2', 'p_perfect'], m: 'Fais des ronds avec ton doigt pour mélanger 🥄', ok: 'Bien mélangé !', rub: 1 },
+        stir: { n: 6, h: 'Remue la poudre de racine', f: ['w_perfect', 'w_perfect', 'w_root'], m: 'Fais des ronds avec ton doigt pour remuer 🥄', ok: 'Crémeux et doux !', rub: 1 },
         caps: { n: 9, h: 'Remplis et ferme les gélules', f: ['g_0', 'g_fill', 'g_fill', 'g_1', 'g_3', 'g_6', 'g_jar'], m: 'Tape pour remplir, puis refermer', ok: 'Les gélules sont rangées dans le pot !' },
-        set: { n: 4, h: 'Laisse durcir, puis ferme', f: ['pot_100', 'pot_set', 'pot_set', 'pot_lid'], m: 'Tape pour laisser reposer le baume', ok: 'Le baume est bien pris !' },
-        filter: { n: 6, h: 'Filtre doucement', f: ['f_0', 'f_drip', 'f_half', 'f_half', 'f_press', 'f_ok'], m: 'Verse en tapant, sans aller trop vite', ok: 'Un beau liquide clair !', pace: 450 } }[t];
+        set: { n: 4, h: 'Laisse durcir, puis ferme', f: ['pot_100', 'pot_set', 'pot_set', 'pot_lid'], m: 'Le baume refroidit et durcit… patience !', ok: 'Le baume est bien pris !', wait: 1 },
+        filter: { n: 6, h: 'Filtre doucement', f: ['f_0', 'f_drip', 'f_half', 'f_half', 'f_press', 'f_ok'], m: 'Garde le doigt appuyé sur Verser, tout doucement…', ok: 'Un beau liquide clair !', pour: 1 } }[t];
       body.innerHTML = head(C.h) + stg(C.f[0]) + bar() + '<p class="kvMsg" id="rmMsg">' + C.m + '</p>';
       let n = 0, last = 0; const fr = () => C.f[Math.min(C.f.length - 1, Math.floor(n / C.n * C.f.length))];
+      const fin = () => { sfx.star(); msg(C.ok); next(1100); };
+      if (C.rub) {   // mélanger / remuer : on fait des ronds avec le doigt, comme la pâte à gâteau
+        const el = $('#rmFr'); el.style.touchAction = 'none'; let a0 = null, acc = 0, dn = false;
+        const ang = e => { const b = el.getBoundingClientRect(); return Math.atan2(e.clientY - b.top - b.height / 2, e.clientX - b.left - b.width / 2); };
+        el.onpointerdown = e => { dn = true; a0 = ang(e); el.setPointerCapture && el.setPointerCapture(e.pointerId); };
+        el.onpointerup = el.onpointercancel = () => { dn = false; };
+        el.onpointermove = e => { if (!dn || n >= C.n) return; const a = ang(e); let d = a - a0; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; a0 = a; acc += Math.abs(d);
+          if (acc > Math.PI) { acc = 0; n++; sfx.pick(); wob(); setBar(n / C.n); frame(fr()); if (n >= C.n) { el.onpointermove = el.onpointerdown = null; fin(); } } };
+        return;
+      }
+      if (C.wait) {   // repos : on regarde le baume durcir, puis on ferme le couvercle d'un tap
+        let w = 0; tm.push(setInterval(() => { w++; setBar(Math.min(1, w / 30)); frame(C.f[Math.min(2, Math.floor(w / 12))]); if (w >= 30) { stop(); msg('Il est pris ! Tape pour fermer le couvercle.'); $('#rmFr').classList.add('tap'); $('#rmFr').onclick = () => { $('#rmFr').onclick = null; frame(C.f[3]); fin(); }; } }, 100));
+        return;
+      }
+      if (C.pour) {   // filtrer : on verse lentement en gardant le doigt appuyé
+        body.querySelector('.kvMsg').insertAdjacentHTML('beforebegin', '<div class="kvBtns"><button class="kvBtn rmBtn" id="rmPour">' + kdSpr('i_drop', 22) + ' Verser</button></div>');
+        let pr = 0, iv = null; hold($('#rmPour'), () => { clearInterval(iv); iv = setInterval(() => { pr = Math.min(1, pr + .012); setBar(pr); frame(C.f[Math.min(C.f.length - 1, Math.floor(pr * (C.f.length - 1)))]); if (pr >= 1) { clearInterval(iv); fin(); } }, 40); tm.push(iv); }, () => clearInterval(iv));
+        return;
+      }
       $('#rmFr').classList.add('tap'); $('#rmFr').onclick = () => {
         const now = Date.now();
         if (C.pace && last && now - last < C.pace) { err++; sfx.no && sfx.no(); frame('f_over'); msg('Doucement, doucement… ça déborde !'); n = Math.max(0, n - 1); setBar(n / C.n); last = now + 700; tm.push(setTimeout(() => frame(fr()), 900)); return; }
