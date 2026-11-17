@@ -3269,13 +3269,14 @@ const kobSeen = {};
 
 // ---- Cueillette des plantes de l'île Kobhak + carnet
 const KOB_OC = document.createElement('canvas'), KOB_OX = KOB_OC.getContext('2d');
-function kobOutl(m, x, y, w, h) {   // plante avec un léger contour sombre, pour la repérer dans le décor
+function kobOutl(m, x, y, w, h, IMG) {
+  IMG = IMG || KOB_PIMG;   // plante avec un léger contour sombre, pour la repérer dans le décor
   const s = Math.max(1, (ctx.getTransform().a || 1)), W = Math.ceil(w * s) + 4, H = Math.ceil(h * s) + 4;
   if (KOB_OC.width < W || KOB_OC.height < H) { KOB_OC.width = Math.max(W, KOB_OC.width); KOB_OC.height = Math.max(H, KOB_OC.height); }
   const o = KOB_OX; o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, KOB_OC.width, KOB_OC.height); o.globalCompositeOperation = 'source-over';
-  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]]) o.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], 2 + dx * 1.2, 2 + dy * 1.2, w * s, h * s);
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]]) o.drawImage(IMG, m[0], m[1], m[2], m[3], 2 + dx * 1.2, 2 + dy * 1.2, w * s, h * s);
   o.globalCompositeOperation = 'source-in'; o.fillStyle = 'rgba(40,25,15,.75)'; o.fillRect(0, 0, W, H);
-  o.globalCompositeOperation = 'source-over'; o.drawImage(KOB_PIMG, m[0], m[1], m[2], m[3], 2, 2, w * s, h * s);
+  o.globalCompositeOperation = 'source-over'; o.drawImage(IMG, m[0], m[1], m[2], m[3], 2, 2, w * s, h * s);
   ctx.drawImage(KOB_OC, 0, 0, W, H, x - 2 / s, y - 2 / s, W / s, H / s);
 }
 const K4 = Object.fromEntries(['pv', 'pv_x', 'cn', 'cn_x', 'fl0', 'fl1', 'fl2', 'fl3', 'fl4', 'fl5'].map(k => { const i = new Image(); i.src = 'assets/kob4/' + k + '.png'; return [k, i]; }));
@@ -3312,7 +3313,7 @@ function kobDrawPlants() {
     if (kobQ >= 2) { const full = kobGrown({ k: 'ruche' }), im = K2[full ? 'ruche' : 'ruche_vide']; if (im.complete && im.naturalWidth) { const h = 32, w = h * im.naturalWidth / im.naturalHeight, bob = full ? Math.sin(time * 2) * 1 : 0; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, RUCHE.x - w / 2, RUCHE.y - h + bob, w, h); ctx.restore(); }
     }
   const near = kobPlantNear();
-  KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = (f.h || 20) * 1.1, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, f.x - w / 2, f.y - h + 3, w, h); ctx.restore(); });   // fleurs sauvages
+  KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = (f.h || 20) * 1.1, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; kobOutl([0, 0, im.naturalWidth, im.naturalHeight], f.x - w / 2, f.y - h + 3, w, h, im); ctx.restore(); });   // fleurs sauvages, avec le même contour que les plantes
   if (0) KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
