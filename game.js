@@ -3071,7 +3071,7 @@ const HATCH_SPOT = [800, 492];
 const KOB_SPOT = [690, 530], KOB_EXIT = [222, 640];
 const KOB_IMG = {};   // les 5 cartes de l'île Kobhak (même cycle jour / nuit que l'île du Cygne), chargées au premier voyage
 function kobLoad() {
-  if (!KOB_IMG.map) [['map', 'midi'], ['mapx_apm', 'apm'], ['mapx_coucher', 'coucher'], ['mapx_nuit', 'nuit'], ['mapx_lever', 'lever']].forEach(([k, f]) => { const i = new Image(); i.src = 'assets/kobhak_' + f + '.jpg'; KOB_IMG[k] = i; });
+  if (!KOB_IMG.map) [['map', 'midi'], ['mapx_apm', 'apm'], ['mapx_coucher', 'coucher'], ['mapx_nuit', 'nuit'], ['mapx_lever', 'lever']].forEach(([k, f]) => { const i = new Image(); i.src = 'assets/kobhak_' + f + '.jpg?v=2'; KOB_IMG[k] = i; });
   [[KOB_ATLAS, 'assets/kob_npcs.png?v=45'], [KOB_KOA, 'assets/kob_koalas.png'], [KOB_PIMG, 'assets/kob_plantes.png?v=8'], [KANI, SOI], [KDI, KD_U]].forEach(([im, src]) => { if (!im.src) im.src = src; });
 }
 const SC_KOBHAK = Object.assign({}, SC_BOAT, {
