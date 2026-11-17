@@ -2580,6 +2580,19 @@ function wingsToggle() {
   if (p.mount || p.state !== 'free') return;
   p.puff = time; p.mount = 'wings'; p.alt = 0; p.altT = 34; p.wland = false; p.wT = time; p.fd = 'down'; sfx.mount && sfx.mount(); say('🪽 Myah s\'envole avec les ailes de Gaïkin ! Touche « Voler » pour te poser.', 3.5);
 }
+const BR_C = {};   // cordes du pont suspendu (sans le ciel), par moment de la journée
+function bridgeRopes() {
+  const ds = dayState(), x0 = 905, y0 = 146, w = 140, h = 34;
+  const one = (k, al) => { const im = KOB_IMG[k]; if (!im || !im.naturalWidth) return; let c = BR_C[k];
+    if (!c) { const s = im.naturalWidth / 1375, S = 4; c = document.createElement('canvas'); c.width = w * S; c.height = h * S; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, x0 * s, y0 * s, w * s, h * s, 0, 0, c.width, c.height);
+      const d = g.getImageData(0, 0, c.width, c.height), p = d.data;
+      for (let i = 0; i < p.length; i += 4) { const y = (i / 4 / c.width | 0) / S + y0, x = (i / 4 % c.width) / S + x0, r = p[i], gg = p[i + 1], b = p[i + 2];
+        const sky = b > r + 25 && b >= gg - 5, deck = y > 152 + 10 * Math.sin(Math.PI * Math.min(1, Math.max(0, (x - 915) / 125))) && y < 171 + 8 * Math.sin(Math.PI * Math.min(1, Math.max(0, (x - 915) / 125)));
+        if (sky || (deck && r > 120 && r > b + 30 && !(r < 110))) p[i + 3] = 0; }
+      g.putImageData(d, 0, 0); BR_C[k] = c; }
+    ctx.save(); ctx.globalAlpha = al; ctx.drawImage(c, x0, y0, w, h); ctx.restore(); };
+  one(ds.A.n, 1); if (ds.B !== ds.A && ds.u > 0) one(ds.B.n, ds.u);
+}
 function wingsPuff() {   // petit nuage de transformation, à l'envol et à l'atterrissage
   const p = player, k = (time - (p.puff || -9)) / .7; if (k < 0 || k > 1 || !FLYC.complete || !FLYC.naturalWidth) return;
   const h = 46 + k * 18, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .85 * (1 - k * k); ctx.drawImage(FLYC, p.x - w / 2, p.y - h * .9 - (p.alt || 0) * .5, w, h); ctx.restore();
@@ -6097,13 +6110,29 @@ function renderInterior(vw, vh) {
     }
     if (t.fg === 'table') { ctx.save(); ctx.beginPath(); TABLE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); if (SC === SC_HOME) drawTblItems(2); ctx.restore(); }
   };
+  const bridgeRopeFg = () => {   // les cordes du pont suspendu passent devant Myah, on la voit entre les cordes
+    if (!(IN.x > 912 && IN.x < 1046 && IN.y > 138 && IN.y < 186)) return;
+    const ds = dayState(), im = KOB_IMG[ds.A.n], ref = KOB_IMG.map || im; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
+    const R = [908, 132, 140, 52], k = im.naturalWidth / IN_W, W = Math.round(R[2] * k), H = Math.round(R[3] * k);
+    const C = bridgeRopeFg.c || (bridgeRopeFg.c = {});
+    if (!C.mask || C.k !== k) {   // masque : les traits sombres (cordes, poteaux) de la rambarde avant
+      const m = document.createElement('canvas'); m.width = W; m.height = H; const g = m.getContext('2d', { willReadFrequently: true });
+      g.drawImage(ref, R[0] * k, R[1] * k, W, H, 0, 0, W, H); const d = g.getImageData(0, 0, W, H), P = [[915, 146], [960, 154], [1000, 157], [1042, 137], [1042, 158], [1000, 179], [960, 175], [915, 165]];
+      const inP = (x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4, L = d.data[i] * .3 + d.data[i + 1] * .59 + d.data[i + 2] * .11, b = d.data[i + 2] - d.data[i]; d.data[i + 3] = inP(R[0] + x / k, R[1] + y / k) && L < 110 && b < 25 ? 255 : 0; }
+      g.putImageData(d, 0, 0); C.mask = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = W; C.t.height = H;
+    }
+    const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, W, H, 0, 0, W, H); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
+    ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
+  };
   const TREE_FG = [[357, 228], [361, 196], [380, 160], [405, 140], [445, 145], [470, 185], [445, 250], [428, 300], [424, 352], [404, 352], [398, 300], [376, 262], [364, 244]];   // l'arbre du chemin de la falaise passe devant Myah
   const SHOP_FG = [[282, 448], [330, 436], [440, 418], [446, 470], [440, 560], [295, 560]];   // la boutique de Koki passe devant Myah quand elle est derrière
   const TOMBA_FG = [[1000, 600], [1004, 520], [1018, 470], [1052, 428], [1090, 412], [1128, 420], [1152, 445], [1166, 490], [1168, 600]];   // la maison de Tomba passe devant Myah quand elle est derrière
+  if (SC === SC_KOBHAK && IN.floor === 0 && IN.x > 905 && IN.x < 1045 && IN.y > 135 && IN.y < 178) bridgeRopes();   // les cordes du pont suspendu passent devant Myah (on la voit à travers)
   const ROPE_FG = [[1103, 606], [1130, 612], [1215, 655], [1300, 688], [1375, 702], [1375, 768], [1103, 768]];   // la rambarde de corde du pont de Nuna passe devant Myah
   const drawMy = () => { if (IN.apiT && IN.apiT > 0 && time >= IN.apiT) { IN.apiT = 0; IN.smoke = time; }   // au bout de 4 s, pouf : retour à la salopette
     drawMy0(); if (IN.smoke && time - IN.smoke < .9) { const k = (time - IN.smoke) / .9, x = IN.hive ? LAD.x : IN.x, y = IN.hive ? LAD.y : IN.y; if (FLYC.complete && FLYC.naturalWidth) { const h = 58 + k * 16, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .9 * (1 - k * k); ctx.drawImage(FLYC, x - w / 2, y - h * .92, w, h); ctx.restore(); } } if (SC === SC_KOBHAK && IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 16, r: 11, dot: true });   // en haut de l'échelle : le point lumineux sur la ruche, par-dessus Myah
-  if (SC === SC_MK2 && IN.x > 1040 && IN.y > 640 && SC.img.complete) { ctx.save(); ctx.beginPath(); ROPE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); } for (const [P, ok] of [[TOMBA_FG, IN.y < 525 && IN.x > 985 && IN.x < 1185], [SHOP_FG, IN.y < 500 && IN.x > 275 && IN.x < 450], [TREE_FG, IN.y < 292 && IN.x > 330 && IN.x < 440]]) if (SC === SC_KOBHAK && ok) { ctx.save(); ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); const ds = dayState(), a = KOB_IMG[ds.A.n], b = KOB_IMG[ds.B.n]; if (a && a.naturalWidth) ctx.drawImage(a, 0, 0, IN_W, IN_H); if (b && b !== a && ds.u > 0 && b.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(b, 0, 0, IN_W, IN_H); } ctx.restore(); } };
+  if (SC === SC_MK2 && IN.x > 1040 && IN.y > 640 && SC.img.complete) { ctx.save(); ctx.beginPath(); ROPE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); } for (const [P, ok] of [[TOMBA_FG, IN.y < 525 && IN.x > 985 && IN.x < 1185], [SHOP_FG, IN.y < 500 && IN.x > 275 && IN.x < 450], [TREE_FG, IN.y < 292 && IN.x > 330 && IN.x < 440]]) if (SC === SC_KOBHAK && ok) { ctx.save(); ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); const ds = dayState(), a = KOB_IMG[ds.A.n], b = KOB_IMG[ds.B.n]; if (a && a.naturalWidth) ctx.drawImage(a, 0, 0, IN_W, IN_H); if (b && b !== a && ds.u > 0 && b.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(b, 0, 0, IN_W, IN_H); } ctx.restore(); } if (SC === SC_KOBHAK) bridgeRopeFg(); };
   const drawMy0 = () => { if (IN.wf) { const f = IN.wf, set = FLYI[f.fd === 'up' ? 'up' : f.fd === 'side' ? 'side' : 'down'], im = set[Math.floor(time * 4.5) % 4], fl = f.fd === 'side' && player.face < 0; ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y, 14, 5, 0, 0, TAU); ctx.fill(); ctx.restore(); if (im.complete && im.naturalWidth) { const h = 36 * SC.K, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.translate(IN.x, IN.y - f.alt - Math.sin(time * 2) * 2); if (fl) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore(); } return; } if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
     const bh = 46 * IN_K * .76, d4 = player.dir4 || 'down', bwob = Math.abs(Math.sin(time * 8)) * 1.3 * (Math.hypot(player.mvx || 0, player.mvy || 0) > .1 ? 1 : 0);
