@@ -2601,7 +2601,7 @@ function wingsDraw() {   // Myah en vol, avec son ombre au sol
   const p = player, takeoff = time - p.wT < .35, land = p.wland && p.alt < 10;
   const set = takeoff ? FLYI.take : land ? FLYI.take : FLYI[p.fd === 'up' ? 'up' : p.fd === 'side' ? 'side' : 'down'];
   const im = takeoff ? set[1] : land ? set[2] : set[Math.floor(time * 4.5) % 4]; if (!im.complete || !im.naturalWidth) return;
-  const h = takeoff || land ? 54 : 50, w = h * im.naturalWidth / im.naturalHeight, flip = p.fd === 'side' && p.face < 0;
+  const h = takeoff || land ? 38 : 35, w = h * im.naturalWidth / im.naturalHeight, flip = p.fd === 'side' && p.face < 0;
   ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 12 - p.alt * .08, 4 - p.alt * .03, 0, 0, TAU); ctx.fill(); ctx.restore();
   ctx.save(); ctx.translate(p.x, p.y - p.alt - Math.sin(time * 2) * 2); if (flip) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
 }
