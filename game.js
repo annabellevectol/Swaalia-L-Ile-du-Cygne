@@ -2567,7 +2567,19 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
 }
 /* Voler avec les ailes offertes par Gaïkin (après la fin de l'histoire, ou dès le début en Balade) */
 const wingsOk = () => endingSeen || phase === 'returned' || level === 'balade';   // les ailes de Gaïkin : après son retour, ou en Balade
-const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}; ['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/myah/fly/' + k + i + '.png' })); });
+const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}, FLYM = {};
+['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => { const im = Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '.png' }); FLYM[im.src] = { ov: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_ov.png' }), shoe: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_shoe.png' }) }; return im; }); });
+const _flyT = {};
+function flyTint(im) {   // Myah en vol avec la tenue du vestiaire : la salopette et les chaussures (dessinées en blanc) prennent la couleur et le motif choisis
+  const M = FLYM[im.src]; if (!M || !M.ov.naturalWidth || !M.shoe.naturalWidth) return im;
+  const o = outfit || {}, ovc = o.overall ? 'hsl(' + Math.round(o.overall.h) + ',' + Math.round(o.overall.s * 100) + '%,' + Math.round(Math.max(.35, o.overall.l) * 100) + '%)' : '#c9b4e8',
+    shc = o.shoes ? 'hsl(' + Math.round(o.shoes.h) + ',' + Math.round(o.shoes.s * 100) + '%,' + Math.round(Math.max(.25, o.shoes.l) * 100) + '%)' : '#7a5236', pn = o.pat && o.pat.overall != null && PATIMG.naturalWidth ? o.pat.overall : null;
+  const key = im.src + '|' + ovc + '|' + shc + '|' + pn; if (_flyT[key]) return _flyT[key];
+  const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const part = (mk, fill) => { const t = document.createElement('canvas'); t.width = W; t.height = H; const x = t.getContext('2d'); x.drawImage(im, 0, 0); x.globalCompositeOperation = 'multiply'; x.fillStyle = fill(x); x.fillRect(0, 0, W, H); x.globalCompositeOperation = 'destination-in'; x.drawImage(mk, 0, 0); g.drawImage(t, 0, 0); };
+  part(M.ov, x => pn != null ? patFill(x, pn, Math.round(W * .14)) : ovc); part(M.shoe, () => shc);
+  return (_flyT[key] = c);
+}
 function wingsToggle() {
   const p = player; if (cine || dlg.open || !wingsOk()) return;
   if (IN.on) {   // sur l'île aux Koalas (dehors)
@@ -2603,7 +2615,7 @@ function wingsDraw() {   // Myah en vol, avec son ombre au sol
   const im = takeoff ? set[1] : land ? set[2] : set[Math.floor(time * 4.5) % 4]; if (!im.complete || !im.naturalWidth) return;
   const h = takeoff || land ? 38 : 35, w = h * im.naturalWidth / im.naturalHeight, flip = p.fd === 'side' && p.face < 0;
   ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 12 - p.alt * .08, 4 - p.alt * .03, 0, 0, TAU); ctx.fill(); ctx.restore();
-  ctx.save(); ctx.translate(p.x, p.y - p.alt - Math.sin(time * 2) * 2); if (flip) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore();
+  ctx.save(); ctx.translate(p.x, p.y - p.alt - Math.sin(time * 2) * 2); if (flip) ctx.scale(-1, 1); ctx.drawImage(flyTint(im), -w / 2, -h, w, h); ctx.restore();
 }
 function toggleFlight() {
   const p = player;
@@ -6133,7 +6145,7 @@ function renderInterior(vw, vh) {
   const drawMy = () => { if (IN.apiT && IN.apiT > 0 && time >= IN.apiT) { IN.apiT = 0; IN.smoke = time; }   // au bout de 4 s, pouf : retour à la salopette
     drawMy0(); if (IN.smoke && time - IN.smoke < .9) { const k = (time - IN.smoke) / .9, x = IN.hive ? LAD.x : IN.x, y = IN.hive ? LAD.y : IN.y; if (FLYC.complete && FLYC.naturalWidth) { const h = 58 + k * 16, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .9 * (1 - k * k); ctx.drawImage(FLYC, x - w / 2, y - h * .92, w, h); ctx.restore(); } } if (SC === SC_KOBHAK && IN.hive && IN.hive.top && !IN.hive.busy) drawHalo({ x: RUCHE.x, y: RUCHE.y - 16, r: 11, dot: true });   // en haut de l'échelle : le point lumineux sur la ruche, par-dessus Myah
   if (SC === SC_MK2 && IN.x > 1040 && IN.y > 640 && SC.img.complete) { ctx.save(); ctx.beginPath(); ROPE_FG.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); } for (const [P, ok] of [[TOMBA_FG, IN.y < 525 && IN.x > 985 && IN.x < 1185], [SHOP_FG, IN.y < 500 && IN.x > 275 && IN.x < 450], [TREE_FG, IN.y < 292 && IN.x > 330 && IN.x < 440]]) if (SC === SC_KOBHAK && ok) { ctx.save(); ctx.beginPath(); P.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.clip(); const ds = dayState(), a = KOB_IMG[ds.A.n], b = KOB_IMG[ds.B.n]; if (a && a.naturalWidth) ctx.drawImage(a, 0, 0, IN_W, IN_H); if (b && b !== a && ds.u > 0 && b.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(b, 0, 0, IN_W, IN_H); } ctx.restore(); } if (SC === SC_KOBHAK) bridgeRopeFg(); };
-  const drawMy0 = () => { if (IN.wf) { const f = IN.wf, set = FLYI[f.fd === 'up' ? 'up' : f.fd === 'side' ? 'side' : 'down'], im = set[Math.floor(time * 4.5) % 4], fl = f.fd === 'side' && player.face < 0; ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y, 14, 5, 0, 0, TAU); ctx.fill(); ctx.restore(); if (im.complete && im.naturalWidth) { const h = 36 * SC.K, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.translate(IN.x, IN.y - f.alt - Math.sin(time * 2) * 2); if (fl) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore(); } return; } if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
+  const drawMy0 = () => { if (IN.wf) { const f = IN.wf, set = FLYI[f.fd === 'up' ? 'up' : f.fd === 'side' ? 'side' : 'down'], im = set[Math.floor(time * 4.5) % 4], fl = f.fd === 'side' && player.face < 0; ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y, 14, 5, 0, 0, TAU); ctx.fill(); ctx.restore(); if (im.complete && im.naturalWidth) { const h = 36 * SC.K, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.translate(IN.x, IN.y - f.alt - Math.sin(time * 2) * 2); if (fl) ctx.scale(-1, 1); ctx.drawImage(flyTint(im), -w / 2, -h, w, h); ctx.restore(); } return; } if (IN.hive && SC === SC_KOBHAK) { drawHiveMyah(); return; } if (CARE && SC === SC_KOBHAK) { careDrawMyah(); return; } if (IN.wm) { wmDrawMyah(); return; } if (IN.lie) { drawLie(); return; } if (IN.sit) { drawSit(); return; } ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(IN.x, IN.y + 4, kobScene() ? 21 : 34, kobScene() ? 7.5 : 12, 0, 0, TAU); ctx.fill(); ctx.restore();
     const o = myahPose(); ctx.save(); ctx.globalAlpha = 1 * (1 - Math.min(1, .8 * ease(Math.max(IN.steam || 0, puffAmt())) + (SC === SC_HOME ? .2 * ease(IN.steam || 0) : 0)));
     const bh = 46 * IN_K * .76, d4 = player.dir4 || 'down', bwob = Math.abs(Math.sin(time * 8)) * 1.3 * (Math.hypot(player.mvx || 0, player.mvy || 0) > .1 ? 1 : 0);
     
