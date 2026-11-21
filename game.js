@@ -999,6 +999,8 @@ function drawBouquet(x, y, w, rot = 0, alpha = 1) {
   ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.globalAlpha *= alpha; ctx.drawImage(im, -w / 2, -h * .7, w, h); ctx.restore();
 }
 const PLUME = new Image(); PLUME.src = 'assets/spr/plume.png'; const GKP = new Image(); GKP.src = 'assets/gaikin_perch.png'; const GKF = new Image(); GKF.src = 'assets/gaikin_fly.png';
+const GKL = [0, 1, 2, 3, 4, 5].map(i => Object.assign(new Image(), { src: 'assets/gaikin/lake' + i + '.png' })), GKS = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/gaikin/stand' + i + '.png' }));
+const GK_LSEQ = [0, 0, 4, 0, 2, 0, 0, 3, 0, 1, 0, 5, 5], GK_SSEQ = [0, 0, 1, 0, 2, 0, 0, 3];   // poses tranquilles, surtout la pose de base
 function drawLegendSpr(g, o) {
   const s = o.s || .6, t = o.t || 0, dir = o.dir >= 0 ? 1 : -1, flying = o.mode === 'fly', alt = o.alt || 0, K = 1.25;
   const ph = o.phase === undefined ? t * 6 : o.phase;
@@ -1012,7 +1014,11 @@ function drawLegendSpr(g, o) {
   const bob = flying ? Math.sin(ph) * 3 : Math.sin(t * 1.6) * 1.2, w = sp.w * K, h = sp.h * K;
   g.save(); g.translate(0, -alt + bob * s); g.scale(-dir * s, s);   // les sprites regardent à gauche
   const hq = o.mode === 'perch' ? GKP : flying ? GKF : null;
-  if (hq && hq.complete && hq.naturalWidth) { const hw = flying ? w * 1.75 : w * 1.95, hh = hw * hq.naturalHeight / hq.naturalWidth; g.scale(-1, 1); g.drawImage(hq, flying ? -hw * .5 : -hw * .62, flying ? -hh * .55 : -hh * .86, hw, hh); }   // Gaïkin en haute qualité (regarde à droite)
+  const gp = o.mode === 'perch' && o.pose !== undefined ? (o.land ? GKS : GKL)[(o.land ? GK_SSEQ : GK_LSEQ)[Math.floor(t / 4.5) % (o.land ? GK_SSEQ : GK_LSEQ).length]] : null;
+  if (gp && gp.complete && gp.naturalWidth && GKL[0].naturalWidth) { g.scale(-1, 1);
+    if (o.land) { const hh = w * 1.3, hw = hh * gp.naturalWidth / gp.naturalHeight; g.drawImage(gp, -hw * .5, -hh, hw, hh); }   // debout sur la terre ferme : plus petit, pattes au sol
+    else { const hw0 = w * 1.95, hw = hw0 * gp.naturalWidth / GKL[0].naturalWidth, hh = hw * gp.naturalHeight / gp.naturalWidth, hh0 = hw0 * GKL[0].naturalHeight / GKL[0].naturalWidth; g.drawImage(gp, -hw0 * .62, -hh0 * .86 + (hh0 - hh), hw, hh); } }
+  else if (hq && hq.complete && hq.naturalWidth) { const hw = flying ? w * 1.75 : w * 1.95, hh = hw * hq.naturalHeight / hq.naturalWidth; g.scale(-1, 1); g.drawImage(hq, flying ? -hw * .5 : -hw * .62, flying ? -hh * .55 : -hh * .86, hw, hh); }   // Gaïkin en haute qualité (regarde à droite)
   else g.drawImage(im, -w / 2, flying ? -h * .55 : -h * .86, w, h);
   g.restore();
   if (o.rider) { g.save(); g.translate(0, -alt + bob * s); g.scale(dir * s, s); g.translate(flying ? -4 : -8, flying ? 4 : -(h * .2)); o.rider(g); g.restore(); }
@@ -7077,7 +7083,7 @@ function render() {
     ctx.save(); ctx.globalAlpha = .5 + .38 * clamp(1 - dk * 2.2, 0, 1); drawBfly(b); ctx.restore();
   } }));
   if (perchVisible() && !perchAway()) items.push({ y: swanSpot()[1], draw() {
-    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers });
+    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && phase === 'returned' ? 1 : undefined, land: !!(lk && swanWait) });
   } });
   if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
   postDraw(items);
