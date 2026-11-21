@@ -1000,6 +1000,7 @@ function drawBouquet(x, y, w, rot = 0, alpha = 1) {
 }
 const PLUME = new Image(); PLUME.src = 'assets/spr/plume.png'; const GKP = new Image(); GKP.src = 'assets/gaikin_perch.png'; const GKF = new Image(); GKF.src = 'assets/gaikin_fly.png';
 const GKL = [0, 1, 2, 3, 4, 5].map(i => Object.assign(new Image(), { src: 'assets/gaikin/lake' + i + '.png' })), GKS = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/gaikin/stand' + i + '.png' }));
+const GK_W = 50, GK_H = 54;   // largeur de Gaïkin dans le monde : la même que quand Myah est sur son dos
 const GK_LSEQ = [0, 0, 4, 0, 2, 0, 0, 3, 0, 1, 0, 5, 5], GK_SSEQ = [0, 0, 1, 0, 2, 0, 0, 3];   // poses tranquilles, surtout la pose de base
 function drawLegendSpr(g, o) {
   const s = o.s || .6, t = o.t || 0, dir = o.dir >= 0 ? 1 : -1, flying = o.mode === 'fly', alt = o.alt || 0, K = 1.25;
@@ -1016,8 +1017,8 @@ function drawLegendSpr(g, o) {
   const hq = o.mode === 'perch' ? GKP : flying ? GKF : null;
   const gp = o.mode === 'perch' && o.pose !== undefined ? (o.land ? GKS : GKL)[(o.land ? GK_SSEQ : GK_LSEQ)[Math.floor(t / 4.5) % (o.land ? GK_SSEQ : GK_LSEQ).length]] : null;
   if (gp && gp.complete && gp.naturalWidth && GKL[0].naturalWidth) { g.scale(-1, 1);
-    if (o.land) { const hh = w * 1.3, hw = hh * gp.naturalWidth / gp.naturalHeight; g.drawImage(gp, -hw * .5, -hh, hw, hh); }   // debout sur la terre ferme : plus petit, pattes au sol
-    else { const hw0 = w * 1.95, hw = hw0 * gp.naturalWidth / GKL[0].naturalWidth, hh = hw * gp.naturalHeight / gp.naturalWidth, hh0 = hw0 * GKL[0].naturalHeight / GKL[0].naturalWidth; g.drawImage(gp, -hw0 * .62, -hh0 * .86 + (hh0 - hh), hw, hh); } }
+    if (o.land) { const hh = GK_H / s * gp.naturalHeight / GKS[0].naturalHeight, hw = hh * gp.naturalWidth / gp.naturalHeight; g.drawImage(gp, -hw * .5, -hh, hw, hh); }   // debout sur la terre ferme : plus petit, pattes au sol
+    else { const hw0 = GK_W / s, hw = hw0 * gp.naturalWidth / GKL[0].naturalWidth, hh = hw * gp.naturalHeight / gp.naturalWidth, hh0 = hw0 * GKL[0].naturalHeight / GKL[0].naturalWidth; g.drawImage(gp, -hw0 * .62, -hh0 * .86 + (hh0 - hh), hw, hh); } }
   else if (hq && hq.complete && hq.naturalWidth) { const hw = flying ? w * 1.75 : w * 1.95, hh = hw * hq.naturalHeight / hq.naturalWidth; g.scale(-1, 1); g.drawImage(hq, flying ? -hw * .5 : -hw * .62, flying ? -hh * .55 : -hh * .86, hw, hh); }   // Gaïkin en haute qualité (regarde à droite)
   else g.drawImage(im, -w / 2, flying ? -h * .55 : -h * .86, w, h);
   g.restore();
