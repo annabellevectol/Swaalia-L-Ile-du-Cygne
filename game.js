@@ -2501,7 +2501,7 @@ function updateCine(dt) {
     });
     swanSparkle = 1;
     if (c.t >= 4.2) {
-      cine = null; phase = 'returned'; mountUnlocked = true; swanFeathers = 4; $('#veil').classList.remove('on'); save(); renderHud(); sfx.star(); confetti();
+      cine = null; phase = 'returned'; mountUnlocked = true; swanFeathers = 0; $('#veil').classList.remove('on'); save(); renderHud(); sfx.star(); confetti();
       openDialog('Gaïkin, le grand Cygne', ['Mes plumes brillent de nouveau ! Merci, Myah ! ✨', 'Regarde : l\'eau du lac redevient claire ! Tu as sauvé l\'île, et je ne partirai plus.', 'Pour te remercier, voici ma surprise : sur mon dos, tu pourras voler au-dessus de l\'île, ou flotter sur le lac et sur l\'océan.', 'Et ce n\'est pas tout… voici de nouvelles ailes pour toi, des ailes de rêve pleines d\'étoiles ! ✨', 'Appuie sur le bouton Cygne (ou la touche C) pour m\'appeler. Saute (⤴ ou X) pour voler ou te poser sur l\'eau !'], () => { swanSparkle = .3; if (storyOn() && !endingSeen) return startParty(); player.state = 'free'; if (storyOn()) say('Appelle Gaïkin avec le bouton Cygne : monte sur son dos et envole-toi !', 6); }, LP());
     }
   }
@@ -7184,7 +7184,7 @@ function startGame(fresh) {
   if (fresh) { wipe(); resetState(); }
   applyLevel();
   QUESTS.forEach(q => { q.chestOpen = 0; q.opening = false; q.reveal = 0; q.found = false; q.rustle = 0; });
-  swanAlt = 0; swanSparkle = phase === 'returned' ? .3 : (phase === 'appeared' ? .55 : 0); swanFeathers = phase === 'returned' ? 4 : 0;
+  swanAlt = 0; swanSparkle = phase === 'returned' ? .3 : (phase === 'appeared' ? .55 : 0); swanFeathers = 0;
   cine = null; player.mount = null; player.alt = 0; player.altT = 0; player.dismounting = false;
   $('#title').style.display = 'none'; $('#win').style.display = 'none'; $('#veil').classList.remove('on');
   started = true; mgIdle(); setTool('none'); renderHud();
@@ -8234,7 +8234,7 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
     finishQuest(id) { const q = QUESTS.find(o => o.id === id); qState[q.id] = 'done'; save(); renderHud(); },
     openAll() { QUESTS.forEach(q => { qState[q.id] = 'done'; opened[q.id] = true; q.chestOpen = 1; }); renderHud(); },
     startReveal, startReturn, startEnding, setPhase(p) { phase = p; if (p === 'appeared') { swanSparkle = .55; } renderHud(); },
-    unlockMount() { mountUnlocked = true; phase = 'returned'; swanFeathers = 4; renderHud(); },
+    unlockMount() { mountUnlocked = true; phase = 'returned'; swanFeathers = 0; renderHud(); },
   },
 };
 })();
