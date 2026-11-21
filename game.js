@@ -2568,7 +2568,7 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
 /* Voler avec les ailes offertes par Gaïkin (après la fin de l'histoire, ou dès le début en Balade) */
 const wingsOk = () => endingSeen || phase === 'returned' || level === 'balade';   // les ailes de Gaïkin : après son retour, ou en Balade
 const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}, FLYM = {};
-['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => { const im = Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '.png' }); FLYM[im.src] = { ov: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_ov.png' }), shoe: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_shoe.png' }) }; return im; }); });
+['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => { const im = Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '.png' }); FLYM[im.src] = { ov: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_ov.png?v=2' }), shoe: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_shoe.png?v=2' }) }; return im; }); });
 const _flyT = {};
 function flyTint(im) {   // Myah en vol avec la tenue du vestiaire : la salopette et les chaussures (dessinées en blanc) prennent la couleur et le motif choisis
   const M = FLYM[im.src]; if (!M || !M.ov.naturalWidth || !M.shoe.naturalWidth) return im;
@@ -2577,7 +2577,7 @@ function flyTint(im) {   // Myah en vol avec la tenue du vestiaire : la salopett
   const key = im.src + '|' + ovc + '|' + shc + '|' + pn; if (_flyT[key]) return _flyT[key];
   const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
   const part = (mk, fill) => { const t = document.createElement('canvas'); t.width = W; t.height = H; const x = t.getContext('2d'); x.drawImage(im, 0, 0); x.globalCompositeOperation = 'multiply'; x.fillStyle = fill(x); x.fillRect(0, 0, W, H); x.globalCompositeOperation = 'destination-in'; x.drawImage(mk, 0, 0); g.drawImage(t, 0, 0); };
-  part(M.ov, x => pn != null ? patFill(x, pn, Math.round(W * .14)) : ovc); part(M.shoe, () => shc);
+  part(M.ov, x => pn != null ? patFill(x, pn, Math.round(H * .2)) : ovc); part(M.shoe, () => shc);
   return (_flyT[key] = c);
 }
 function wingsToggle() {
