@@ -7834,7 +7834,7 @@ const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
-const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' ? '?v=3' : '');
+const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' || f === 'peel_s' ? '?v=4' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
 const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji', gmiel: 'du Gâteau doré au miel', barra: 'du Barra-Grill', papi: 'de la Papillote des récifs' };
@@ -7906,7 +7906,7 @@ const RECIPES = {
       ['Fais dorer les rondelles', '', 'oven', { strip: 'pan_p', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Fais griller le poisson', '', 'oven', { strip: 'grill_f', n: 6, ar: '400/380', t: 8, fx: ['steam'] }]] },
   soupe: { name: 'Uja-Jiji', sub: 'soupe de crabe, patate douce et igname', emoji: '🦀', need: { crab: 2, patate: 1, taro: 1 }, ok: 'd_soupe', ko: 'd_soupe_ko',
-    steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '820/736', t: 18, fx: 'peel', fade: 1, tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
+    steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '341/574', t: 18, fx: 'peel', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Décortique les crabes', '', 'reveal', { strip: 'crab_s', n: 6, ar: '520/330', t: 16, fx: 'peel', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
       ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 6, ar: '520/330', t: 14, fx: 'cubes2' }],
       ['Fais mijoter la soupe', '', 'oven', { strip: 'pot_s', n: 6, ar: '400/380', t: 10, fx: ['steam'] }]] },
