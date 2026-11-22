@@ -4025,11 +4025,11 @@ function kobDefiDraw() {
   // pas de logo de pêche sur l'île aux Koalas : on pêche simplement en s'approchant de l'eau, comme sur l'île du Cygne
   if (RACE) { bub(RB[0], RB[1], 'ic_race', 30); ctx.save(); ctx.globalAlpha = .5; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(RA[0] - 6, RA[1] - 22); ctx.lineTo(RA[0] - 6, RA[1] + 34); ctx.stroke(); ctx.beginPath(); ctx.moveTo(RB[0], RB[1] - 22); ctx.lineTo(RB[0], RB[1] + 34); ctx.stroke(); ctx.restore(); }
 }
-const KOB_SH_SPOTS = [[470, 600], [520, 645], [610, 650], [660, 620], [700, 645], [790, 632]], KOB_SH_IDS = ['sh0', 'sh1', 'sh2', 'sh3', 'sh4', 'sh7'];   // coquillages de la plage du Koala (monnaie de la boutique de Koki)
+const KOB_SH_SPOTS = [[470, 600], [520, 645], [610, 650], [660, 620], [700, 645], [790, 632]], KOB_SH_IDS = [0, 1, 2, 3, 4, 5], KSHI = KOB_SH_IDS.map(i => Object.assign(new Image(), { src: 'assets/spr/kshell' + i + '.png' }));   // nautile, cône, porcelaine, bénitier, étoile bleue, dollar des sables   // coquillages de la plage du Koala (monnaie de la boutique de Koki)
 function kobShells() { const day = mini.dayNo || 0; kobD.shd = kobD.shd || {}; if (kobD.shd.day !== day) kobD.shd = { day, got: {} }; return KOB_SH_SPOTS.map((p, i) => ({ i, x: p[0], y: p[1], id: KOB_SH_IDS[(i + day) % KOB_SH_IDS.length] })).filter(o => (o.i + day) % 3 !== 0 && !kobD.shd.got[o.i]); }
 const kobShellNear = () => SC === SC_KOBHAK && IN.floor === 0 ? kobShells().find(o => dist(IN.x, IN.y, o.x, o.y) < 30) : null;
 function kobShellDraw() { if (SC !== SC_KOBHAK) return; const nr = tool === 'basket' ? kobShellNear() : null;
-  kobShells().forEach(o => { const d = ITEM_DEF[o.id]; if (!d || !mimOk(d[0])) return; const im = MIM[d[0]], w = d[1] * 1.5, h = w * im.naturalHeight / im.naturalWidth; if (nr === o) drawHalo({ x: o.x, y: o.y + 1, r: 9 }); ctx.save(); ctx.globalAlpha = .9; ctx.drawImage(im, o.x - w / 2, o.y - h + 2, w, h); ctx.restore(); }); }
+  kobShells().forEach(o => { const im = KSHI[o.id]; if (!im.complete || !im.naturalWidth) return; const h = 13, w = h * im.naturalWidth / im.naturalHeight; if (nr === o) drawHalo({ x: o.x, y: o.y + 1, r: 9 }); ctx.save(); ctx.globalAlpha = .9; ctx.drawImage(im, o.x - w / 2, o.y - h + 2, w, h); ctx.restore(); }); }
 function kobShellPick() { const o = kobShellNear(); if (!o) return false; if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour ramasser le coquillage ! 🧺', 3); return true; }
   kobD.shd.got[o.i] = 1; inv.shell = (inv.shell || 0) + 1; sfx.pick(); save(); renderHud(); say('Un coquillage ! Tu en as ' + inv.shell + ' 🐚 (pour la boutique de Koki)', 3); return true; }
 function kobBeachFishDraw() {
