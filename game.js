@@ -5381,7 +5381,7 @@ function swapScene(fn) {   // fondu au noir -> changement -> retour de la lumiè
 }
 const CLOSED_AT_NIGHT = { museum: 'Le musée Kaïkiti est fermé. Reviens demain matin !', hall: 'Le comptoir de Maïmaï est fermé. Reviens demain matin !', care: 'Le poste de soin est fermé. Reviens demain matin !' };
 const closedNow = h => isEve() && !!CLOSED_AT_NIGHT[h.id];
-function enterHouse(h) {
+function enterHouse(h) { floaters.length = 0; sparks.length = 0;   // pas de vieux messages qui traînent en changeant de lieu
   if (handsFull()) { say('Range ton objet pour entrer.', 2.5); return; }
   if (denyHouseDuringQuest(h)) return;
   if (closedNow(h)) { h.askUntil = time + 8; say(CLOSED_AT_NIGHT[h.id], 3.4); IN.cool = 4; return; }
@@ -5400,7 +5400,7 @@ function denyHouseDuringQuest(h) {
   say('Termine la quête de ' + String(q.who).split(',')[0].trim() + ' et remets-lui les objets avant de visiter un autre lieu.', 3.5);
   return true;
 }
-function leaveHouse() {
+function leaveHouse() { floaters.length = 0; sparks.length = 0;   // pas de vieux messages qui traînent en changeant de lieu
   swapScene(() => {
     IN.on = false; IN.exitArmed = false; document.body.classList.remove('inside'); setTool(IN.prevTool);
     player.x = HOUSE.exit[0]; player.y = HOUSE.exit[1]; player.dir4 = 'down'; player.mvx = player.mvy = 0; IN.cool = 2.5; HOUSE.askUntil = time + 15; sfx.hop && sfx.hop();
@@ -8013,7 +8013,7 @@ function cookMenu() {
   CK.box.innerHTML = emoFix(h); cookBind();
   CK.box.querySelectorAll('.lvb[data-l]').forEach(b => btn(b, () => { mini.cklv = +b.dataset.l; save(); cookMenu(); }));
   btn(CK.box.querySelector('#ckDf'), () => { mini.ckdef = !mini.ckdef; save(); cookMenu(); });
-  CK.box.querySelectorAll('.rcard').forEach(b => btn(b, () => { const r = RECIPES[b.dataset.r]; if (!cookNeed(r)) { floatText(player.x, player.y - 40, 'Il manque des ingrédients', '#fff'); sfx.blip && sfx.blip(); return; } cookStart(b.dataset.r); }));
+  CK.box.querySelectorAll('.rcard').forEach(b => btn(b, () => { const r = RECIPES[b.dataset.r]; if (!cookNeed(r)) { const sm = b.querySelector('small') || b; const o = sm.textContent; sm.textContent = 'Il manque des ingrédients'; setTimeout(() => { sm.textContent = o; }, 1400); sfx.blip && sfx.blip(); return; } cookStart(b.dataset.r); }));
 }
 function cookStart(id) {
   const r = RECIPES[id]; Object.entries(r.need).forEach(([k, n]) => { inv[k] -= n; }); Object.entries(r.kneed || {}).forEach(([k, n]) => { kobHS()[k] -= n; }); save(); renderHud();
