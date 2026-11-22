@@ -6943,11 +6943,20 @@ function myahPose0() {
   return { sheet: t, name: t === 'fish' ? 'f' + (p.dir4 || 'down') + '1' : 'idle', flip: f, lift: 0 };
 }
 /* le petit pont en arc du lac : sa rambarde de devant passe devant Myah, on la voit entre les barreaux */
-function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah (son toit et ses tonneaux repassent devant lui)
-  const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
-  const k = im.naturalWidth / W, P = [[489, 265], [521, 233], [528, 230], [612, 222], [612, 338], [486, 338], [486, 281], [495, 279], [495, 267]];
-  ctx.save(); ctx.beginPath(); P.forEach(([x, y], n) => n ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
-  ctx.drawImage(im, 480 * k, 218 * k, 140 * k, 127 * k, 480, 218, 140, 127); ctx.restore();
+function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah : on repeint la cabane pixel par pixel (sans l'eau autour)
+  const ds = dayState(), im = img[ds.A.n] || img.map, ref = img.map; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
+  const R = [480, 218, 140, 127], k = im.naturalWidth / W, Wd = Math.round(R[2] * k), Hd = Math.round(R[3] * k), C = gkHutFg.c || (gkHutFg.c = {});
+  if (!C.mask || C.k !== k) {
+    const m = document.createElement('canvas'); m.width = Wd; m.height = Hd; const g = m.getContext('2d', { willReadFrequently: true });
+    g.drawImage(ref, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); const d = g.getImageData(0, 0, Wd, Hd);
+    const P = [[486, 266], [522, 228], [612, 218], [612, 338], [486, 338]];
+    const inP = (x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    for (let y = 0; y < Hd; y++) for (let x = 0; x < Wd; x++) { const i = (y * Wd + x) * 4, r = d.data[i], gg = d.data[i + 1], b = d.data[i + 2], wx = R[0] + x / k, wy = R[1] + y / k, water = b > r + 20 && b > 120 && gg > r;
+      d.data[i + 3] = inP(wx, wy) && !water && !(wx < 500 && wy > 276) ? 255 : 0; }
+    g.putImageData(d, 0, 0); C.mask = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = Wd; C.t.height = Hd;
+  }
+  const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
+  ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
 }
 function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
   if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
