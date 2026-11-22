@@ -6584,7 +6584,7 @@ function updateHint() {
   }
   if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !handsFull() && boatTapNear()) hz = { x: BOAT_HALO[0], y: BOAT_HALO[1], r: 24, boat: 1 };
   else if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !p.mount && !handsFull() && doorNear()) { const h = doorNear(); tapT = { x: h.door[0], y: h.door[1] }; }
-  if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Action pour descendre' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
+  if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Descendre 🦢' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
   if (!hz && swanHaloNear()) hz = { x: swanSpot()[0], y: swanSpot()[1] - 2, r: 24, boat: 1, swan: 1 };
   if (hz && !tapT && p.state === 'free') tapT = { x: hz.x, y: hz.y };
   if (bubble.t > 0 && p.state !== 'fishing') t = bubble.txt;
