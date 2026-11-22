@@ -3345,7 +3345,7 @@ const KOB_PLT = [
   { k: 'baies', n: 'Baies roses', x: 188, y: 346, d: 'Petites et sucrées, pleines de vitamines pour reprendre des forces.' },
   { k: 'miel', n: 'Fleur de miel', x: 545, y: 452, d: 'Elle adoucit la gorge, comme un bonbon.' },
   { k: 'mousse', n: 'Mousse douce', x: 824, y: 455, d: 'Douce comme un nuage, elle apaise le nez qui coule.' },
-  { k: 'racine', n: 'Racine tendre', x: 775, y: 360, d: 'Elle réchauffe le ventre des petits koalas.' },
+  { k: 'racine', n: 'Racine tendre', x: 205, y: 303, d: 'Elle réchauffe le ventre des petits koalas.' },
   { k: 'coq', n: 'Coquillage rose', x: 500, y: 590, d: 'Un trésor de la plage : il rend la tisane toute rose.' },
 ];
 const KOB_PM = { euca: [0, 0, 131, 125], baies: [135, 0, 122, 122], miel: [261, 0, 122, 128], mousse: [387, 0, 132, 86], racine: [523, 0, 128, 117], coq: [655, 0, 134, 114], euca_x: [793, 0, 130, 64], mousse_x: [927, 0, 130, 64], baies_x: [1061, 0, 130, 72], racine_x: [1195, 0, 130, 63], coq_x: [1329, 0, 134, 76], miel_x: [1467, 0, 130, 63] };
