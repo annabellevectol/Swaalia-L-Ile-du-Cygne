@@ -811,7 +811,7 @@ function offerMonkey(an) {
   o.querySelector('#offNo').addEventListener('pointerdown', e => { stop(e); o.remove(); player.state = 'free'; clearInput(); actBlock = time + .6; });
   o.querySelector('#offYes').addEventListener('pointerdown', e => {
     stop(e); if (!(inv.banana > 0)) return; inv.banana--; o.remove(); save(); renderHud(); sfx.star();
-    giveAnim({ banana: 1 }, () => {
+    ((n, f) => f())({ banana: 1 }, () => {   // le petit singe : pas d'image de remise, il mange tout de suite
       an.react = 3; an.heart = 2.4; an.wait = Math.max(an.wait, 3); an.face = player.x > an.x ? 1 : -1; mini.pet = (mini.pet || 0) + 1;
       burst(an.x, an.y - an.h, 18, ['#ff8fc4', '#ffd0e6', '#fff', '#ffe27a'], true); floatText(an.x, an.y - an.h - 14, '+ ❤', '#ff7eb6');
       blip(an.snd[0], .12, 'triangle', .08); blip(an.snd[1], .16, 'triangle', .07, .1); blip(an.snd[0] * 1.5, .14, 'triangle', .06, .22);
