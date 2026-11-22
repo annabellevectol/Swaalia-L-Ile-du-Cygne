@@ -6170,7 +6170,7 @@ function renderInterior(vw, vh) {
     ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
   };
   const TREE_FG = [[357, 228], [361, 196], [380, 160], [405, 140], [445, 145], [470, 185], [445, 250], [428, 300], [424, 352], [404, 352], [398, 300], [376, 262], [364, 244]];   // l'arbre du chemin de la falaise passe devant Myah
-  const SHOP_FG = [[284, 463], [300, 455], [346, 433], [412, 422], [440, 426], [446, 470], [440, 560], [295, 560], [289, 470]];   // suit le bord du toit : Myah n'est plus coupée au-dessus   // la boutique de Koki passe devant Myah quand elle est derrière
+  const SHOP_FG = [[284, 463], [300, 455], [346, 433], [410, 420], [436, 451], [429, 458], [417, 465], [417, 494], [422, 497], [422, 560], [295, 560], [289, 470]];   // suit le bord du toit : Myah n'est plus coupée au-dessus   // la boutique de Koki passe devant Myah quand elle est derrière
   const TOMBA_FG = [[1000, 600], [1004, 520], [1018, 470], [1052, 428], [1090, 412], [1128, 420], [1152, 445], [1166, 490], [1168, 600]];   // la maison de Tomba passe devant Myah quand elle est derrière
   if (SC === SC_KOBHAK && IN.floor === 0 && IN.x > 905 && IN.x < 1045 && IN.y > 135 && IN.y < 178) bridgeRopes();   // les cordes du pont suspendu passent devant Myah (on la voit à travers)
   const ROPE_FG = [[1103, 606], [1130, 612], [1215, 655], [1300, 688], [1375, 702], [1375, 768], [1103, 768]];   // la rambarde de corde du pont de Nuna passe devant Myah
