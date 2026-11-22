@@ -1000,7 +1000,7 @@ function drawBouquet(x, y, w, rot = 0, alpha = 1) {
 }
 const PLUME = new Image(); PLUME.src = 'assets/spr/plume.png'; const GKP = new Image(); GKP.src = 'assets/gaikin_perch.png'; const GKF = new Image(); GKF.src = 'assets/gaikin_fly.png';
 const GKL = [0, 1, 2, 3, 4, 5].map(i => Object.assign(new Image(), { src: 'assets/gaikin/lake' + i + '.png' })), GKS = [0, 1, 2, 3].map(i => Object.assign(new Image(), { src: 'assets/gaikin/stand' + i + '.png' }));
-const GK_W = 50, GK_H = 54, GK_LW = 76;   // GK_LW : largeur sur le lac (queue comprise), même corps que debout   // largeur de Gaïkin dans le monde : la même que quand Myah est sur son dos
+const GK_W = 50, GK_H = 60, GK_LW = 70;   // GK_LW : largeur sur le lac (queue comprise), même corps que debout   // largeur de Gaïkin dans le monde : la même que quand Myah est sur son dos
 const GK_LSEQ = [0, 0, 4, 0, 2, 0, 0, 3, 0, 5, 5], GK_SSEQ = [0, 0, 1, 0, 2, 0, 0, 3];   // poses tranquilles, surtout la pose de base
 function drawLegendSpr(g, o) {
   const s = o.s || .6, t = o.t || 0, dir = o.dir >= 0 ? 1 : -1, flying = o.mode === 'fly', alt = o.alt || 0, K = 1.25;
