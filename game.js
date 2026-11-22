@@ -6599,7 +6599,7 @@ const MS = 0.26;   // pixels de carte par pixel de case (Myah ≈ 48 px de haut)
 const FIX = Object.fromEntries(Object.keys(MY).map(k => [k, Object.fromEntries(MY[k].names.map(n => [n, .69]))]));   // nouvelle Myah : toutes les images à la même échelle
 { const PF = {"sit1": 1.083, "sit2": 1.083, "sitp": 1.083, "sit34": 1.083, "sit34b": 1.083, "sitkick": 1.083, "nwin": 1.083, "jump": 1.13, "joy": 1.083, "wave": 1.061, "letter": 1.02, "gift": 1.02, "pet": 1.083, "surprise": 1.0, "dance": 1.13, "point": 1.106, "point2": 1.209, "scope": 1.106, "drum": 1.106}; for (const n in FIX.pose) if (PF[n]) FIX.pose[n] = .69 * PF[n]; for (const n in FIX.walk) FIX.walk[n] = .69 * 1.106; for (const sh of ['walkrod', 'walkbask', 'walknet']) for (const n in FIX[sh]) if (/^(right|left|down|up|dr|dl)[1-8]$/.test(n)) FIX[sh][n] = .69 * 1.106; for (const n in FIX.stair) FIX.stair[n] = .69 * 1.106; for (const n in (FIX.lad || {})) FIX.lad[n] = .69 * 1.106; }   // Myah a la même taille à pied qu'en action (panier, filet, canne) et dans les poses : tête mesurée sur les masques de lunettes
 /* ================= tenue de Myah (valise) : couleurs + stickers ================= */
-const MK = {}; Object.keys(MY).forEach(k => { MK[k] = {}; ['ov', 'sh', 'shoe', 'hair', 'glass'].forEach(p => { const i = new Image(); i.src = 'assets/myah/mk_' + k + '_' + p + '.png' + (k === 'walk' ? '?v=5' : ''); MK[k][p] = i; }); });   // masques : salopette / t-shirt / chaussures
+const MK = {}; Object.keys(MY).forEach(k => { MK[k] = {}; ['ov', 'sh', 'shoe', 'hair', 'glass'].forEach(p => { const i = new Image(); i.src = 'assets/myah/mk_' + k + '_' + p + '.png' + (k === 'walk' ? '?v=6' : ''); MK[k][p] = i; }); });   // masques : salopette / t-shirt / chaussures
 const MBOX = window.MYMASK || {}; MBOX.wm = [[80, 111, 175, 196]]; FIX.wm.sit = 1;   // cadre de la salopette sur chaque image (pour placer les stickers)
 const STK = [   // stickers : objets de l'île (trim = part du bas retirée : terre, eau)
   { id: 'flower1', k: 'flower1', trim: .2, n: 'Frangipanier' }, { id: 'flower4', k: 'flower4', trim: .2, n: 'Hibiscus' }, { id: 'flower8', k: 'flower8', trim: .2, n: 'Passiflore' },
@@ -6851,7 +6851,7 @@ function bareWalk(d4, mv, run, lift, stair) {   // marche « mains vides » : le
   const N = WALK_N[dir] || 8;
   if (mv && dtw > 0 && dtw < .25) {
     // un cycle complet = 2 pas ≈ 38 px ; dedans, la pièce est agrandie d'un facteur IN_K
-    const CYC = { right: 44, left: 44, dr: 28, dl: 28, down: 22, up: 22 }[dir] || 26;   // longueur réelle d'un cycle = deux pas de l'écart des jambes : les pieds ne glissent plus
+    const CYC = { right: 26, left: 26, dr: 28, dl: 28, down: 22, up: 22 }[dir] || 26;   // longueur réelle d'un cycle = deux pas de l'écart des jambes : les pieds ne glissent plus
     const stride = CYC * (run ? 1.3 : 1) * (inn ? IN_K * .88 : 1) / N;
     let adv = d > 400 * dtw ? 0 : d / stride;
     adv = Math.max(adv, dtw * (run ? 4 : 3));   // jamais figée tant qu'elle marche
