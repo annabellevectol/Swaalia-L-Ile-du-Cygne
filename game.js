@@ -7845,11 +7845,11 @@ function offerVeg(who, portrait, after, go, label) {   // menu à onglets : [qu�
 /* ================= CUISINE : Tukaï et Katouka (façon Cooking Mama) ================= */
 const COOK_SPOT = [213, 590], COOK_HL = [194, 511];
 const CKLV = [{ n: 'Facile', zw: .96, sp: .25, spd: 0, nm: .3, tm: 10, tn: .4, tc: .5, hl: .05, hh: .99, up: .9, dn: .05, th: 0, fl: .65, easy: 1 }, { n: 'Moyen', zw: .4, sp: .5, spd: .08, nm: .7, tm: 2, tn: .7, tc: .8, hl: .3, hh: .78, up: .55, dn: .3, th: .4, fl: .2 }, { n: 'Difficile', zw: .3, sp: .7, spd: .1, nm: 1, tm: 0, tn: 1, tc: 1, hl: .38, hh: .72, up: .5, dn: .36, th: .55, fl: 0 }];
-const CK_EASY = { xmiel: [0, 1, 2, 3], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 3, 5, 6], papi: [0, 2, 3, 4, 5] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
+const CK_EASY = { xmiel: [0], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 8, 9], gbanane: [0, 2, 4, 5, 6, 7, 8], tipaiki: [0, 1, 2, 3], soupe: [0, 1, 2, 3], gmiel: [0, 1, 2, 3, 4], barra: [0, 1, 3, 5, 6], papi: [0, 2, 3, 4, 5] };   // en Facile : 4 étapes (5 pour les gâteaux : on voit toujours la cuisson et la finition)
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
-const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' || f === 'peel_s' ? '?v=4' : '');
+const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' || f === 'peel_s' || f === 'mx_press' ? '?v=4' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
 const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji', gmiel: 'du Gâteau doré au miel', barra: 'du Barra-Grill', papi: 'de la Papillote des récifs' };
@@ -7947,8 +7947,7 @@ const RECIPES = {
       ['Fais griller sur les braises', '', 'oven', { strip: 'pp_grill', n: 6, ar: '390/290', t: 9, fx: ['steam'] }],
       ['Ouvre la papillote', '', 'reveal', { strip: 'pp_open', n: 2, ar: '390/290', t: 10, fx: 'peel' }]] },
   xmiel: { kob: 'miel', name: 'Miel', emoji: '🍯', need: {}, ok: 'd_miel', ko: 'd_miel',
-    steps: [['Découpe le rayon de miel', '', 'reveal', { strip: 'mx_cut', n: 3, ar: '520/420', t: 12, fx: 'rounds', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
-      ['Presse le rayon : le miel coule !', '', 'reveal', { strip: 'mx_press', n: 3, ar: '520/420', t: 12, fx: 'peel' }]] },
+    steps: [['Presse le rayon : le miel coule !', '', 'reveal', { strip: 'mx_press', n: 3, ar: '458/420', t: 12, fx: 'peel' }]] },
   xcire: { kob: 'cire', name: 'Cire d\'abeille', emoji: '🕯️', need: {}, ok: 'd_cire', ko: 'd_cire',
     steps: [['Fais fondre la cire doucement', '', 'oven', { strip: 'mx_melt', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Verse la cire dans le moule', '', 'reveal', { strip: 'mx_mold', n: 3, ar: '520/420', t: 10, fx: 'peel' }]] },
