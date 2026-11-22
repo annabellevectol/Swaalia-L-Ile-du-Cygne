@@ -800,7 +800,7 @@ function offerMonkey(an) {
   faceTo(an.x); player.state = 'talk';
   let o = document.getElementById('offer'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'offer';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   o.innerHTML = '<div style="background:#fff8e6;border-radius:18px;padding:14px 16px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center"><div style="font-weight:bold;font-size:17px;color:#5a3b1c;margin-bottom:10px">Offrir une banane au singe ?</div><button id="offYes" style="all:unset;cursor:pointer;background:#ffe9b8;border-radius:12px;padding:8px 14px;font-size:15px;color:#5a3b1c">🍌 Banane (' + inv.banana + ')</button><br><button id="offNo" style="all:unset;cursor:pointer;margin-top:10px;padding:6px 14px;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font-size:13px">Non merci</button></div>';
   document.body.appendChild(o);
   const stop = e => { e.preventDefault(); e.stopPropagation(); audio(); };
@@ -3654,7 +3654,7 @@ function vetFeedAct() { const v = vetFeedNear(); if (!v) return false;
   if (kobFeedT[v.k] > time) return true;
   clearInput(); let o = document.getElementById('offer'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'offer';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   o.innerHTML = '<div style="background:#fff8e6;border-radius:18px;padding:14px 16px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center"><div style="font-weight:bold;font-size:17px;color:#5a3b1c;margin-bottom:10px">Donner à manger : ' + v.n + ' ?</div><button id="offYes" style="all:unset;cursor:pointer;background:#ffe9b8;border-radius:12px;padding:8px 14px;font-size:15px;color:#5a3b1c;display:inline-flex;align-items:center;gap:8px">' + spr(SOI, SOW, SOH, KT_M.gamelle, 40) + ' Gamelle</button><br><button id="offNo" style="all:unset;cursor:pointer;margin-top:10px;padding:6px 14px;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font-size:13px">Non merci</button></div>';
   document.body.appendChild(o); player.state = 'talk';
   const stop = e => { e.preventDefault(); e.stopPropagation(); audio(); };
@@ -7718,7 +7718,7 @@ function kykahShop(e, free, epOnly, list, title) {
   clearInput(); player.state = 'talk';
   let o = document.getElementById('kshop'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'kshop';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   const df = dayFish(), dn = df.map(c => FISH_NAME[c]).join(' et ');
   const items = [
     { id: 'jar0', nm: 'Petit bocal vide', sub: 'À remplir toi-même : lucioles, papillons, objets rares', shell: 4, j: { k: 'jar' }, ok: () => jarsOwned() < JAR_CAP },
@@ -7791,7 +7791,7 @@ function offerVeg(who, portrait, after, go, label) {   // menu à onglets : [qu�
   player.state = 'talk';
   let o = document.getElementById('offer'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'offer';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   const BT = 'all:unset;cursor:pointer;border-radius:12px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;font-size:12px;color:#5a3b1c;';
   const draw = tab => {
     let h = '<div style="position:relative;background:#fff8e6;border-radius:18px;padding:14px 16px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center">';
@@ -7858,7 +7858,7 @@ function dishGive(q, r, next, soft) {
   player.state = 'talk';
   let o = document.getElementById('offer'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'offer';
-  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none';
+  o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.55);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:pan-y';
   let h = '<div style="background:#fff8e6;border-radius:18px;padding:14px 16px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center"><div style="font-weight:bold;font-size:17px;color:#5a3b1c;margin-bottom:10px">🍽️ Offrir un plat ? <small>(il voulait ' + DNAME[r.d] + ')</small></div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">';
   have.forEach(k => dishList(k).forEach((st, i) => { h += '<button data-k="' + k + '" data-i="' + i + '" style="all:unset;cursor:pointer;background:#ffe9b8;border-radius:12px;padding:6px 10px;font-size:13px;color:#5a3b1c;text-align:center"><span style="font-size:28px">' + ICON[k] + '</span><br>' + (k === r.d ? '<b>' : '') + DNAME[k].replace('du ', '') + (k === r.d ? '</b>' : '') + '<br>' + '★'.repeat(st) + '</button>'; }));
   h += '</div><button id="offNo" style="all:unset;cursor:pointer;margin-top:10px;padding:6px 14px;border-radius:12px;background:#e7d7b5;color:#5a3b1c;font-size:13px">Plus tard</button></div>';
@@ -7905,7 +7905,7 @@ const RECIPES = {
       ['Fais dorer les rondelles', '', 'oven', { strip: 'pan_p', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Fais griller le poisson', '', 'oven', { strip: 'grill_f', n: 6, ar: '400/380', t: 8, fx: ['steam'] }]] },
   soupe: { name: 'Uja-Jiji', sub: 'soupe de crabe, patate douce et igname', emoji: '🦀', need: { crab: 2, patate: 1, taro: 1 }, ok: 'd_soupe', ko: 'd_soupe_ko',
-    steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '820/736', t: 18, fx: 'peel', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
+    steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '820/736', t: 18, fx: 'peel', fade: 1, tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Décortique les crabes', '', 'reveal', { strip: 'crab_s', n: 6, ar: '520/330', t: 16, fx: 'peel', tool: 'hand_pinch', tw: 24, tr: 'translate(-80%,-40%)' }],
       ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 6, ar: '520/330', t: 14, fx: 'cubes2' }],
       ['Fais mijoter la soupe', '', 'oven', { strip: 'pot_s', n: 6, ar: '400/380', t: 10, fx: ['steam'] }]] },
@@ -8083,7 +8083,7 @@ function cookReveal(S, p, fin) {   // « ticket à gratter » : le doigt révèl
     stage(F); draw();
   };
   const stage = i => { st = i; mc.clearRect(0, 0, W, H); cells = []; if (i >= E) return; const A = grid[i], B = grid[i + 1]; for (let k = 0; k < GW * GH; k++) { const d = Math.abs(A[k * 4] - B[k * 4]) + Math.abs(A[k * 4 + 1] - B[k * 4 + 1]) + Math.abs(A[k * 4 + 2] - B[k * 4 + 2]); if (d > 70) cells.push(k); } };
-  function draw() { dirty = false; c.drawImage(imgs[st], 0, 0, W, H); if (st < E) { tcc.globalCompositeOperation = 'source-over'; tcc.clearRect(0, 0, W, H); tcc.drawImage(imgs[st + 1], 0, 0, W, H); tcc.globalCompositeOperation = 'destination-in'; tcc.drawImage(mk, 0, 0); c.drawImage(tc, 0, 0); } }
+  function draw() { dirty = false; c.drawImage(imgs[st], 0, 0, W, H); if (st < E && p.fade) { c.globalAlpha = Math.min(1, cover() / thr); c.drawImage(imgs[st + 1], 0, 0, W, H); c.globalAlpha = 1; } else if (st < E) { tcc.globalCompositeOperation = 'source-over'; tcc.clearRect(0, 0, W, H); tcc.drawImage(imgs[st + 1], 0, 0, W, H); tcc.globalCompositeOperation = 'destination-in'; tcc.drawImage(mk, 0, 0); c.drawImage(tc, 0, 0); } }
   const cover = () => { if (!cells.length) return 1; sc.clearRect(0, 0, GW, GH); sc.drawImage(mk, 0, 0, GW, GH); const d = sc.getImageData(0, 0, GW, GH).data; let n = 0; for (const k of cells) if (d[k * 4 + 3] > 110) n++; return n / cells.length; };
   const total = () => Math.min(1, (st - F + (st < E ? Math.min(1, cover() / thr) : 0)) / (N - 1));
   const finish = () => { if (ended) return; ended = true; clearTimeout(idleT); const el = (performance.now() - t0) / 1000; const q = el <= tmax * .6 ? 1 : Math.max(.45, 1 - (el - tmax * .6) / (tmax * .8)); pg.style.width = '100%'; if (tool) tool.style.opacity = 0; if (p.bad != null && q < .6) { st = p.bad; draw(); } fin(q); };
