@@ -1181,9 +1181,16 @@ spread(D.seaFishStart.filter(p => beachSea(p[0], p[1]) && cell(SEAF, p[0], p[1])
 // ponton : les poissons du lac passent dessous (on repeint la carte sur les cases du ponton)
 const PIER = []; for (let y = 1; y < GH - 1; y++) for (let x = 1; x < GW - 1; x++) { if (POND[y * GW + x] !== 1) continue; let w = false; for (let dy = -1; dy <= 1 && !w; dy++) for (let dx = -1; dx <= 1; dx++) if (WALK[(y + dy) * GW + x + dx]) { w = true; break; } if (w) PIER.push([x * C, y * C]); }
 const PW = 110, PS = 3, ptmp = document.createElement('canvas'), ptx = ptmp.getContext('2d'); ptmp.width = ptmp.height = PW * PS;
+let pierOk = false;
+function pierWood() {   // on ne garde que les cases où il y a vraiment du bois (sinon l'eau « recouvrait » les poissons près des berges)
+  if (pierOk || !img.map || !img.map.naturalWidth) return; pierOk = true;
+  const k = img.map.naturalWidth / W, c = document.createElement('canvas'); c.width = Math.ceil(W * k / 4); c.height = Math.ceil(H * k / 4); const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img.map, 0, 0, c.width, c.height); const d = g.getImageData(0, 0, c.width, c.height).data;
+  const wood = (x, y) => { let n = 0, w = 0; for (let yy = 0; yy < C; yy++) for (let xx = 0; xx < C; xx++) { const px = Math.floor((x + xx) * k / 4), py = Math.floor((y + yy) * k / 4), i = (py * c.width + px) * 4, r = d[i], gg = d[i + 1], b = d[i + 2]; n++; if (!(b > r + 10 && b > 110)) w++; } return w / n > .6; };
+  for (let i = PIER.length - 1; i >= 0; i--) if (!wood(PIER[i][0], PIER[i][1])) PIER.splice(i, 1);
+}
 function drawFishUnderPier(f) {   // les poissons passent sous le ponton : on efface les cases du ponton sur le poisson
   if (f.region !== 'pond' || f.state !== 'swim') return drawFishSpr(f, time);
-  const x0 = f.x - PW / 2, y0 = f.y - PW / 2, cells = PIER.filter(q => q[0] + C > x0 && q[0] < x0 + PW && q[1] + C > y0 && q[1] < y0 + PW);
+  pierWood(); const x0 = f.x - PW / 2, y0 = f.y - PW / 2, cells = PIER.filter(q => q[0] + C > x0 && q[0] < x0 + PW && q[1] + C > y0 && q[1] < y0 + PW);
   if (!cells.length) return drawFishSpr(f, time);
   const sv = ctx; ctx = ptx; ptx.setTransform(1, 0, 0, 1, 0, 0); ptx.clearRect(0, 0, ptmp.width, ptmp.height); ptx.setTransform(PS, 0, 0, PS, -x0 * PS, -y0 * PS); ptx.imageSmoothingEnabled = true;
   drawFishSpr(f, time); ptx.setTransform(1, 0, 0, 1, 0, 0); for (const q of cells) ptx.clearRect((q[0] - x0) * PS, (q[1] - y0) * PS, C * PS, C * PS);
@@ -6929,20 +6936,15 @@ function myahPose0() {
   return { sheet: t, name: t === 'fish' ? 'f' + (p.dir4 || 'down') + '1' : 'idle', flip: f, lift: 0 };
 }
 /* le petit pont en arc du lac : sa rambarde de devant passe devant Myah, on la voit entre les barreaux */
-function swanBridgeFg(p) {
-  if (!(p.x > 396 && p.x < 470 && p.y > 236 && p.y < 312)) return;
-  const ds = dayState(), im = img[ds.A.n] || img.map, ref = img.map; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
-  const R = [394, 230, 52, 72], k = im.naturalWidth / W, Wd = Math.round(R[2] * k), Hd = Math.round(R[3] * k), C = swanBridgeFg.c || (swanBridgeFg.c = {});
-  if (!C.mask || C.k !== k) {
-    const m = document.createElement('canvas'); m.width = Wd; m.height = Hd; const g = m.getContext('2d', { willReadFrequently: true });
-    g.drawImage(ref, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); const d = g.getImageData(0, 0, Wd, Hd);
-    const P = [[396, 236], [407, 240], [419, 252], [430, 268], [440, 286], [446, 299], [436, 300], [426, 284], [416, 266], [405, 251], [395, 243]];
-    const inP = (x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
-    for (let y = 0; y < Hd; y++) for (let x = 0; x < Wd; x++) { const i = (y * Wd + x) * 4, r = d.data[i], gg = d.data[i + 1], b = d.data[i + 2], water = b > r + 25 && b > 120; d.data[i + 3] = inP(R[0] + x / k, R[1] + y / k) && !water ? 255 : 0; }
-    g.putImageData(d, 0, 0); C.mask = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = Wd; C.t.height = Hd;
-  }
-  const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
-  ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
+function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
+  if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
+  const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
+  const k = im.naturalWidth / W, RAIL = [[381, 249], [392, 254], [402, 261], [410, 268], [417, 277], [422, 286], [427, 296], [430, 304]];
+  ctx.save(); ctx.beginPath();
+  RAIL.forEach(([x, y], n) => n ? ctx.lineTo(x, y - 2.2) : ctx.moveTo(x, y - 2.2));
+  for (let n = RAIL.length - 1; n >= 0; n--) ctx.lineTo(RAIL[n][0], RAIL[n][1] + 2.2);
+  ctx.closePath(); ctx.rect(438, 286, 6, 20);   // poteau de devant, en bas du pont
+  ctx.clip(); ctx.drawImage(im, 378 * k, 240 * k, 70 * k, 70 * k, 378, 240, 70, 70); ctx.restore();
 }
 function drawMyah(x, y) { const o = myahPose(); myFrame(o.sheet, o.name, x, y, o.flip, o.lift); }
 function shadow(x, y, r = 11) { ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.beginPath(); ctx.ellipse(x, y + 1, r, r * .38, 0, 0, TAU); ctx.fill(); }
