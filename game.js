@@ -7034,6 +7034,15 @@ function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah
   const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
   ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
 }
+function swanTentFg(p) {   // l'étal sous la toile, sur la plage : Myah passe derrière (comme la boutique de Koki)
+  if (!(p.x > 236 && p.x < 350 && p.y > 262 && p.y < 326)) return;
+  const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
+  const k = im.naturalWidth / W, P = [[243, 292], [284, 277], [290, 279], [340, 296], [342, 330], [352, 350], [340, 362], [245, 362], [238, 340]];
+  ctx.save(); ctx.beginPath(); P.forEach(([x, y], n) => n ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
+  ctx.drawImage(im, 230 * k, 270 * k, 130 * k, 95 * k, 230, 270, 130, 95);
+  const B = img[ds.B.n]; if (B && B !== im && ds.u > 0 && B.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(B, 230 * k, 270 * k, 130 * k, 95 * k, 230, 270, 130, 95); }
+  ctx.restore();
+}
 function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
   if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
   const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
@@ -7190,7 +7199,7 @@ function render() {
   postDraw(items);
   MI.animals.forEach(a => items.push({ y: a.y, draw() { drawAnimal(a); } }));
   MI.items.forEach(it => it.kind === 'shell' && items.push({ y: it.y - 10, draw() { drawMiniItem(it, 1); } }));   // coquillages triés avec Myah : elle passe devant
-  if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); } });   // sur le pont en arc, Myah marche dessus (plus de main courante devant elle)
+  if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); swanTentFg(p); } });   // sur le pont en arc, Myah marche dessus (plus de main courante devant elle)
   else if (p.mount === 'float') items.push({ y: p.y, draw() { if (drawRide(p.x, p.y, 'float', p.alt)) return; drawLegendSpr(ctx, { x: p.x, y: p.y, s: SW_MOUNT, t: time, dir: p.face, mode: 'float', alt: p.alt, sparkle: .12, rider: drawRider }); } });
   /* le nom du lieu s'affiche seulement dans la pastille en haut de l'écran (#placeB) */
   items.sort((a, b) => a.y - b.y).forEach(o => o.draw());
