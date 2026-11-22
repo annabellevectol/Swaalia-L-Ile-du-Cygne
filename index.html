@@ -517,6 +517,8 @@
   #pWrap{position:relative;width:100%;max-width:720px}
   #paint,#wardrobe .card,#memory,#puzzle,#rythme{scrollbar-width:none}#paint::-webkit-scrollbar,#wardrobe .card::-webkit-scrollbar,#memory::-webkit-scrollbar,#puzzle::-webkit-scrollbar,#rythme::-webkit-scrollbar{display:none}
 
+  img,canvas{-webkit-touch-callout:none;-webkit-user-drag:none}   /* appui long : plus de loupe ni de « Enregistrer l'image » */
+  .hold img{pointer-events:none}
   /* défilement au doigt : le "touch-action:none" global bloquait le glissement vertical dans les écrans longs */
   #wmCard,#wmCard *,#kshop .kc,#kshop .kc *,#paint *,#wardrobe .card,#wardrobe .card *,#memory,#memory *,#puzzle,#puzzle *,#rythme,#rythme *,#tipsBody .cb,#tipsBody .cb *,#collBody .cb,#collBody .cb *,#slots,#slots *,#title .hero,#title .hero *,#cook .cb,#cook .cb *,#garden .gbar,#garden .gbar *,.wdHelpBody,.wdHelpBody *,#settings .card,#settings .card *,#vetCard,#vetCard *,#remCard,#remCard *,#mgCard,#mgCard *{touch-action:pan-y}
   #paint canvas,#wardrobe canvas,#puzzle canvas,#pCv,#pWheel,#wdWheel,#wdPrev,#heCv,input[type=range],.zp{touch-action:none !important}
@@ -1149,7 +1151,7 @@
 <script src="mymask.js?v=4"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=228"></script>
+<script src="game.js?v=229"></script>
 </body>
 </html>
 
