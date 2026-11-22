@@ -78,7 +78,7 @@ function nearestWalk(x, y, R = 120) {
 
 /* ================= son (synthé minuscule) ================= */
 let dayT = .05, dayAuto = true;   // moment de la journée (0 à 1) et cycle jour / nuit activé
-let actx = null, muted = false, master = null, vol = .05, musVol = .2, musMaster = null, bright = 1;
+let actx = null, muted = (() => { try { return localStorage.getItem('sw_muted') === '1'; } catch (e) { return false; } })(), master = null, vol = .05, musVol = .2, musMaster = null, bright = 1;
 let autoSv = true, skipTitle = false, calm = false, txtSz = 0, sleepSkip = true;   // sleepSkip : en dormant la nuit, le temps passe vite jusqu'au matin
 const PREF_KEY = 'ile-du-cygne-myah-prefs';
 try { const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}'); if (isFinite(p.vol)) vol = Math.min(1, Math.max(0, p.vol)); if (isFinite(p.mus)) musVol = Math.min(1, Math.max(0, p.mus)); if (p.day === false) dayAuto = false; if (p.auto === false) autoSv = false; if (p.skip === true) skipTitle = true; if (p.calm === true) calm = true; if (p.sleep === false) sleepSkip = false; if (p.tz === 1 || p.tz === 2) txtSz = p.tz; if (isFinite(p.bright)) bright = Math.min(1.5, Math.max(.5, p.bright)); } catch (e) {}
@@ -1429,7 +1429,7 @@ document.querySelectorAll('#tipsTabs button').forEach(b => { b.onclick = () => t
 press($('#tipsB'), () => { const k = kobScene(); $('#tipsTabs').style.display = k || kobD.seen ? 'flex' : 'none'; tipsTab(k ? 'kob' : 'cygne'); $('#tips').style.display = 'grid'; fitTipIcons(); });
 press($('#tipsX'), () => { $('#tips').style.display = 'none'; });
 $('#tips').addEventListener('click', e => { if (e.target.id === 'tips') $('#tips').style.display = 'none'; });
-press($('#mute'), () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
+press($('#mute'), () => { muted = !muted; try { localStorage.setItem('sw_muted', muted ? '1' : '0'); } catch (e) {} $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
 const syncSliders = () => { $('#setVol').value = Math.round(vol * 100); $('#setVolV').textContent = Math.round(vol * 100) + '%'; $('#setBri').value = Math.round(bright * 100); $('#setBriV').textContent = Math.round(bright * 100) + '%'; $('#setMus').value = Math.round(musVol * 100); $('#setMusV').textContent = Math.round(musVol * 100) + '%'; };
 $('#setMus').addEventListener('input', e => { musVol = (+e.target.value) / 100; $('#setMusV').textContent = e.target.value + '%'; musApply(); savePrefs(); });
 $('#setVol').addEventListener('input', e => { vol = (+e.target.value) / 100; $('#setVolV').textContent = e.target.value + '%'; audio(); if (master) master.gain.value = vol; savePrefs(); });
@@ -1442,11 +1442,12 @@ const setSleepTxt = () => { $('#setSleep').textContent = sleepSkip ? 'Dormir la 
 press($('#setSleep'), () => { sleepSkip = !sleepSkip; setSleepTxt(); savePrefs(); });
 press($('#setNight'), () => { dayAuto = true; dayT = .7; setDayTxt(); savePrefs(); $('#setMsg').textContent = '🌙 Il fait nuit !'; });
 const setSoundTxt = () => { muted ? tileSet('#setSound', '🔇', 'Son coupé') : tileSet('#setSound', '🔊', 'Son'); };
+$('#mute').textContent = muted ? '🔇' : '🔊'; $('#tMute') && $('#tMute').classList.toggle('off', muted); setSoundTxt();   // réglage du son retrouvé au retour
 const openSet = () => { setTxtTxt(); setCalmTxt(); setSoundTxt(); setLevelTxt(); setDayTxt(); setSleepTxt(); setAutoTxt(); setSkipTxt(); syncSliders(); $('#setMsg').textContent = ''; $('#settings').style.display = 'grid'; };
 press($('#setB'), () => { if (!started) return; openSet(); });
 press($('#tSet'), openSet);
-press($('#tMute'), () => { muted = !muted; $('#tMute').classList.toggle('off', muted); $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
-press($('#setSound'), () => { muted = !muted; $('#tMute').classList.toggle('off', muted); $('#mute').textContent = muted ? '🔇' : '🔊'; setSoundTxt(); musApply(); });
+press($('#tMute'), () => { muted = !muted; try { localStorage.setItem('sw_muted', muted ? '1' : '0'); } catch (e) {} $('#tMute').classList.toggle('off', muted); $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
+press($('#setSound'), () => { muted = !muted; try { localStorage.setItem('sw_muted', muted ? '1' : '0'); } catch (e) {} $('#tMute').classList.toggle('off', muted); $('#mute').textContent = muted ? '🔇' : '🔊'; setSoundTxt(); musApply(); });
 $('#inv').addEventListener('pointerdown', e => { const jb = e.target.closest('.jb'), jf = e.target.closest('.jfree'); if (jb || jf) { e.preventDefault(); e.stopPropagation(); audio(); if (jb) { if (jb.dataset.jk === 'aqua') makeAqua(); else makeJar(jb.dataset.jk); } else freeJar(jf.dataset.jid); return; }
   const jo = e.target.closest('.jo'); if (jo) { e.preventDefault(); e.stopPropagation(); audio(); makeJarObj(jo.dataset.jo); return; } const b = e.target.closest('.btab'); if (!b) return; e.preventDefault(); e.stopPropagation(); audio(); bagTab = b.dataset.bt; renderHud(); });
 $('#quests').addEventListener('pointerdown', e => { const b = e.target.closest('.qtab'); if (!b) return; e.preventDefault(); e.stopPropagation(); audio(); if (b.dataset.qi) { questIsl = b.dataset.qi; renderHud(); return; } questTab = b.dataset.qt; renderHud(); });
