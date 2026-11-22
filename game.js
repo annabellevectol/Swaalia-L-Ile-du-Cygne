@@ -2652,7 +2652,7 @@ function toggleFlight() {
 /* ================= mise à jour ================= */
 let lastT = performance.now();
 const cam = { x: 0, y: 0, z: 1 };
-function camZ(vw, vh) { return 1.3 * Math.max(1.35, Math.min(vh / 335, vw / 225), vw / 580, vw / W); }   // vue un peu plus rapprochée de Myah (+30 %)
+function camZ(vw, vh) { return 2.1 * Math.max(1.35, Math.min(vh / 335, vw / 225), vw / 580, vw / W); }   // vue un peu plus rapprochée de Myah (+30 %)
 let dpr = 1;
 
 
