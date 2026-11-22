@@ -3737,7 +3737,8 @@ const mgShuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 function mgShow(title, inner) { $('#mgX').style.display = ''; mgPaused = false; $('#mgPz').classList.remove('on'); $('#mgBody').innerHTML = '<div class="kvH">' + title + '</div>' + inner; $('#mgOv').style.display = 'grid'; player.mvx = player.mvy = 0; }
 function mgWin(p, msg, again) {
   const first = !kobD.done['mg_' + p.k]; kobD.done['mg_' + p.k] = true; if (first) { kobD.st++; stkGive({ memory: 'kb_chapeau', qui: 'kb_peluche', simon: 'kb_lanterne', symb: 'kb_herbier', grain: 'kb_arrosoir' }[p.k]); } save(); sfx.star(); $('#mgX').style.display = 'none';
-  $('#mgBody').innerHTML = '<div class="kvH">Bravo !</div><div class="kvStage mgWin">' + kdSpr('i_star', 60) + '</div><p class="kvMsg"><b>' + msg + '</b>' + (first ? '<br>Une étoile pour ton carnet !' : '') + '</p><div class="kvBtns"><button class="kvBtn" id="mgOk">Super !</button>' + (again ? '<button class="kvBtn alt" id="mgAg">Rejouer</button>' : '') + '</div>';
+  const sid = { memory: 'kb_chapeau', qui: 'kb_peluche', simon: 'kb_lanterne', symb: 'kb_herbier', grain: 'kb_arrosoir' }[p.k], sst = sid && STK_BY[sid]; let sim = ''; try { const c = sst && stickerCanvas(sid); if (c) sim = '<img src="' + c.toDataURL() + '" alt="" style="height:90px;width:auto">'; } catch (e) {}
+  $('#mgBody').innerHTML = '<div class="kvH">Bravo !</div><div class="kvStage mgWin">' + (sim || kdSpr('i_star', 60)) + '</div><p class="kvMsg"><b>' + msg + '</b>' + (first && sst ? '<br>Nouveau sticker pour ton album : « ' + sst.n + ' » !' : '') + '</p><div class="kvBtns"><button class="kvBtn" id="mgOk">Super !</button>' + (again ? '<button class="kvBtn alt" id="mgAg">Rejouer</button>' : '') + '</div>';
   $('#mgOk').onclick = mgClose; if (again) $('#mgAg').onclick = again;
 }
 // les animaux que l'on connaît (soignés + la famille koala)
