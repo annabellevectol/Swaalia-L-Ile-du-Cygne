@@ -6016,7 +6016,8 @@ function renderInterior(vw, vh) {
   const isHome = SC === SC_HOME;
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (1 + .4 * dkz);   // plan rapproché dans tous les lieux : la caméra suit Myah
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC !== SC_KOBHAK && kobScene() ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
+  IN.fz = (IN.fz || 1) + ((SC === SC_KOBHAK && IN.wf ? .62 : 1) - (IN.fz || 1)) * Math.min(1, (IN.dtc || .016) * 1.6);
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 2.2 * IN.fz) : SC !== SC_KOBHAK && kobScene() ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
      SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
@@ -6473,7 +6474,8 @@ function update(dt) {
   updateHint(); updateGuide();
   // caméra
   const vw = cv.width / dpr, vh = cv.height / dpr;
-  let z = camZ(vw, vh); if (vh / z > H) z = vh / H; cam.z = z;
+  { const ft = p.mount === 'fly' || p.mount === 'wings' ? .62 : p.mount === 'float' ? .85 : 1; cam.fz = (cam.fz || 1) + (ft - (cam.fz || 1)) * Math.min(1, dt * 1.6); }   // en vol on prend de la hauteur : la caméra recule doucement, puis revient à l'atterrissage
+  let z = camZ(vw, vh) * cam.fz; if (vh / z > H) z = vh / H; cam.z = z;
   const fx = cine && cine.focus ? cine.focus[0] : p.x, fy = cine && cine.focus ? cine.focus[1] : p.y - 22 - p.alt * .4;
   const tx = fx - vw / 2 / z, ty = fy - vh / 2 / z, sm = cine ? 2.2 : 6;
   cam.x += (tx - cam.x) * Math.min(1, dt * sm); cam.y += (ty - cam.y) * Math.min(1, dt * sm);
