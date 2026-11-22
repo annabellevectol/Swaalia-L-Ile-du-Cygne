@@ -4234,6 +4234,11 @@ const RMT = {   // étapes de chaque recette
   baume: ['pile:r', 'dose:w_cubes', 'heat:w', 'stir', 'fill:pot', 'set', 'done'],
   gelule: ['dose:p_empty', 'pile:m', 'pile:b', 'mix', 'caps', 'done'],
 };
+const ING_ROLE = {   // à quoi sert chaque ingrédient (affiché quand la dose est bonne)
+  euca: 'L\'eucalyptus aide à dégager le nez et la gorge.', miel: 'La fleur de miel adoucit la gorge irritée.', coq: 'Une pincée de coquillage broyé apporte du calcium.', eau: 'L\'eau chaude fait infuser les plantes : leurs bienfaits passent dans le liquide.',
+  mielL: 'Le miel calme la toux et nappe la gorge.', cire: 'La cire rend le baume solide et protège la peau.', huile: 'L\'huile nourrit et assouplit la peau.', racine: 'La racine apaise les petites irritations.',
+  mousse: 'La mousse douce aide le corps à combattre le rhume.', baies: 'Les baies roses sont pleines de vitamine C.', mielP: 'Le miel en poudre se garde longtemps dans la gélule.' };
+const ING_AFTER = { t_water: 't_herbs', s_water: 's_herbs', p_empty: 'p_piles' };   // l'image change quand tous les ingrédients sont dosés
 const RMD = {
   tisane: [['euca', .33], ['miel', .33], ['coq', .2], ['eau', .66]],
   sirop: [['euca', .66], ['miel', .33], ['eau', .75], ['mielL', .33]],
@@ -4279,7 +4284,7 @@ function kobRem(rk) {
       document.querySelectorAll('.rmRow').forEach(row => { const i = +row.dataset.i, tg = L[i][1], gi = row.querySelector('.rmG i'); let iv = null; const draw = () => gi.style.width = Math.min(100, lv[i] * 100) + '%';
         hold(row.querySelector('.rmBtn'), () => { if (ok[i]) return; clearInterval(iv); iv = setInterval(() => { lv[i] += .02; draw(); if (lv[i] > tg + .24) clearInterval(iv); }, 40); tm.push(iv); }, () => {
           clearInterval(iv); if (ok[i]) return;
-          if (Math.abs(lv[i] - tg) <= .1) { ok[i] = true; row.classList.add('good'); row.querySelector('.rmOk').textContent = '✓'; sfx.pick(); msg('Pile la bonne quantité !'); if (ok.every(Boolean)) { sfx.star(); next(900); } }
+          if (Math.abs(lv[i] - tg) <= .1) { ok[i] = true; row.classList.add('good'); row.querySelector('.rmOk').textContent = '✓'; sfx.pick(); msg('✓ ' + (ING_ROLE[L[i][0]] || 'Pile la bonne quantité !')); wob(); if (ok.every(Boolean)) { const af = ING_AFTER[a]; if (af) frame(af); sfx.star(); next(2200); } }
           else if (lv[i] > tg) { err++; sfx.no && sfx.no(); msg('Oups ! Un peu trop. On retire doucement.'); const dn = setInterval(() => { lv[i] -= .04; if (lv[i] <= 0) { lv[i] = 0; clearInterval(dn); } draw(); }, 40); tm.push(dn); }
           else msg('Encore un peu... appuie encore sur Verser.'); });
       });
