@@ -1385,7 +1385,7 @@ addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 
 const ACT_LBL = { none: ['', 'Action'], basket: ['', 'Cueillir'], net: ['', 'Attraper'], fish: ['', 'Pêcher'] };
 const handsFull = () => tool !== 'none';
-const kobHF = () => tool !== 'none' && typeof kobScene === 'function' && kobScene();   // île Koala : objet en main = ni habitants, ni animaux, ni lieux (cueillette et pêche restent possibles)   // filet, panier ou canne en main : ni entrée dans un lieu ni discussion alentour (sauf la mallette sur l'île Koala)
+const kobHF = () => tool !== 'none' && typeof SC_KOBHAK !== 'undefined' && SC === SC_KOBHAK;   // dans les maisons, les outils sont rangés : coffres et habitants restent accessibles   // île Koala : objet en main = ni habitants, ni animaux, ni lieux (cueillette et pêche restent possibles)   // filet, panier ou canne en main : ni entrée dans un lieu ni discussion alentour (sauf la mallette sur l'île Koala)
 function setTool(t) {
   tool = t; document.querySelectorAll('.tool').forEach(b => b.classList.toggle('sel', b.dataset.tool === t));
   if (t !== 'none' && (ANIMAL_TXT.singe.includes(bubble.txt) || ANIMAL_TXT.singeDort.includes(bubble.txt))) bubble = { txt: '', t: 0 };
@@ -5836,7 +5836,7 @@ function updateInterior(dt) {
   setAnim(moving ? (run ? 'run' : 'walk') : 'idle');
   if (IN.climb) {   // l'échelle se monte / se descend à la main : on tient ↑ ou ↓ et on la voit grimper
     const c = IN.climb, B = IN_LADDER[0], T = IN_LADDER[1], len = Math.abs(B[1] - T[1]);
-    const dir = iy < -.3 ? 1 : iy > .3 ? -1 : 0; c.u = clamp(c.u + dir * dt * 120 / len, 0, 1);
+    const dir = iy < -.3 ? 1 : iy > .3 ? -1 : (c.auto || 0); c.u = clamp(c.u + dir * dt * 120 / len, 0, 1);
     IN.x = B[0]; IN.y = B[1] + (T[1] - B[1]) * c.u;
     p.dir4 = 'up'; p.mvx = 0; p.mvy = dir ? -1 : 0; IN.cd = dir; setAnim(dir ? 'walk' : 'idle'); actQueued = false;
     if (c.u >= 1) { IN.floor = 1; IN.climb = null; p.mvy = 0; IN.y = T[1] + 8; IN.upT = IN.t + .6; }
@@ -5932,7 +5932,8 @@ function updateInterior(dt) {
 /* toucher / cliquer sur la malle, la douche, les toilettes, le lavabo, les sièges : une aurole dorée marque l'endroit, la zone sensible est large */
 function tapSpots() {
   if (!started || !IN.on || dlg.open || wmOpen() || IN.busy || IN.lie || IN.climb || IN.bunk || IN.puff || bedPickOpen() || wardOpen()) return [];
-  const L = [], z = IN.zs || 1;
+  const LadT = []; if (SC !== SC_DISP && kobScene() && SC !== SC_KOBHAK && IN_LADDER && IN_LADDER[IN.floor]) { const L = IN_LADDER[IN.floor]; if (dist(IN.x, IN.y, L[0], L[1]) < 110) LadT.push({ id: 'ladder', x: L[0], y: L[1] - 14, go: () => { actQueued = false; const to = 1 - IN.floor; climb(to); if (IN.climb) IN.climb.auto = to ? 1 : -1; } }); }   // échelle : on touche le halo pour monter / descendre
+  const L = LadT, z = IN.zs || 1;
   if (SC === SC_BOAT && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105)
     L.push({ id: 'boat_exit', x: IN_EXIT[0], y: IN_EXIT[1], go: () => { actQueued = false; if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105) leavePlace(); } });
   if (SC === SC_CABIN && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 70)
@@ -6012,7 +6013,7 @@ function renderInterior(vw, vh) {
   const isHome = SC === SC_HOME;
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (1 + .4 * dkz);   // plan rapproché dans tous les lieux : la caméra suit Myah
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_DISP || SC === SC_MK1 || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * (SC === SC_MK1 ? .95 : .78)) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
   const camX = IN.lie ? (IN.lie.kob ? KOB_BED.cam[0] : 700) : IN.x, camYt = IN.lie ? (IN.lie.kob ? KOB_BED.cam[1] : 200) : IN.y - 90 * dkz;
