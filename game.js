@@ -3990,7 +3990,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   }
   if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 9, dot: true }); else if (pl) drawHalo({ x: pl.x, y: pl.y - 12, r: 9, dot: true }); else if (fr) drawHalo({ x: fr.x, y: fr.y - 6, r: 9, dot: true });
+    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 9, dot: true }); else if (pl) drawHalo({ x: pl.x, y: pl.y + 1, r: 13 }); else if (fr) drawHalo({ x: fr.x, y: fr.y + 1, r: 13 });   // petit halo au sol, comme sur l'île du Cygne
   }
   if (tool === 'fish') {
     if (kobFishNear() && !CARE) if (!kobAtPond()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 9, dot: true });
@@ -5892,6 +5892,7 @@ function updateInterior(dt) {
     else if (nearPaint()) askPaint(true);
     else if (nearHatch()) askHatch(true);
     else if (!kobHF() && nearDesk()) deskMenu();   // le poste de soin passe avant les habitants qui sont à côté
+    else if (tool === 'basket' && kobPlantNear() && kobGather()) { }   // panier en main : la cueillette passe avant les conversations
     else if (!kobHF() && kobScene() && kobTalk()) { }
     else if (kobGather()) { }
     else if (!kobHF() && vetAct()) { }
