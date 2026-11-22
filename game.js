@@ -8128,7 +8128,7 @@ function cookPour(S, p, fin) {   // on maintient pour verser la pâte, on relâc
   const end = () => { if (ended) return; ended = true; on = false; const sc = lv >= mx ? .25 : lv > gd[1] ? .6 : lv >= gd[0] ? 1 : Math.max(.1, lv / gd[0] * .75); if (lv >= mx) { fxAt(S, pf, 50, 70, { w: 26, ms: 1100 }); } fin(sc); };
   const dn = e => { e.preventDefault(); e.stopPropagation(); if (ended) return; audio(); on = true; try { hb.setPointerCapture(e.pointerId); } catch (x) {} };
   const up = () => { if (on && lv > .02) end(); on = false; };
-  hb.addEventListener('pointerdown', dn); hb.addEventListener('pointerup', up); hb.addEventListener('pointercancel', up);
+  hb.addEventListener('pointerdown', dn); hb.addEventListener('contextmenu', e => e.preventDefault()); hb.addEventListener('pointerup', up); hb.addEventListener('pointercancel', up);
   CK.kd = () => dn({ preventDefault() {}, stopPropagation() {}, pointerId: 0 }); CK.ku = up;
   const loop = t => { if (ended) return; if (!last) last = t; const dt = Math.min(.05, (t - last) / 1000); last = t; if (on) { lv += rate * dt; if (t - fT > 220) { fT = t; fxAt(S, pf, 50, 30, { w: 12, ms: 700 }); } show(); if (lv >= mx) return end(); } CK.raf = requestAnimationFrame(loop); };
   CK.raf = requestAnimationFrame(loop); show();
