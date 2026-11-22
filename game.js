@@ -2652,7 +2652,7 @@ function toggleFlight() {
 /* ================= mise à jour ================= */
 let lastT = performance.now();
 const cam = { x: 0, y: 0, z: 1 };
-function camZ(vw, vh) { return 2.1 * Math.max(1.35, Math.min(vh / 335, vw / 225), vw / 580, vw / W); }   // vue un peu plus rapprochée de Myah (+30 %)
+function camZ(vw, vh) { return 1.85 * Math.max(1.35, Math.min(vh / 335, vw / 225), vw / 580, vw / W); }   // vue un peu plus rapprochée de Myah (+30 %)
 let dpr = 1;
 
 
@@ -6019,7 +6019,7 @@ function renderInterior(vw, vh) {
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (1 + .4 * dkz);   // plan rapproché dans tous les lieux : la caméra suit Myah
   IN.fz = (IN.fz || 1) + ((SC === SC_KOBHAK && IN.wf ? .62 : 1) - (IN.fz || 1)) * Math.min(1, (IN.dtc || .016) * 1.6);
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 2.2 * IN.fz) : SC !== SC_KOBHAK && kobScene() ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) : SC !== SC_KOBHAK && kobScene() ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
      SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
@@ -6776,6 +6776,7 @@ function patSprite(spr, n) {   // sac : on garde les ombres du sac, on pose le m
   x.globalCompositeOperation = 'multiply'; x.fillStyle = patFill(x, n, Math.max(12, Math.round(spr.width * .3))); x.fillRect(0, 0, c.width, c.height);
   x.globalCompositeOperation = 'destination-in'; x.drawImage(spr, 0, 0); return c;
 }
+const GLD = {}; function glassDil(sh, m) { if (!m || !m.naturalWidth) return m; if (GLD[sh] && GLD[sh].src === m) return GLD[sh].c; const c = document.createElement('canvas'); c.width = m.naturalWidth; c.height = m.naturalHeight; const g = c.getContext('2d'); for (let dx = -6; dx <= 6; dx += 2) for (let dy = -6; dy <= 6; dy += 2) g.drawImage(m, dx, dy); GLD[sh] = { src: m, c }; return c; }   // masque des lunettes un peu élargi : toute la monture est prise
 function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa tenue : recolore chaque pièce (teinte du choix, ombres d'origine) puis pose les stickers
   const cols = MY[sheet].cols, sx = (i % cols) * 256, sy = Math.floor(i / cols) * 256, src = img['m_' + sheet], M = MK[sheet], c = out.getContext('2d');
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.clearRect(0, 0, 256, 256);
@@ -6785,11 +6786,11 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
   for (const [k, col] of [['ov', o.overall], ['sh', o.shirt], ['shoe', o.shoes], ['hair', o.hair], ['glass', o.glasses]]) {
     const stk = k === 'ov' && o.stickers.length && box && !BACKFRAME.test(name), pn = o.pat ? (k === 'ov' ? o.pat.overall : k === 'sh' ? o.pat.shirt : null) : null, hasPat = pn !== null && pn !== undefined && PATIMG.naturalWidth > 0;
     if (!col && !stk && !hasPat) continue;
-    const mk = M[k];
-    if (!mk || sy + 256 > mk.naturalHeight || sx + 256 > mk.naturalWidth) continue;   // masque trop court : sans ça la couleur remplissait tout le carré
+    const mk = k === 'glass' ? glassDil(sheet, M[k]) : M[k];
+    if (!mk || sy + 256 > (mk.naturalHeight || mk.height) || sx + 256 > (mk.naturalWidth || mk.width)) continue;   // masque trop court : sans ça la couleur remplissait tout le carré
     _fx.globalCompositeOperation = 'source-over'; _fx.globalAlpha = 1; _fx.clearRect(0, 0, 256, 256); _fx.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256);
-    _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256);
-    c.globalCompositeOperation = 'destination-out'; c.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256);
+    if (k !== 'glass') { _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
+    if (k !== 'glass') { c.globalCompositeOperation = 'destination-out'; c.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     if (hasPat) { _fx.globalCompositeOperation = 'saturation'; _fx.fillStyle = '#808080'; _fx.fillRect(0, 0, 256, 256); if (k === 'ov') { _fx.globalCompositeOperation = 'lighter'; _fx.fillStyle = 'rgb(66,66,66)'; _fx.fillRect(0, 0, 256, 256); }
       _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = patFill(_fx, pn, 30); _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     else if (col && k === 'sh') { _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 100) + '%,' + Math.round(Math.max(.5, col.l) * 100 + (col.l > .5 ? 0 : 6)) + '%)'; _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }   // t-shirt blanc : on multiplie (la teinte « color » ne marche pas sur du blanc)
@@ -6802,6 +6803,12 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
       _fx.globalAlpha = 1;
     }
     _fx.globalCompositeOperation = 'destination-in'; _fx.globalAlpha = 1; _fx.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256);   // la couleur ne dépasse jamais le dessin de Myah (plus de carré ni de tache sur les ailes)
+    if (k === 'glass') {   // lunettes : seule la monture (violette) prend la couleur ; verres, yeux et contour noir restent intacts
+      const T = _fx.getImageData(0, 0, 256, 256), S = c.getImageData(0, 0, 256, 256), t = T.data, o = S.data;
+      for (let i = 0; i < t.length; i += 4) { if (!t[i + 3]) continue; if ((i >> 2) >= 256 * 118) { t[i + 3] = 0; continue; } const r = o[i], g = o[i + 1], b = o[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0, L = (mx + mn) / 2;
+        const purple = b >= g - 12 && r > g + 14 && sat > .12 && L > 50 && L < 200; t[i + 3] = purple ? Math.round(t[i + 3] * Math.min(1, (b - g + 12) / 12)) : 0; }
+      _fx.putImageData(T, 0, 0);
+    }
     c.globalCompositeOperation = 'source-over'; c.drawImage(_ft, 0, 0);
   }
   if (o.neck) drawNeckOnFrame(c, sheet, name, box || (MBOX[sheet] && MBOX[sheet][MY[sheet].names.indexOf(name.replace(/^(f?)d[rl]/, '$1down'))]), o);
