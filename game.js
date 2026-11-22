@@ -1796,7 +1796,7 @@ const swanLake = () => (phase === 'returned' || level === 'balade') && !cine;
 let swanWait = null;   // Gaïkin attend Myah près d'un lieu (musée, phare…) : [x, y]
 const swanSpot = () => swanLake() ? (swanWait || SW_LAKE) : D.perch;
 const swanHaloNear = () => swanLake() && !handsFull() && perchVisible() && !perchAway() && player.state === 'free' && !dlg.open && !bedPickOpen() && !player.mount && dist(swanSpot()[0], swanSpot()[1], player.x, player.y) < 80;
-function perchAway() { return player.mount || leavers.some(l => l.t < 1.3 && l.fromPerch); }
+function perchAway() { return (player.mount && player.mount !== 'wings') || leavers.some(l => l.t < 1.3 && l.fromPerch); }
 
 const pondClose = () => { const cx = Math.floor(player.x / C), cy = Math.floor(player.y / C); for (let dy = -20; dy <= 20; dy++) for (let dx = -20; dx <= 20; dx++) { const x = cx + dx, y = cy + dy; if (x >= 0 && y >= 0 && x < GW && y < GH && POND[y * GW + x] && Math.hypot(dx, dy) * C <= 78) return true; } return false; };
 function waterNear() {
