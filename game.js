@@ -7038,10 +7038,15 @@ function swanTentFg(p) {   // l'étal sous la toile, sur la plage : Myah passe d
   if (!(p.x > 236 && p.x < 350 && p.y > 262 && p.y < 326)) return;
   const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
   const k = im.naturalWidth / W, P = [[243, 292], [284, 277], [290, 279], [340, 296], [342, 330], [352, 350], [340, 362], [245, 362], [238, 340]];
-  ctx.save(); ctx.beginPath(); P.forEach(([x, y], n) => n ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
-  ctx.drawImage(im, 230 * k, 270 * k, 130 * k, 95 * k, 230, 270, 130, 95);
-  const B = img[ds.B.n]; if (B && B !== im && ds.u > 0 && B.naturalWidth) { ctx.globalAlpha = ds.u; ctx.drawImage(B, 230 * k, 270 * k, 130 * k, 95 * k, 230, 270, 130, 95); }
-  ctx.restore();
+  const Wd = Math.round(130 * k), Hd = Math.round(95 * k), C = swanTentFg.c || (swanTentFg.c = {});
+  if (!C.m || C.k !== k) { const m = document.createElement('canvas'); m.width = Wd; m.height = Hd; const g = m.getContext('2d', { willReadFrequently: true }); g.drawImage(img.map || im, 230 * k, 270 * k, Wd, Hd, 0, 0, Wd, Hd); const d = g.getImageData(0, 0, Wd, Hd), D = d.data;
+    const inP = (x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    for (let y = 0; y < Hd; y++) for (let x = 0; x < Wd; x++) { const i = (y * Wd + x) * 4, r = D[i], gg = D[i + 1], b = D[i + 2], grass = gg > r + 4 && gg > b + 18, sand = r > 200 && gg > 170 && b < 150 && r - b > 60; D[i + 3] = inP(230 + x / k, 270 + y / k) && !grass && !sand ? 255 : 0; }
+    g.putImageData(d, 0, 0); C.m = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = Wd; C.t.height = Hd; }
+  const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, 230 * k, 270 * k, Wd, Hd, 0, 0, Wd, Hd);
+  const B = img[ds.B.n]; if (B && B !== im && ds.u > 0 && B.naturalWidth) { tg.globalCompositeOperation = 'source-over'; tg.globalAlpha = ds.u; tg.drawImage(B, 230 * k, 270 * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalAlpha = 1; }
+  tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.m, 0, 0); tg.globalCompositeOperation = 'source-over';
+  ctx.drawImage(C.t, 230, 270, Wd / k, Hd / k);   // seulement la toile, les poteaux et l'étal (pas l'herbe ni le sable autour)
 }
 function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
   if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
