@@ -3341,10 +3341,10 @@ const KOB_FL = [{ i: 'fl0', x: 518, y: 441 }, { i: 'fl5', x: 498, y: 462 }, { i:
 const KOB_BEDS = [   // jardinières de Tomba : on y récolte de quoi cuisiner chez Nuna
   { ck: 'bed0', k: 'patate', n: 'Patate douce violette', x: 620, y: 398 },
   { ck: 'bed1', k: 'citronnelle', n: 'Citronnelle', x: 692, y: 414 },
-  { ck: 'bed2', k: 'patate', n: 'Patate douce violette', x: 744, y: 390 },
+  { ck: 'bed2', k: 'arachide', n: 'Cacahuètes', x: 744, y: 390 },   // bac de cacahuètes (huile de cacahuète)
   { ck: 'bed3', k: 'citronnelle', n: 'Citronnelle', x: 676, y: 366 }];
 function kobFlPick(f, n) { const k = 'bq' + f.i.slice(2); kobD.fls = kobD.fls || {}; kobD.fls[k] = (kobD.fls[k] | 0) + 1; kobCut()['fl' + n] = Date.now(); save(); sfx.pick && sfx.pick(); say(bqName(k) + ' cueillie ! Tu en as ' + kobD.fls[k] + ' pour tes bouquets 💐', 3.4); }
-function kobBedPick(b) { inv[b.k] = (inv[b.k] || 0) + 1; kobCut()[b.ck] = Date.now(); save(); renderHud(); sfx.pick && sfx.pick(); say(b.n + ' récoltée ! Tu en as ' + inv[b.k] + '. Elle repoussera bientôt 🌱', 3.4); }
+function kobBedPick(b) { inv[b.k] = (inv[b.k] || 0) + 1; kobCut()[b.ck] = Date.now(); save(); renderHud(); sfx.pick && sfx.pick(); say(b.n + (b.k === 'arachide' ? ' récoltées' : ' récoltée') + ' ! Tu en as ' + inv[b.k] + '. Elle repoussera bientôt 🌱', 3.4); }
 const KOB_PLT = [
   { k: 'euca', n: 'Eucalyptus argenté', x: 693, y: 326, d: 'Ses feuilles argentées font du bien quand on tousse.' },
   { k: 'baies', n: 'Baies roses', x: 188, y: 346, d: 'Petites et sucrées, pleines de vitamines pour reprendre des forces.' },
