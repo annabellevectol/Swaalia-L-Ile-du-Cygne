@@ -3364,6 +3364,7 @@ function kobDrawPlants() {
   const near = kobPlantNear();
   KOB_FL.forEach((f, n) => { if (!kobGrown({ k: 'fl' + n })) return; const im = K4[f.i]; if (!im.complete || !im.naturalWidth) return; const h = (f.h || 20) * 1.1, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; kobOutl([0, 0, im.naturalWidth, im.naturalHeight], f.x - w / 2, f.y - h + 3, w, h, im); ctx.restore(); });   // fleurs sauvages, avec le même contour que les plantes
   if (0) KOB_BEDS.forEach(b => { const im = K4[(b.k === 'patate' ? 'pv' : 'cn') + (kobGrown({ k: b.ck }) ? '' : '_x')]; if (!im.complete || !im.naturalWidth) return; const h = kobGrown({ k: b.ck }) ? 24 : 12, w = h * im.naturalWidth / im.naturalHeight; ctx.save(); ctx.globalAlpha = KD_A; ctx.drawImage(im, b.x - w / 2, b.y - h + 3, w, h); ctx.restore(); });
+  if (tool !== 'net' && !(rucheNear() && !IN.hive)) { const fr = kobFruitNear(); if (near) drawHalo({ x: near.x, y: near.y + 1, r: 10 }); else if (fr) drawHalo({ x: fr.x, y: fr.y + 1, r: 10 }); }   // halo au sol, sous la plante
   KOB_PLT_ALL.forEach(p => {
     const done = !kobAvail(p), m = KOB_PM[p.k + (done ? '_x' : '')], h = (done ? 12 : 26) * (p.k === 'mousse' ? .8 : 1), w = h * m[2] / m[3];
     ctx.save(); ctx.globalAlpha = KD_A * (p.k === 'mousse' ? .85 : 1); if (!done) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, w * .36, 3.5, 0, 0, TAU); ctx.fill(); }
@@ -3990,7 +3991,7 @@ function kobHalos() {   // île Koala : le même petit halo que sur l'île du Cy
   }
   if (tool !== 'net') {
     const pl = kobPlantNear(), fr = kobFruitNear();
-    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 9, dot: true }); else if (pl) drawHalo({ x: pl.x, y: pl.y + 1, r: 10 }); else if (fr) drawHalo({ x: fr.x, y: fr.y + 1, r: 10 });   // petit halo au sol, comme sur l'île du Cygne
+    if (rucheNear() && !IN.hive) drawHalo({ x: LAD.x, y: LAD.y, r: 9, dot: true });    // plantes et fruits : leur petit halo au sol est dessiné SOUS la plante (voir le dessin des plantes)
   }
   if (tool === 'fish') {
     if (kobFishNear() && !CARE) if (!kobAtPond()) drawHalo({ x: FISH_SPOT[0], y: FISH_SPOT[1], r: 9, dot: true });
