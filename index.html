@@ -51,6 +51,8 @@
   .tool .lbl,.scopeTool .lbl{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;font-weight:700;background:rgba(122,75,36,.85);color:#fff;padding:1px 0}
   .tool.sel{transform:none;border-color:#4b2a7a;box-shadow:0 0 0 2px #4b2a7a,0 0 0 3px rgba(255,255,255,.6)}
   .tool.need{animation:pulse .6s infinite alternate}
+  #bFly.flyTool{display:none;position:relative;width:clamp(62px,9vw,88px);height:clamp(62px,9vw,88px);border-radius:18px;overflow:hidden;cursor:pointer;padding:0;background:#efe3ff;border-color:#6b2fc4}#bFly.flyTool.on{display:block}#bFly.flyTool img{position:absolute;left:50%;top:4%;height:72%;transform:translateX(-50%);pointer-events:none}#bFly.flyTool .lbl{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;font-weight:700;background:rgba(107,47,196,.85);color:#fff;padding:1px 0}
+  #tools > .off{opacity:.35;pointer-events:none}
   #tools.off{opacity:.35;pointer-events:none}
   @keyframes pulse{to{box-shadow:0 0 0 7px rgba(255,200,61,.9)}}
 
@@ -870,13 +872,14 @@
   <button class="tool panel" data-tool="basket"><span class="ico"></span><span class="lbl">Panier</span></button>
   <button class="tool panel" data-tool="net"><span class="ico"></span><span class="lbl">Filet</span></button>
   <button class="tool panel" data-tool="fish"><span class="ico"></span><span class="lbl">Canne</span></button>
+  <button id="bFly" class="panel flyTool" aria-label="Voler"><img src="assets/myah/fly/down0.png" alt=""><span class="lbl">Voler</span></button>
   <button id="scopeBtn" class="panel scopeTool" style="display:none" aria-label="Ouvrir la longue-vue"><img class="scopeIcon" src="assets/icons/longue-vue.png" alt=""><span class="lbl">Longue-vue</span></button>
 </div>
 
 <button id="kitB" class="panel" aria-label="Mallette"></button>
 <div id="btns">
   <button id="bSwan" class="rbtn swan panel">🦢<small>Cygne</small></button>
-  <button id="bFly" class="rbtn swan panel"><img src="assets/myah/fly/down0.png" alt="" style="height:62%;max-height:46px;display:block;margin:0 auto -2px;pointer-events:none"><small>Voler</small></button>
+  
   <button id="bJump" class="rbtn panel"><small id="bJumpL" style="font-size:12px;line-height:1.1;margin:0">Se poser<br>sur l'eau</small></button>
   <button id="bAct" class="rbtn big panel"><b class="actl">Action</b></button>
 </div>
@@ -1151,7 +1154,7 @@
 <script src="mymask.js?v=4"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=235"></script>
+<script src="game.js?v=236"></script>
 </body>
 </html>
 
