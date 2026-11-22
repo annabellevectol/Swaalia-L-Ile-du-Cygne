@@ -3153,7 +3153,7 @@ const SC_DISP = Object.assign({}, SC_BOAT, {   // le dispensaire de l'île Kobha
     [[1050, 682], [1088, 682], [1088, 708], [1050, 708]],  // le pied du grand pilier
     [[866, 598], [902, 598], [902, 618], [866, 618]],      // le pied du pilier du milieu
   ],
-  occ: [{ by: 640, poly: [[795, 380], [865, 380], [822.5, 657.5], [812.5, 657.5], [757.5, 632.5], [761, 620]] },   // l'échelle
+  occ: [{ by: 640, wood: 1, poly: [[795, 380], [865, 380], [822.5, 657.5], [812.5, 657.5], [757.5, 632.5], [761, 620]] },   // l'échelle (on voit Myah entre les barreaux)
     { by: 676, poly: [[477.5, 545], [500, 525], [517.5, 507.5], [530, 511], [662.5, 520], [665, 545], [660, 630], [642.5, 632.5], [630, 640], [550, 676], [535, 676], [495, 652.5], [482.5, 632.5], [480, 580]] },   // le plan de travail aux flacons
     { by: 716, poly: [[337.5, 630], [425, 615], [500, 640], [500, 700], [450, 720], [397.5, 700], [372.5, 692.5], [337.5, 675]] },   // les caisses de plantes
     { by: 615, poly: [[867.5, 427.5], [900, 432.5], [900, 615], [884, 615], [868.5, 607.5]] },   // le pilier du milieu
@@ -6219,7 +6219,16 @@ function renderInterior(vw, vh) {
   { const NL = (kobScene() ? kobList() : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
     const OC = SC.occ && SC.occ.length && SC.img.complete && SC.img.naturalWidth ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
-    const redraw = o => { o.done = true; const q = o.q; ctx.save(); ctx.beginPath(); q.poly.forEach((a, i) => i ? ctx.lineTo(a[0], a[1]) : ctx.moveTo(a[0], a[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); };   // quelqu'un passe derrière : on redessine le décor par-dessus
+    const woodC = q => {   // échelle : seulement le bois (montants + barreaux) repasse devant, on voit Myah dans les trous
+      if (q._c) return q._c; const xs = q.poly.map(a => a[0]), ys = q.poly.map(a => a[1]), x0 = Math.floor(Math.min(...xs)), y0 = Math.floor(Math.min(...ys)), w = Math.ceil(Math.max(...xs)) - x0, h = Math.ceil(Math.max(...ys)) - y0, k = SC.img.naturalWidth / SC.W;
+      const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(SC.img, x0 * k, y0 * k, w * k, h * k, 0, 0, w, h);
+      const d = g.getImageData(0, 0, w, h), D = d.data, wd = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) { const r = D[i * 4], gg = D[i * 4 + 1], b = D[i * 4 + 2]; wd[i] = r > gg * 1.25 && gg >= b && r > 70 ? 1 : 0; }
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x, r = D[i * 4], gg = D[i * 4 + 1], b = D[i * 4 + 2], L = r * .3 + gg * .59 + b * .11;
+        let keep = wd[i]; if (!keep && L < 90) for (let dy = -3; dy <= 3 && !keep; dy++) for (let dx = -3; dx <= 3; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < w && yy < h && wd[yy * w + xx]) { keep = 1; break; } }
+        D[i * 4 + 3] = keep ? 255 : 0; }
+      g.putImageData(d, 0, 0); q._c = { c, x0, y0 }; return q._c; };
+    const redraw = o => { o.done = true; const q = o.q; if (q.wood) { const W = woodC(q); ctx.save(); ctx.beginPath(); q.poly.forEach((a, i) => i ? ctx.lineTo(a[0], a[1]) : ctx.moveTo(a[0], a[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(W.c, W.x0, W.y0); ctx.restore(); return; } ctx.save(); ctx.beginPath(); q.poly.forEach((a, i) => i ? ctx.lineTo(a[0], a[1]) : ctx.moveTo(a[0], a[1])); ctx.closePath(); ctx.clip(); ctx.drawImage(SC.img, 0, 0); ctx.restore(); };   // quelqu'un passe derrière : on redessine le décor par-dessus
     seq.forEach(e => { OC.forEach(o => { if (o.done || e.x <= o.x0 || e.x >= o.x1) return; if (e.y < occBy(o.q, e.x)) o.behind = true; else if (o.behind) redraw(o); });   // celui qui est devant le meuble est dessiné APRÈS le meuble : il ne passe plus « à travers »
       e.d(); });
     OC.forEach(o => { if (o.behind && !o.done) redraw(o); }); }
