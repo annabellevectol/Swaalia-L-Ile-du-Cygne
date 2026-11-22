@@ -6851,7 +6851,7 @@ function bareWalk(d4, mv, run, lift, stair) {   // marche « mains vides » : le
   const N = WALK_N[dir] || 8;
   if (mv && dtw > 0 && dtw < .25) {
     // un cycle complet = 2 pas ≈ 38 px ; dedans, la pièce est agrandie d'un facteur IN_K
-    const CYC = { right: 26, left: 26, dr: 28, dl: 28, down: 22, up: 22 }[dir] || 26;   // longueur réelle d'un cycle = deux pas de l'écart des jambes : les pieds ne glissent plus
+    const CYC = { right: 30, left: 30, dr: 28, dl: 28, down: 22, up: 22 }[dir] || 26;   // longueur réelle d'un cycle = deux pas de l'écart des jambes : les pieds ne glissent plus
     const stride = CYC * (run ? 1.3 : 1) * (inn ? IN_K * .88 : 1) / N;
     let adv = d > 400 * dtw ? 0 : d / stride;
     adv = Math.max(adv, dtw * (run ? 4 : 3));   // jamais figée tant qu'elle marche
