@@ -1480,6 +1480,7 @@ press($('#setQuit'), () => { $('#settings').style.display = 'none'; openQuit(); 
 
 cv.addEventListener('pointerdown', e => { audio(); if (dlg.open) advanceDialog(); });
 // joystick tactile : fixe, en bas à gauche, transparent (mode mobile seulement)
+['selectstart', 'contextmenu', 'gesturestart'].forEach(ev => document.addEventListener(ev, e => { if (!(e.target && e.target.closest && e.target.closest('input,textarea'))) e.preventDefault(); }, { passive: false }));   // iPhone : pas de loupe, pas de sélection de texte, pas de menu « copier » en jeu
 const IS_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 const TUT_KEY = SAVE_KEY + '-tut'; let tutSeen = {}, tutAcc = {}; try { tutSeen = JSON.parse(localStorage.getItem(TUT_KEY) || '{}') || {}; } catch (e) {}
 const tutLast = {};
