@@ -7849,7 +7849,7 @@ const CK_EASY = { xmiel: [0], xhuile: [0, 1, 2, 3], gmangue: [0, 2, 4, 5, 6, 7, 
 const cookSteps = r => { const l = lvP(), k = Object.keys(RECIPES).find(i => RECIPES[i] === r); return l.easy && CK_EASY[k] ? CK_EASY[k].map(i => r.steps[i]) : r.steps; };
 const lvP = () => { const l = CKLV[(mini.cklv == null ? 0 : mini.cklv)]; return mini.ckdef ? Object.assign({}, l, { tm: Math.max(-4, l.tm - 5), sp: l.sp * 1.35, zw: l.zw * .8, spd: l.spd + .03, up: l.up * .9, fl: Math.max(0, l.fl - .15), defi: 1 }) : l; };   // défi : chrono plus court et jauges plus rapides
 const CK = { el: null, r: null, step: 0, scores: [], raf: 0 };
-const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' || f === 'peel_s' || f === 'mx_press' ? '?v=5' : '');
+const CK_IMG = f => 'assets/cook/' + f + '.jpg' + (f === 'add_s' || f === 'crab_s' || f === 'peel_s' || f === 'mx_press' ? '?v=6' : '');
 /* ----- plats : qualité (étoiles) + demandes secondaires des habitants ----- */
 const DISHES = ['gmangue', 'gbanane'];
 const DNAME = { gmangue: 'du Maïmaïa', gbanane: 'du Maïbuï', tipaiki: 'du Tipa Iki', soupe: 'de l\'Uja-Jiji', gmiel: 'du Gâteau doré au miel', barra: 'du Barra-Grill', papi: 'de la Papillote des récifs' };
@@ -7947,7 +7947,7 @@ const RECIPES = {
       ['Fais griller sur les braises', '', 'oven', { strip: 'pp_grill', n: 6, ar: '390/290', t: 9, fx: ['steam'] }],
       ['Ouvre la papillote', '', 'reveal', { strip: 'pp_open', n: 2, ar: '390/290', t: 10, fx: 'peel' }]] },
   xmiel: { kob: 'miel', name: 'Miel', emoji: '🍯', need: {}, ok: 'd_miel', ko: 'd_miel',
-    steps: [['Presse le rayon : le miel coule !', '', 'reveal', { strip: 'mx_press', n: 3, ar: '458/420', t: 12, fx: 'peel' }]] },
+    steps: [['Écrase le rayon, puis filtre : la cire reste dans la passoire', '', 'reveal', { strip: 'mx_press', n: 3, ar: '458/420', t: 12, fx: 'peel' }]] },
   xcire: { kob: 'cire', name: 'Cire d\'abeille', emoji: '🕯️', need: {}, ok: 'd_cire', ko: 'd_cire',
     steps: [['Fais fondre la cire doucement', '', 'oven', { strip: 'mx_melt', n: 6, ar: '400/380', t: 8, fx: ['steam'] }],
       ['Verse la cire dans le moule', '', 'reveal', { strip: 'mx_mold', n: 3, ar: '520/420', t: 10, fx: 'peel' }]] },
