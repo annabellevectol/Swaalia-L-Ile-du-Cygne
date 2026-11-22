@@ -6985,8 +6985,8 @@ function marker(x, y, sym, col) {
   ctx.fillStyle = col; ctx.strokeStyle = '#7a4b24'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(x, y, 8, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.fillStyle = sym === '✔' ? '#fff' : '#5a3a14'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(sym, x, y + .5);
 }
-const RIDE_IMG = new Image(); RIDE_IMG.src = 'assets/myah/swanride.png';
-const RIDE = {"fd": [0, 0, 329, 195], "fu": [333, 0, 389, 194], "fs": [726, 0, 257, 202], "wd": [987, 0, 179, 183], "wr": [1170, 0, 212, 187], "wl": [1386, 0, 210, 191]}, RIDE_S = .27;   // planche « Myah sur Gaïkin » (fd/fu/fs : en vol, de face/de dos/de côté ; wd/wr/wl : sur l'eau)
+const RIDE_IMG = new Image(); RIDE_IMG.src = 'assets/myah/swanride.png?v=2';
+const RIDE = {"fd": [0, 0, 394, 243], "fu": [398, 0, 332, 242], "fs": [734, 0, 299, 252], "wd": [1037, 0, 202, 228], "wr": [1243, 0, 317, 233], "wl": [1564, 0, 324, 238]}, RIDE_S = .27 / 1.25;   // planche « Myah sur Gaïkin » (fd/fu/fs : en vol, de face/de dos/de côté ; wd/wr/wl : sur l'eau)
 function drawRide(x, y, mode, alt) {
   if (!RIDE_IMG.complete || !RIDE_IMG.naturalWidth) return false;
   const d4 = player.dir4, fc = player.face; let k, flip = false;
