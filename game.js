@@ -1860,6 +1860,7 @@ function doAction() {
   if (player.state === 'fishing') { fishPress(); return; }
   if (player.mount) { if (player.mount === 'wings') say('Touche « Voler » pour te poser 🪽', 2.4); else summon(); return; }   // sur Gaïkin : Action = descendre (plus de bouton Cygne)
   if (player.state !== 'free') return;
+  if (IN.on && SC === SC_KOBHAK && tool === 'fish' && kobFishAct()) return;   // canne en main sur l'île du Koala
   if (postAct() || tamaAct()) return;
 
   if (storyOn() && qState.toto === 'done' && !handsFull() && boatTapNear()) { askBoatChoice(); return; }
@@ -3711,7 +3712,7 @@ function kobDefiTalk(n) {   // renvoie { lines, after } ou null
 }
 function kobFruitNear() { if (SC !== SC_KOBHAK || !kobD.acc.fruit) return null; return KFRU.find(f => !kobD.fr[f.k] && dist(IN.x, IN.y, f.x, f.y) < 36); }
 const POND_SPOT = [1112, 318], kobAtPond = () => dist(IN.x, IN.y, POND_SPOT[0], POND_SPOT[1]) < 36;   // on pêche aussi à la mare aux nénuphars
-const kobFishNear = () => SC === SC_KOBHAK && (kobQ >= 5 || level === 'balade') && (dist(IN.x, IN.y, FISH_SPOT[0], FISH_SPOT[1]) < 40 || kobAtPond());
+const kobFishNear = () => SC === SC_KOBHAK && IN.floor === 0 && (dist(IN.x, IN.y, FISH_SPOT[0], FISH_SPOT[1]) < 40 || kobAtPond() || (tool === 'fish' && kobBeachFish.some(f => f.state !== 'gone' && dist(IN.x, IN.y, f.x, f.y) < 130)));   // comme sur l'île du Cygne : canne en main, on pêche au bord de l'eau dès qu'un poisson nage près
 function kobFruitAct() { const f = kobFruitNear(); if (!f) return false; if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour cueillir les fruits ! 🧺', 3.2); return true; } kobD.fr[f.k] = true; sfx.pick(); player.dir4 = 'down'; say('Tu as trouvé une ' + f.n + ' ! (' + nFruit() + '/3)' + (nFruit() >= 3 ? ' Va voir Koki à la boutique !' : ''), 4); save(); return true; }
 function kobFishAct() {
   if (player.state === 'fishing') { fishPress(); return true; }
@@ -4099,7 +4100,8 @@ function drawKobFishingLine() {
 }
 function kobFishing() {
   if (player.state === 'fishing' || !kobFishNear()) return;
-  const fish = kobBeachFish.filter(f => !!f.pond === kobAtPond()).reduce((best, f) => !best || dist(IN.x, IN.y, f.x, f.y) < dist(IN.x, IN.y, best.x, best.y) ? f : best, null);
+  const fish = kobBeachFish.filter(f => f.state !== 'gone').reduce((best, f) => !best || dist(IN.x, IN.y, f.x, f.y) < dist(IN.x, IN.y, best.x, best.y) ? f : best, null);
+  if (!fish) { say('Pas de poisson par ici… approche-toi de l\'eau 🐟', 3); return; }
   const dx = fish.x - IN.x, dy = fish.y - IN.y, d = Math.hypot(dx, dy) || 1;
   player.dir4 = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
   player.face = dx >= 0 ? 1 : -1;
@@ -5906,6 +5908,7 @@ function updateInterior(dt) {
     else if (nearPaint()) askPaint(true);
     else if (nearHatch()) askHatch(true);
     else if (!kobHF() && nearDesk()) deskMenu();   // le poste de soin passe avant les habitants qui sont à côté
+    else if ((tool === 'fish' || player.state === 'fishing') && kobFishAct()) { }   // canne en main : on pêche d'abord
     else if (tool === 'basket' && kobPlantNear() && kobGather()) { }
     else if (kobShellNear() && kobShellPick()) { }   // panier en main : la cueillette passe avant les conversations
     else if (!kobHF() && kobScene() && kobTalk()) { }
