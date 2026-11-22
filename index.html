@@ -161,7 +161,7 @@
   #veil.on{opacity:1}
   #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .5s ease;z-index:60}
   #fade.on{opacity:1}
-  #bSwan{display:none !important}body.inside #tools,body.inside #bJump,body.inside #hint{display:none !important}body.inside #bFly:not(.kob){display:none !important}
+  #bSwan{display:none !important}body.mounted:not(.inside):not(.wings) #bSwan{display:grid !important}body.inside #tools,body.inside #bJump,body.inside #hint{display:none !important}body.inside #bFly:not(.kob){display:none !important}
   body.inside.kobo #tools{display:flex !important;left:calc(50% + 46px)}
   body.inside.kobo #kitB{left:calc(50% - 150px)}
   #tipsB{position:fixed;right:max(10px,env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 136px);width:42px;height:42px;font-size:20px;display:grid;place-items:center;cursor:pointer;padding:0}
@@ -878,7 +878,7 @@
 
 <button id="kitB" class="panel" aria-label="Mallette"></button>
 <div id="btns">
-  <button id="bSwan" class="rbtn swan panel">🦢<small>Cygne</small></button>
+  <button id="bSwan" class="rbtn swan panel">🦢<small>Descendre</small></button>
   
   <button id="bJump" class="rbtn panel"><small id="bJumpL" style="font-size:12px;line-height:1.1;margin:0">Se poser<br>sur l'eau</small></button>
   <button id="bAct" class="rbtn big panel"><b class="actl">Action</b></button>
@@ -1154,7 +1154,7 @@
 <script src="mymask.js?v=4"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=237"></script>
+<script src="game.js?v=238"></script>
 </body>
 </html>
 
