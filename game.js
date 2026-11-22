@@ -2582,7 +2582,7 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
 /* Voler avec les ailes offertes par Gaïkin (après la fin de l'histoire, ou dès le début en Balade) */
 const wingsOk = () => endingSeen || phase === 'returned' || level === 'balade';   // les ailes de Gaïkin : après son retour, ou en Balade
 const FLYC = Object.assign(new Image(), { src: 'assets/myah/fly/cloud.png' }), FLYI = {}, FLYM = {};
-['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => { const im = Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '.png' }); FLYM[im.src] = { ov: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_ov.png?v=2' }), shoe: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_shoe.png?v=2' }) }; return im; }); });
+['down', 'up', 'side', 'take'].forEach(k => { FLYI[k] = [0, 1, 2, 3].map(i => { const im = Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '.png' }); FLYM[im.src] = { ov: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_ov.png?v=2' }), shoe: Object.assign(new Image(), { src: 'assets/myah/fly2/' + k + i + '_shoe.png?v=3' }) }; return im; }); });
 const _flyT = {};
 function flyTint(im) {   // Myah en vol avec la tenue du vestiaire : la salopette et les chaussures (dessinées en blanc) prennent la couleur et le motif choisis
   const M = FLYM[im.src]; if (!M || !M.ov.naturalWidth || !M.shoe.naturalWidth) return im;
