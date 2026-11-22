@@ -1856,7 +1856,7 @@ function doAction() {
   if (cine) return;
   if (player.state === 'talk') return;
   if (player.state === 'fishing') { fishPress(); return; }
-  if (player.mount) { say(player.mount === 'wings' ? 'Touche « Voler » pour te poser 🪽' : 'Appuie sur le bouton Cygne pour descendre du cygne', 2.4); return; }
+  if (player.mount) { if (player.mount === 'wings') say('Touche « Voler » pour te poser 🪽', 2.4); else summon(); return; }   // sur Gaïkin : Action = descendre (plus de bouton Cygne)
   if (player.state !== 'free') return;
   if (postAct() || tamaAct()) return;
 
@@ -1876,6 +1876,7 @@ function doAction() {
   if (perchVisible() && !perchAway() && !handsFull()) { const sp = swanSpot(), ds = dist(sp[0], sp[1], player.x, player.y); if (ds < R_SWAN && ds < bd) { bd = ds; target = { kind: 'swan' }; } }
   { const dA = !handsFull() && doorAt(); if (dA && target && target.kind !== 'chest' && dist(dA.door[0], dA.door[1], player.x, player.y) < bd) target = null; }   // sur le halo d'une porte : on entre, même si un habitant est juste à côté
   if (target && (target.kind === 'npc' || target.kind === 'extra') && postTalk(target.q || target.e)) return;
+  if (target && target.kind === 'swan' && gardenNear() && dist(GX, GY + 14, player.x, player.y) < bd) target = null;   // Gaïkin qui attend près du potager ne bloque plus le potager
   if (target && target.kind === 'extra' && target.e.key === 'kykah') return kykahTalk(target.e);
   if (target && target.kind === 'extra' && (target.e.kid || target.e.chal)) return kidTalk(target.e);
   if (target && (target.kind === 'npc' || target.kind === 'extra') && miniDeliver(target)) return;
@@ -2337,7 +2338,7 @@ function postTalk(o) {   // retourne true si une mission prend la discussion
       openDialog(who, ['Merci, Myah ! Tu es la meilleure ! 💛'], () => { free(); if (post.nd % 2 === 0) postReward(who); else say('Mission du jour réussie ! Encore une, et tu gagnes un cadeau. ⭐', 4); if (post.nd >= 3 && !post.egg) setTimeout(() => say('Gaïkin a l\'air de vouloir te dire quelque chose… Va le voir au lac ! 🦢', 6), 3500); }, por); }), free);
     return true;
   }
-  if (k === 'gardien' && !post.ring) { openDialog(who, ['Myah ! Depuis l\'observatoire, j\'ai vu des anneaux de nuages dorés au-dessus de l\'île. ☁️', 'Ce sont les chemins du vent des grands cygnes. Monte sur le dos de Gaïkin et vole à travers les 5 anneaux !'], () => { post.ring = { got: [] }; save(); free(); say('Appelle Gaïkin (bouton Cygne) et traverse les 5 anneaux dorés en vol !', 6); }, por); return true; }
+  if (k === 'gardien' && !post.ring) { openDialog(who, ['Myah ! Depuis l\'observatoire, j\'ai vu des anneaux de nuages dorés au-dessus de l\'île. ☁️', 'Ce sont les chemins du vent des grands cygnes. Monte sur le dos de Gaïkin et vole à travers les 5 anneaux !'], () => { post.ring = { got: [] }; save(); free(); say('Va voir Gaïkin, monte sur son dos et traverse les 5 anneaux dorés en vol !', 6); }, por); return true; }
   if (k === 'gardien' && post.ring && !post.ring.done) { openDialog(who, ['Encore ' + (RINGS.length - post.ring.got.length) + ' anneau(x) de nuages à traverser, à dos de Gaïkin ! ☁️'], free, por); return true; }
   if (k === 'juliana') { const c = MUS_CAT.find(([c]) => musFull(c) && !post.mus[c]);
     if (c) { post.mus[c[0]] = true; save(); openDialog(who, ['Oh ! Tu as trouvé toutes les ' + c[1] + ' de l\'île ! 📖', 'J\'en fais une vitrine au musée, avec ton nom dessus. Merci, Myah !'], () => { free(); postReward(who); }, por); return true; }
@@ -2516,7 +2517,7 @@ function updateCine(dt) {
     swanSparkle = 1;
     if (c.t >= 4.2) {
       cine = null; phase = 'returned'; mountUnlocked = true; swanFeathers = 0; $('#veil').classList.remove('on'); save(); renderHud(); sfx.star(); confetti();
-      openDialog('Gaïkin, le grand Cygne', ['Mes plumes brillent de nouveau ! Merci, Myah ! ✨', 'Regarde : l\'eau du lac redevient claire ! Tu as sauvé l\'île, et je ne partirai plus.', 'Pour te remercier, voici ma surprise : sur mon dos, tu pourras voler au-dessus de l\'île, ou flotter sur le lac et sur l\'océan.', 'Et ce n\'est pas tout… voici de nouvelles ailes pour toi, des ailes de rêve pleines d\'étoiles ! ✨', 'Appuie sur le bouton Cygne (ou la touche C) pour m\'appeler. Saute (⤴ ou X) pour voler ou te poser sur l\'eau !'], () => { swanSparkle = .3; if (storyOn() && !endingSeen) return startParty(); player.state = 'free'; if (storyOn()) say('Appelle Gaïkin avec le bouton Cygne : monte sur son dos et envole-toi !', 6); }, LP());
+      openDialog('Gaïkin, le grand Cygne', ['Mes plumes brillent de nouveau ! Merci, Myah ! ✨', 'Regarde : l\'eau du lac redevient claire ! Tu as sauvé l\'île, et je ne partirai plus.', 'Pour te remercier, voici ma surprise : sur mon dos, tu pourras voler au-dessus de l\'île, ou flotter sur le lac et sur l\'océan.', 'Et ce n\'est pas tout… voici de nouvelles ailes pour toi, des ailes de rêve pleines d\'étoiles ! ✨', 'Viens me voir et appuie sur Action pour monter sur mon dos. Saute (⤴ ou X) pour voler ou te poser sur l\'eau !'], () => { swanSparkle = .3; if (storyOn() && !endingSeen) return startParty(); player.state = 'free'; if (storyOn()) say('Va voir Gaïkin au lac : monte sur son dos et envole-toi !', 6); }, LP());
     }
   }
 }
@@ -2527,7 +2528,7 @@ function talkSwan() {
   player.state = 'talk'; setAnim('idle');
   const free = () => { player.state = 'free'; };
   if (phase === 'appeared') return openDialog('Gaïkin, le grand Cygne', ['Tu as mes quatre plumes… Rends-les-moi, Myah !'], () => { startReturn(); }, LP());
-  openDialog('Gaïkin, le grand Cygne', ['Appelle-moi quand tu veux, Myah : bouton Cygne ou touche C !'], free, LP());
+  openDialog('Gaïkin, le grand Cygne', ['Viens me voir quand tu veux, Myah : je t\'emmène voler !'], free, LP());
 }
 
 /* ----- monture ----- */
@@ -2540,7 +2541,7 @@ function summon() {
   player.mount = isWater(player.x, player.y) && !walkable(player.x, player.y) ? 'float' : 'fly';
   player.alt = player.mount === 'fly' ? 170 : 90; player.altT = player.mount === 'fly' ? 52 : 0;
   sfx.mount(); burst(player.x, player.y - 40, 24, ['#fff', '#d9c2ff', '#fff3b0'], true); setAnim('idle');
-  say('Cygne : ⤴ / X pour voler ou flotter, bouton Cygne / C pour descendre', 4);
+  say('Cygne : ⤴ / X pour voler ou flotter, bouton Action pour descendre', 4);
 }
 function dismount() {
   const p = player;
@@ -6557,7 +6558,7 @@ function updateHint() {
   if (cine || dlg.open || p.state === 'talk') t = '';
   else if (p.mount && swanLake()) t = '';   // en vol : message seulement au-dessus de la zone d'atterrissage (voir plus bas)
   else if (p.mount === 'wings') t = '🪽 En vol ! Va où tu veux, puis touche « Voler » pour te poser';
-  else if (p.mount) t = p.mount === 'fly' ? '🦢 En vol ! ⤴ pour te poser sur l\'eau · bouton Cygne pour descendre' : '🦢 Sur l\'eau ! ⤴ pour reprendre l\'envol · bouton Cygne pour descendre';
+  else if (p.mount) t = p.mount === 'fly' ? '🦢 En vol ! ⤴ pour te poser sur l\'eau · bouton Action pour descendre' : '🦢 Sur l\'eau ! ⤴ pour reprendre l\'envol · bouton Action pour descendre';
   else if (p.state === 'fishing') t = fs.phase === 'fight' ? '' : fs.phase === 'bite' ? (IS_TOUCH ? '🐟 Ça mord ! Appuie sur le bouton de pêche !' : '🐟 Ça mord ! Appuie sur Action / Espace !') : (fs.phase === 'wait' ? tutHint('fwait', 'Attends que le poisson morde… [canne]') : '');
   else if (p.state === 'free') {
     tapT = null; let near = null, bd = 1e9, nearQ = null, nearN = '', nearP = null; const nm = w => String(w || '').split(',')[0].trim();
@@ -6582,7 +6583,7 @@ function updateHint() {
   }
   if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !handsFull() && boatTapNear()) hz = { x: BOAT_HALO[0], y: BOAT_HALO[1], r: 24, boat: 1 };
   else if (!hz && p.state === 'free' && !cine && !dlg.open && !bedPickOpen() && !p.mount && !handsFull() && doorNear()) { const h = doorNear(); tapT = { x: h.door[0], y: h.door[1] }; }
-  if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Cygne pour descendre' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
+  if (swanLake() && player.mount && dist(player.x, player.y, SW_LAKE[0], SW_LAKE[1]) < 16 && !(bubble.t > 0)) { t = IS_TOUCH ? 'Touche le bouton Action pour descendre' : 'Appuie sur C pour descendre'; hintAt = [SW_LAKE[0], SW_LAKE[1] - 24]; }
   if (!hz && swanHaloNear()) hz = { x: swanSpot()[0], y: swanSpot()[1] - 2, r: 24, boat: 1, swan: 1 };
   if (hz && !tapT && p.state === 'free') tapT = { x: hz.x, y: hz.y };
   if (bubble.t > 0 && p.state !== 'fishing') t = bubble.txt;
