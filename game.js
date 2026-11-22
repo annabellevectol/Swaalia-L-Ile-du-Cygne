@@ -6491,6 +6491,7 @@ function update(dt) {
   cam.y = (H - vh / z) < 0 ? (H - vh / z) / 2 : clamp(cam.y, 0, H - vh / z);
   { const ko = !!(IN.on && SC === SC_KOBHAK); if (ko !== document.body.classList.contains('kobo')) document.body.classList.toggle('kobo', ko); }
   if (lastToolsOff !== !!p.mount) { lastToolsOff = !!p.mount; document.body.classList.toggle('mounted', !!p.mount); document.body.classList.toggle('wings', p.mount === 'wings'); document.querySelectorAll('#tools > :not(#bFly)').forEach(b => b.classList.toggle('off', lastToolsOff)); }
+  { const bf = $('#bFly'), on = IN.on ? (SC === SC_KOBHAK && IN.floor === 0 && wingsOk()) : wingsOk(); if (bf.classList.contains('on') !== on) bf.classList.toggle('on', on); }   // le bouton Voler revient toujours quand on est dehors
   { flyT = p.mount ? flyT + dt : 0; const op = flyT > 4 ? '0' : ''; document.querySelectorAll('#tools > :not(#bFly)').forEach(b => { b.style.transition = 'opacity .8s'; b.style.opacity = op; }); }
   { const bj = $('#bJump'), sh = p.mount === 'fly' ? isWater(p.x, p.y) : p.mount === 'float'; bj.classList.toggle('show', !!sh); if (sh) { const t2 = p.mount === 'fly' ? 'Se poser<br>sur l\'eau' : 'S\'envoler'; if (bj._t !== t2) { bj._t = t2; $('#bJumpL').innerHTML = t2; } } }   // plus de bouton Saut : seulement « Se poser sur l'eau » quand on est au-dessus de l'eau   // en vol : la barre d'outils s'efface après quelques secondes
 }
