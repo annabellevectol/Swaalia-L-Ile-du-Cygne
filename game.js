@@ -2571,11 +2571,13 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
   const w = p.mount === 'fly' ? (walkable(p.x, p.y) ? [p.x, p.y] : nearestWalk(p.x, p.y, 40)) : nearestWalk(p.x, p.y, 70);
   if (!w) { sfx.no(); return say('Pose-toi sur la terre ferme pour que Gaïkin t\'attende', 3); }
   const doors = HOUSES.map(h => h.door).filter(Boolean); let best = null, bs = -1e9;
-  for (let a = 0; a < 16; a++) for (const r of [34, 46]) {
-    const x = w[0] + Math.cos(a * .3927) * r, y = w[1] + Math.sin(a * .3927) * r * .6; if (!walkable(x, y)) continue;
+  const solid = (x, y) => [[0, 0], [-14, 0], [14, 0], [-8, -5], [8, -5], [-8, 4], [8, 4], [0, -8]].every(([dx, dy]) => walkable(x + dx, y + dy));   // Gaïkin se pose sur un sol bien large, jamais au bord du vide
+  for (let a = 0; a < 16; a++) for (const r of [30, 40, 52, 66, 82]) {
+    const x = w[0] + Math.cos(a * .3927) * r, y = w[1] + Math.sin(a * .3927) * r * .6; if (!solid(x, y)) continue;
     const dd = doors.reduce((m, d) => Math.min(m, dist(x, y, d[0], d[1])), 999), s = Math.min(dd, 70) - r * .3; if (s > bs) { bs = s; best = [x, y]; }
   }
-  swanWait = best || [w[0] + 34, w[1]];
+  if (!best) for (let r = 30; r < 220 && !best; r += 12) for (let a = 0; a < 24 && !best; a++) { const x = w[0] + Math.cos(a * .2618) * r, y = w[1] + Math.sin(a * .2618) * r * .6; if (solid(x, y)) best = [x, y]; }
+  swanWait = best || w.slice();
   leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true });
   p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; p.dismounting = false; sfx.hop(); setAnim('idle');
 }
