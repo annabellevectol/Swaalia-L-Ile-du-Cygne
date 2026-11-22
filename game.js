@@ -7908,7 +7908,7 @@ const RECIPES = {
   soupe: { name: 'Uja-Jiji', sub: 'soupe de crabe, patate douce et igname', emoji: '🦀', need: { crab: 2, patate: 1, taro: 1 }, ok: 'd_soupe', ko: 'd_soupe_ko',
     steps: [['Épluche et coupe la patate douce et l\'igname', '', 'reveal', { strip: 'peel_s', n: 5, ar: '341/574', t: 18, fx: 'peel', tool: 'hand_knife', tw: 24, tr: 'translate(-92%,-6%)' }],
       ['Tape pour détacher les pinces et décortiquer les crabes', '', 'tap', { strip: 'crab_s', frames: 6, n: 12, ar: '520/330', t: 10, fx: 'peel' }],
-      ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 6, ar: '520/330', t: 14, fx: 'cubes2' }],
+      ['Ajoute les ingrédients dans la marmite', '', 'reveal', { strip: 'add_s', n: 5, k: 6, from: 1, ar: '520/330', t: 14, fx: 'cubes2' }],
       ['Fais mijoter la soupe', '', 'oven', { strip: 'pot_s', n: 6, ar: '400/380', t: 10, fx: ['steam'] }]] },
   gmiel: { nuna: 1, name: 'Gâteau doré au miel', sub: 'gâteau de maïs nappé de miel', emoji: '🍯', dessert: 1, need: { farine: 1, oeuf: 3, epices: 1 }, kneed: { miel: 1 }, ok: 'd_gmiel', ko: 'd_gmiel_ko',
     steps: [['Verse le miel sur la farine', '', 'reveal', { strip: 'gm_honey', n: 2, ar: '390/290', t: 10, fx: 'milk' }],
