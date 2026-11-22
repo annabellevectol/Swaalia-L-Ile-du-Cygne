@@ -3176,6 +3176,7 @@ const SC_MK1 = Object.assign({}, SC_DISP, {   // la maison de pierre sur la fala
     [[180, 740], [236, 740], [236, 822], [182, 822]],      // le tabouret et sa lampe
     [[420, 800], [560, 775], [615, 830], [600, 930], [540, 945], [440, 880]],   // la table ronde et ses chaises
     [[655, 748], [830, 790], [842, 872], [690, 872]],      // le plan de travail et l'évier
+    [[434, 1004], [486, 1004], [486, 1028], [434, 1028]],  // le coffre (on en fait le tour)
   ],
   exit: [610, 760], ladder: [[335, 855], [318, 548]],
   win: { polys: [[[243, 382], [245, 330], [262, 304], [282, 298], [292, 330], [287, 374]], [[432, 272], [454, 266], [454, 342], [432, 348]], [[220, 612], [268, 598], [292, 608], [292, 690], [224, 708]], [[563, 563], [627, 576], [627, 737], [566, 717]], [[630, 578], [692, 598], [692, 742], [634, 747]]], circ: [] },
@@ -3937,7 +3938,7 @@ function mgDraw(top) {
   if (!KANI.complete || !KANI.naturalWidth) return;
   if (!top && SC !== mgLastSc) { mgLastSc = SC; const q = MGP.find(p => p.sc === SC && (mgOpen() || p.k === 'memory') && !kobD.done['mg_' + p.k] && (!p.eve || isEve())); if (q && q.hint && IN.on) say(q.hint, 5); }
   MGP.forEach(p => {
-    if (!mgOn(p) || ((p.kind !== 'chest') || !!p.top) !== !!top) return; const done = !!kobD.done['mg_' + p.k], live = !p.eve || isEve(), draw = (key, h) => { const m = MGA[key], w = h * m[2] / m[3]; ctx.save(); ctx.translate(p.x, p.y); if (p.flip) ctx.scale(-1, 1); if (p.rot) ctx.rotate(p.rot); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); return [w, h]; };
+    if (!mgOn(p) || ((p.kind !== 'chest') || !!p.top || (IN.on && IN.floor === (p.fl || 0) && IN.y < p.y - 2)) !== !!top) return;   // coffre : Myah derrière → il passe devant elle const done = !!kobD.done['mg_' + p.k], live = !p.eve || isEve(), draw = (key, h) => { const m = MGA[key], w = h * m[2] / m[3]; ctx.save(); ctx.translate(p.x, p.y); if (p.flip) ctx.scale(-1, 1); if (p.rot) ctx.rotate(p.rot); ctx.drawImage(KANI, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); return [w, h]; };
     let wh;
     if (p.kind === 'chest') { ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 2, p.h * .5, p.h * .12, 0, 0, TAU); ctx.fill(); ctx.restore(); wh = draw(done ? p.open : (p.glow && live ? 'ch_glow' : p.img), p.h); }
     else if (p.kind === 'vase') wh = draw('vase', 58);
