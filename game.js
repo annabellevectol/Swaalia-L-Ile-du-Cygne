@@ -6945,9 +6945,9 @@ function myahPose0() {
 /* le petit pont en arc du lac : sa rambarde de devant passe devant Myah, on la voit entre les barreaux */
 function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah (son toit et ses tonneaux repassent devant lui)
   const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
-  const k = im.naturalWidth / W, P = [[497, 261], [526, 237], [612, 230], [612, 338], [486, 338], [486, 281], [500, 279], [500, 265]];
+  const k = im.naturalWidth / W, P = [[489, 265], [521, 233], [528, 230], [612, 222], [612, 338], [486, 338], [486, 281], [495, 279], [495, 267]];
   ctx.save(); ctx.beginPath(); P.forEach(([x, y], n) => n ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
-  ctx.drawImage(im, 480 * k, 225 * k, 140 * k, 120 * k, 480, 225, 140, 120); ctx.restore();
+  ctx.drawImage(im, 480 * k, 218 * k, 140 * k, 127 * k, 480, 218, 140, 127); ctx.restore();
 }
 function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
   if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
