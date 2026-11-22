@@ -3129,7 +3129,10 @@ const SC_KOBHAK = Object.assign({}, SC_BOAT, {
   blocks: [
     [[288, 492], [438, 488], [440, 500], [425, 552], [300, 552]],      // la boutique souvenir (seulement le bas : on passe derrière, sous l'auvent)
     [[425, 300], [565, 280], [568, 365], [430, 382]],                    // le dispensaire
-    [[660, 345], [775, 340], [770, 430], [615, 442], [600, 425], [640, 380]],   // le jardin de plantes (le coin gauche reste libre : on coupe en diagonale par le chemin)
+    [[643, 366], [677, 353], [720, 368], [690, 386]],   // potager : bac du fond
+    [[592, 396], [630, 379], [672, 394], [633, 416]],   // potager : bac de gauche
+    [[708, 389], [747, 373], [785, 384], [752, 411]],   // potager : bac de droite
+    [[655, 421], [693, 404], [738, 414], [700, 446]],   // potager : bac de devant (on circule dans les allées entre les bacs)
     [[905, 385], [950, 385], [952, 440], [908, 440]],                    // le tronc du grand eucalyptus (juste le pied : on passe à droite pour aller à l'escalier)
     [[1020, 512], [1150, 505], [1150, 570], [1022, 570]],                // la maison en bas à droite (seulement les murs : on passe derrière, sous le toit)
     [[190, 272], [315, 272], [315, 300], [190, 300]],                    // la maison de la falaise
