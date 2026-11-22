@@ -6943,6 +6943,12 @@ function myahPose0() {
   return { sheet: t, name: t === 'fish' ? 'f' + (p.dir4 || 'down') + '1' : 'idle', flip: f, lift: 0 };
 }
 /* le petit pont en arc du lac : sa rambarde de devant passe devant Myah, on la voit entre les barreaux */
+function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah (son toit et ses tonneaux repassent devant lui)
+  const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
+  const k = im.naturalWidth / W, P = [[497, 261], [526, 237], [612, 230], [612, 338], [486, 338], [486, 281], [500, 279], [500, 265]];
+  ctx.save(); ctx.beginPath(); P.forEach(([x, y], n) => n ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip();
+  ctx.drawImage(im, 480 * k, 225 * k, 140 * k, 120 * k, 480, 225, 140, 120); ctx.restore();
+}
 function swanBridgeFg(p) {   // le petit pont en arc du lac : seule la main courante de devant (et son poteau) repasse devant Myah
   if (!(p.x > 384 && p.x < 456 && p.y > 236 && p.y < 304)) return;
   const ds = dayState(), im = img[ds.A.n] || img.map; if (!im || !im.naturalWidth) return;
@@ -7093,7 +7099,7 @@ function render() {
     ctx.save(); ctx.globalAlpha = .5 + .38 * clamp(1 - dk * 2.2, 0, 1); drawBfly(b); ctx.restore();
   } }));
   if (perchVisible() && !perchAway()) items.push({ y: swanSpot()[1], draw() {
-    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && lk ? 1 : undefined, land: !!(lk && swanWait) });
+    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && lk ? 1 : undefined, land: !!(lk && swanWait) }); if (lk && !swanWait) gkHutFg();
   } });
   if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
   postDraw(items);
