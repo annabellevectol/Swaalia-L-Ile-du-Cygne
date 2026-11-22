@@ -3869,7 +3869,7 @@ function mgBouquetGive(k) {   // l'habitant qui l'a commandé reçoit le bouquet
 }
 // les points d'interaction : coffres cachés ou objets posés dans les maisons (jamais au dispensaire)
 const MGP = [
-  { k: 'memory', sc: SC_MK1, x: 300, y: 905, sx: 300, sy: 925, kind: 'chest', img: 'ch_wood', open: 'ch_open', h: 78, go: mgMemory, hint: 'Un petit coffre scintille dans un coin de la cabane...' },
+  { k: 'memory', sc: SC_MK1, x: 460, y: 1020, sx: 460, sy: 1040, kind: 'chest', img: 'ch_wood', open: 'ch_open', h: 78, go: mgMemory, hint: 'Un petit coffre scintille dans un coin de la cabane...' },
   { k: 'qui', sc: SC_MK5, top: 1, x: 505, y: 642, sx: 545, sy: 597, r: 75, kind: 'chest', img: 'ch_grey', open: 'ch_greyo', h: 62, go: mgQui, hint: 'Un coffre brille au bout du comptoir...' },
   { k: 'simon', sc: SC_MK4, x: 160, y: 712, sx: 185, sy: 730, kind: 'chest', img: 'ch_gold', open: 'ch_goldo', h: 72, eve: 'Les lanternes ne s\'allument que le soir. Reviens ce soir !', go: mgSimon, hint: 'Un coffre doré brille près de la rambarde...' },
   { k: 'symb', sc: SC_MK2, fl: 1, flip: 1, rot: -.07, x: 890, y: 272, sx: 965, sy: 320, r: 100, kind: 'chest', img: 'ch_wood', open: 'ch_open', h: 46, go: mgSymb, hint: 'Un coffre scintille tout là-haut, sur la table de la chambre... Monte par l\'échelle de la trappe !' },
@@ -6016,7 +6016,7 @@ function renderInterior(vw, vh) {
   const isHome = SC === SC_HOME;
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (1 + .4 * dkz);   // plan rapproché dans tous les lieux : la caméra suit Myah
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_DISP || SC === SC_MK1 || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * (SC === SC_MK1 ? .95 : .78)) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT, vh / IN_H * 2.2) : SC === SC_MK1 ? vh / IN_H * 1.9 : SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
   const camX = IN.lie ? (IN.lie.kob ? KOB_BED.cam[0] : 700) : IN.x, camYt = IN.lie ? (IN.lie.kob ? KOB_BED.cam[1] : 200) : IN.y - 90 * dkz;
