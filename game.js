@@ -3329,7 +3329,7 @@ function kobOutl(m, x, y, w, h, IMG) {
   ctx.drawImage(KOB_OC, 0, 0, W, H, x - 2 / s, y - 2 / s, W / s, H / s);
 }
 const K4 = Object.fromEntries(['pv', 'pv_x', 'cn', 'cn_x', 'fl0', 'fl1', 'fl2', 'fl3', 'fl4', 'fl5'].map(k => { const i = new Image(); i.src = 'assets/kob4/' + k + '.png'; return [k, i]; }));
-const KOB_FL = [{ i: 'fl0', x: 518, y: 441 }, { i: 'fl5', x: 498, y: 462 }, { i: 'fl2', x: 524, y: 476 }, { i: 'fl1', x: 232, y: 311, h: 16 }, { i: 'fl1', x: 162, y: 308, h: 16 }, { i: 'fl2', x: 658, y: 510 }, { i: 'fl3', x: 129, y: 314 }, { i: 'fl4', x: 622, y: 522 }, { i: 'fl5', x: 327, y: 191 }, { i: 'fl0', x: 308, y: 208 }];   // fleurs sauvages d'Australie (décor)
+const KOB_FL = [{ i: 'fl0', x: 518, y: 441 }, { i: 'fl5', x: 498, y: 462 }, { i: 'fl2', x: 524, y: 476 }, { i: 'fl1', x: 232, y: 311, h: 16 }, { i: 'fl1', x: 162, y: 308, h: 16 }, { i: 'fl2', x: 658, y: 510 }, { i: 'fl3', x: 129, y: 314 }, { i: 'fl4', x: 622, y: 522 }, { i: 'fl5', x: 327, y: 191 }, { i: 'fl0', x: 352, y: 199 }];   // fleurs sauvages d'Australie (décor)
 const KOB_BEDS = [   // jardinières de Tomba : on y récolte de quoi cuisiner chez Nuna
   { ck: 'bed0', k: 'patate', n: 'Patate douce violette', x: 620, y: 398 },
   { ck: 'bed1', k: 'citronnelle', n: 'Citronnelle', x: 692, y: 414 },
