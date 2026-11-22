@@ -6945,6 +6945,21 @@ function myahPose0() {
   return { sheet: t, name: t === 'fish' ? 'f' + (p.dir4 || 'down') + '1' : 'idle', flip: f, lift: 0 };
 }
 /* le petit pont en arc du lac : sa rambarde de devant passe devant Myah, on la voit entre les barreaux */
+function gkBridgeFg() {   // sur le lac, la queue de Gaïkin passe derrière le pont en arc : on repeint le pont (sans l'eau)
+  const ds = dayState(), im = img[ds.A.n] || img.map, ref = img.map; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
+  const R = [336, 200, 80, 70], k = im.naturalWidth / W, Wd = Math.round(R[2] * k), Hd = Math.round(R[3] * k), C = gkBridgeFg.c || (gkBridgeFg.c = {});
+  if (!C.mask || C.k !== k) {
+    const m = document.createElement('canvas'); m.width = Wd; m.height = Hd; const g = m.getContext('2d', { willReadFrequently: true });
+    g.drawImage(ref, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); const d = g.getImageData(0, 0, Wd, Hd);
+    const P = [[345, 207], [373, 204], [413, 241], [413, 268], [380, 268], [338, 226]];
+    const inP = (x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    for (let y = 0; y < Hd; y++) for (let x = 0; x < Wd; x++) { const i = (y * Wd + x) * 4, r = d.data[i], gg = d.data[i + 1], b = d.data[i + 2], wx = R[0] + x / k, wy = R[1] + y / k, water = b > r + 20 && b > 120 && gg > r;
+      d.data[i + 3] = inP(wx, wy) && !water ? 255 : 0; }
+    g.putImageData(d, 0, 0); C.mask = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = Wd; C.t.height = Hd;
+  }
+  const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
+  ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
+}
 function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah : on repeint la cabane pixel par pixel (sans l'eau autour)
   const ds = dayState(), im = img[ds.A.n] || img.map, ref = img.map; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
   const R = [480, 218, 140, 127], k = im.naturalWidth / W, Wd = Math.round(R[2] * k), Hd = Math.round(R[3] * k), C = gkHutFg.c || (gkHutFg.c = {});
@@ -7110,7 +7125,7 @@ function render() {
     ctx.save(); ctx.globalAlpha = .5 + .38 * clamp(1 - dk * 2.2, 0, 1); drawBfly(b); ctx.restore();
   } }));
   if (perchVisible() && !perchAway()) items.push({ y: swanSpot()[1], draw() {
-    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && lk ? 1 : undefined, land: !!(lk && swanWait) }); if (lk && !swanWait) gkHutFg();
+    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && lk ? 1 : undefined, land: !!(lk && swanWait) }); if (lk && !swanWait) { gkHutFg(); gkBridgeFg(); }
   } });
   if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
   postDraw(items);
