@@ -4025,6 +4025,13 @@ function kobDefiDraw() {
   // pas de logo de pêche sur l'île aux Koalas : on pêche simplement en s'approchant de l'eau, comme sur l'île du Cygne
   if (RACE) { bub(RB[0], RB[1], 'ic_race', 30); ctx.save(); ctx.globalAlpha = .5; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(RA[0] - 6, RA[1] - 22); ctx.lineTo(RA[0] - 6, RA[1] + 34); ctx.stroke(); ctx.beginPath(); ctx.moveTo(RB[0], RB[1] - 22); ctx.lineTo(RB[0], RB[1] + 34); ctx.stroke(); ctx.restore(); }
 }
+const KOB_SH_SPOTS = [[470, 600], [520, 645], [610, 650], [660, 620], [700, 645], [790, 632]], KOB_SH_IDS = ['sh0', 'sh1', 'sh2', 'sh3', 'sh4', 'sh7'];   // coquillages de la plage du Koala (monnaie de la boutique de Koki)
+function kobShells() { const day = mini.dayNo || 0; kobD.shd = kobD.shd || {}; if (kobD.shd.day !== day) kobD.shd = { day, got: {} }; return KOB_SH_SPOTS.map((p, i) => ({ i, x: p[0], y: p[1], id: KOB_SH_IDS[(i + day) % KOB_SH_IDS.length] })).filter(o => (o.i + day) % 3 !== 0 && !kobD.shd.got[o.i]); }
+const kobShellNear = () => SC === SC_KOBHAK && IN.floor === 0 ? kobShells().find(o => dist(IN.x, IN.y, o.x, o.y) < 30) : null;
+function kobShellDraw() { if (SC !== SC_KOBHAK) return; const nr = tool === 'basket' ? kobShellNear() : null;
+  kobShells().forEach(o => { const d = ITEM_DEF[o.id]; if (!d || !mimOk(d[0])) return; const im = MIM[d[0]], w = d[1] * 1.5, h = w * im.naturalHeight / im.naturalWidth; if (nr === o) drawHalo({ x: o.x, y: o.y + 1, r: 9 }); ctx.save(); ctx.globalAlpha = .9; ctx.drawImage(im, o.x - w / 2, o.y - h + 2, w, h); ctx.restore(); }); }
+function kobShellPick() { const o = kobShellNear(); if (!o) return false; if (tool !== 'basket') { flashTool('basket'); sfx.no && sfx.no(); say('Prends le panier pour ramasser le coquillage ! 🧺', 3); return true; }
+  kobD.shd.got[o.i] = 1; inv.shell = (inv.shell || 0) + 1; sfx.pick(); save(); renderHud(); say('Un coquillage ! Tu en as ' + inv.shell + ' 🐚 (pour la boutique de Koki)', 3); return true; }
 function kobBeachFishDraw() {
   if (SC !== SC_KOBHAK || !KDI.complete || !KDI.naturalWidth) return;
   kobBeachFish.forEach(f => {
@@ -5894,7 +5901,8 @@ function updateInterior(dt) {
     else if (nearPaint()) askPaint(true);
     else if (nearHatch()) askHatch(true);
     else if (!kobHF() && nearDesk()) deskMenu();   // le poste de soin passe avant les habitants qui sont à côté
-    else if (tool === 'basket' && kobPlantNear() && kobGather()) { }   // panier en main : la cueillette passe avant les conversations
+    else if (tool === 'basket' && kobPlantNear() && kobGather()) { }
+    else if (kobShellNear() && kobShellPick()) { }   // panier en main : la cueillette passe avant les conversations
     else if (!kobHF() && kobScene() && kobTalk()) { }
     else if (kobGather()) { }
     else if (!kobHF() && vetAct()) { }
@@ -6234,7 +6242,7 @@ function renderInterior(vw, vh) {
   };
   if (ichest && IN.y >= ichest.inside.y) drawIC();
   if (SC === SC_UKAI && IN.floor === 0) { const ct = MI.animals.find(a => a.id === 'chat'); const im = MIM.an_chat; if (ct && isEve() && im && im.complete && im.naturalWidth) { const h = 36, w = h * im.naturalWidth / im.naturalHeight, cx = 466, cy = 542; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy, w * .45, 3, 0, 0, TAU); ctx.fill(); ctx.translate(cx, cy); ctx.rotate(1.3); ctx.scale(1, 1 + Math.sin(time * 1.6) * .03); ctx.drawImage(im, -w / 2, -h + 4, w, h); ctx.restore(); ctx.save(); ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(60,40,20,.8)'; ctx.lineWidth = .8; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; const zz = (time * .7) % 1; ctx.globalAlpha = 1 - zz; ctx.strokeText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.fillText('z', cx + 10 + zz * 4, cy - 22 - zz * 8); ctx.restore(); } }
-  kobBeachFishDraw(); kobDrawPlants(); vetDraw(); deskDraw(); careDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
+  kobBeachFishDraw(); kobShellDraw(); kobDrawPlants(); vetDraw(); deskDraw(); careDraw(); mgDraw(); kobDefiDraw(); kobAmbDraw(); wmDraw(); kobFxDraw();
   { const NL = (kobScene() ? kobList() : !npcShown ? [] : SC.npcs ? SC.npcs() : [SC.npc]).slice().sort((p, q) => p.y - q.y), DN = kobScene() ? drawKobN : drawYur;
     const seq = NL.filter(n => IN.y >= n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })).concat([{ x: IN.x, y: IN.y, d: drawMyR, me: IN.floor === 0 }], NL.filter(n => IN.y < n.y).map(n => ({ x: n.x, y: n.y, d: () => DN(n) })));
     const OC = SC.occ && SC.occ.length && SC.img.complete && SC.img.naturalWidth ? SC.occ.map(q => { const xs = q.poly.map(a => a[0]); return { q, x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, behind: false, done: false }; }) : [];
