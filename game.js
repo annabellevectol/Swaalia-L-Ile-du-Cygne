@@ -1018,7 +1018,7 @@ function drawLegendSpr(g, o) {
   const gp = o.mode === 'perch' && o.pose !== undefined ? (o.land ? GKS : GKL)[(o.land ? GK_SSEQ : GK_LSEQ)[Math.floor(t / 4.5) % (o.land ? GK_SSEQ : GK_LSEQ).length]] : null;
   if (gp && gp.complete && gp.naturalWidth && GKL[0].naturalWidth) { g.scale(-1, 1);
     if (o.land) { const hh = GK_H / s * gp.naturalHeight / GKS[0].naturalHeight, hw = hh * gp.naturalWidth / gp.naturalHeight; g.drawImage(gp, -hw * .5, -hh, hw, hh); }   // debout sur la terre ferme : plus petit, pattes au sol
-    else { const hw0 = GK_W / s, hw = hw0 * gp.naturalWidth / GKL[0].naturalWidth, hh = hw * gp.naturalHeight / gp.naturalWidth, hh0 = hw0 * GKL[0].naturalHeight / GKL[0].naturalWidth; g.drawImage(gp, -hw0 * .62, -hh0 * .86 + (hh0 - hh), hw, hh); } }
+    else { const hw0 = GK_W * (GKS[0].naturalWidth ? GK_H / GK_W * 0 + 1 : 1) / s, hw = hw0 * gp.naturalWidth / GKL[0].naturalWidth, hh = hw * gp.naturalHeight / gp.naturalWidth, hh0 = hw0 * GKL[0].naturalHeight / GKL[0].naturalWidth; g.drawImage(gp, -hw0 * .62, -hh0 * .86 + (hh0 - hh), hw, hh); } }
   else if (hq && hq.complete && hq.naturalWidth) { const hw = flying ? w * 1.75 : w * 1.95, hh = hw * hq.naturalHeight / hq.naturalWidth; g.scale(-1, 1); g.drawImage(hq, flying ? -hw * .5 : -hw * .62, flying ? -hh * .55 : -hh * .86, hw, hh); }   // Gaïkin en haute qualité (regarde à droite)
   else g.drawImage(im, -w / 2, flying ? -h * .55 : -h * .86, w, h);
   g.restore();
@@ -7086,7 +7086,7 @@ function render() {
     ctx.save(); ctx.globalAlpha = .5 + .38 * clamp(1 - dk * 2.2, 0, 1); drawBfly(b); ctx.restore();
   } }));
   if (perchVisible() && !perchAway()) items.push({ y: swanSpot()[1], draw() {
-    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && phase === 'returned' ? 1 : undefined, land: !!(lk && swanWait) });
+    const sp = swanSpot(), lk = swanLake(); drawLegendSpr(ctx, { x: sp[0] + (lk ? .23 * 638.6 * SW_SMALL : 0), y: sp[1] + (lk ? .05 * 409 * SW_SMALL : 0), s: swanLake() ? SW_SMALL : SW_PERCH, t: time, dir: 1, mode: 'perch', alt: swanAlt, sparkle: swanSparkle, feathers: swanFeathers, pose: swanAlt < 2 && lk ? 1 : undefined, land: !!(lk && swanWait) });
   } });
   if (party && !IN.on) items.push({ y: PARTY.T[1], draw: drawPartyTable });
   postDraw(items);
