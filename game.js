@@ -4030,9 +4030,9 @@ function kobBeachFishDraw() {
   kobBeachFish.forEach(f => {
     if (f.state === 'gone') return;
     const nim = f.k < 4 && KFI['f' + f.k].naturalWidth ? KFI['f' + f.k] : null, m = nim ? [0, 0, nim.naturalWidth, nim.naturalHeight] : KD_M['fish' + f.k], w = 24, h = w * m[3] / m[2], x = f.x, y = f.y, dir = f.dir;
-    ctx.save(); ctx.globalAlpha = .7; ctx.strokeStyle = 'rgba(255,255,255,.62)'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.ellipse(x, y + 6, w * .42, 3 + Math.sin(time * 2 + f.ph), 0, 0, TAU); ctx.stroke();
-    ctx.translate(x, y); ctx.scale(dir, 1); ctx.drawImage(nim || KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
+    const sw = Math.sin(time * 9 + f.ph * 3);   // le poisson ondule : il nage sous l'eau, il ne flotte pas
+    ctx.save(); ctx.globalAlpha = .55; ctx.translate(x, y + Math.sin(time * 1.6 + f.ph) * 1.2); ctx.scale(dir, 1); ctx.rotate(sw * .07); ctx.transform(1, 0, sw * .12, 1, 0, 0);
+    ctx.filter = 'saturate(.8) brightness(.92)'; ctx.drawImage(nim || KDI, m[0], m[1], m[2], m[3], -w / 2, -h / 2, w, h); ctx.restore();
   });
 }
 function updateKobBeachFish(dt) {
