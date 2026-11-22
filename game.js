@@ -2644,7 +2644,7 @@ function toggleFlight() {
   const p = player;
   if (p.mount === 'fly') {
     if (isWater(p.x, p.y)) { p.mount = 'float'; p.altT = 0; sfx.splash(); say('Le cygne flotte sur l\'eau', 2); }
-    else { sfx.no(); say('Le cygne ne se pose que sur l\'eau 🌊', 2.5); }
+    else dismount();   // au-dessus de la terre : on descend, et Gaïkin propose de t'attendre
   } else if (p.mount === 'float') { p.mount = 'fly'; p.altT = 52; sfx.mount(); }
 }
 
