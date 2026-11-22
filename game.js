@@ -7760,7 +7760,7 @@ function handIn(q, ok, cancel) {
 
 /* ----- Myah tend le légume (planche Myah + légumes) ----- */
 const GIVE_IT = { flower: { c: [0, 5], n: 'Fleur', e: '🌸' }, mango: { c: [1], n: 'Mangue', e: '🥭' }, banana: { c: [2], n: 'Bananes', e: '🍌' }, coconut: { c: [3], n: 'Noix de coco', e: '🥥' }, fish: { c: [6], n: 'Poisson', e: '🐟' }, shell: { c: [4, 7], n: 'Coquillage', e: '🐚' }, butterfly: { c: [8], n: 'Papillon', e: '🦋' }, crab: { c: [9], n: 'Crabe', e: '🦀' } };   // planche « Myah + objets » : 4 × 2
-function giveAnim(need, done) {
+function giveAnim(need, done) { return done();   // plus d'image de Myah tenant l'objet : la remise se fait directement
   const items = Object.entries(need).filter(([k]) => VEG.some(v => v.k === k) || GIVE_IT[k]); if (!items.length) return done();
   const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:74;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif;touch-action:none'; document.body.appendChild(o);
   let i = 0, tm = 0, fin = false;
