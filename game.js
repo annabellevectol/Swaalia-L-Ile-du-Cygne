@@ -61,6 +61,9 @@ const beachSea = (x, y) => y > 395 && x > 60 && x < 760;   // poissons et créat
 for (let cy = 0; cy < GH; cy++) for (let cx = 0; cx < GW; cx++) if (!beachSea(cx * C + C / 2, cy * C + C / 2)) SEAF[cy * GW + cx] = 0;
 const POND_IN = POND, POND_SW = erode(POND, 2), POND_FISH = POND_IN;
 const cell = (m, x, y) => { const cx = Math.floor(x / C), cy = Math.floor(y / C); return (cx < 0 || cy < 0 || cx >= GW || cy >= GH) ? 0 : m[cy * GW + cx]; };
+const HOUSE_BLK = [[[288, 168], [378, 168], [378, 234], [352, 244], [288, 243]]];   // la maison au toit de chaume près du ponton : on ne la traverse plus
+const inPolyW = (P, x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+for (let cy = 0; cy < GH; cy++) for (let cx = 0; cx < GW; cx++) if (HOUSE_BLK.some(P => inPolyW(P, cx * C + C / 2, cy * C + C / 2))) WALK[cy * GW + cx] = 0;
 const walkable = (x, y) => cell(WALK, x, y) === 1;
 const isWater = (x, y) => cell(SEA, x, y) === 1 || cell(POND, x, y) === 1;
 function snapMask(m, x, y, R = 60) {
@@ -1126,7 +1129,7 @@ function drawTree0(tr) {
   const sway = Math.sin(time * 1.3 + tr.x) * .6;
   ctx.save(); ctx.translate(tr.x, tr.y + 1); ctx.transform(1, 0, sway * .012, 1, 0, 0);
   drawTinted(im, s, -s[2] * k / 2, -s[3] * k, s[2] * k, s[3] * k); ctx.restore();
-  if (dist(tr.x, tr.y, player.x, player.y) < 70) {   // régimes restants
+  if (false) {   // (plus de compteur de fruits : on cueille, l'arbre se vide, puis ça repousse)
     const px = tr.x - (TREE_MAX - 1) * 3.4, py = tr.y - (alt || TR).s.full[3] * k - 5;
     for (let i = 0; i < TREE_MAX; i++) { ctx.fillStyle = i < tr.fruits ? (tr.kind === 'coconut' ? '#a8652e' : tr.kind === 'mango' ? '#ff9a2e' : '#ffd23d') : 'rgba(40,40,40,.35)'; ctx.strokeStyle = '#7a4b24'; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(px + i * 6.8, py, 2.6, 0, TAU); ctx.fill(); ctx.stroke(); }
     if (tr.fruits <= 0) { const u = clamp(tr.t / TREE_WAIT, 0, 1); ctx.strokeStyle = '#7a4b24'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(tr.x, py - 9, 5, -Math.PI / 2, TAU - Math.PI / 2); ctx.stroke(); ctx.strokeStyle = '#7fd14a'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(tr.x, py - 9, 5, -Math.PI / 2, -Math.PI / 2 + u * TAU); ctx.stroke(); }
@@ -7186,7 +7189,7 @@ function render() {
   postDraw(items);
   MI.animals.forEach(a => items.push({ y: a.y, draw() { drawAnimal(a); } }));
   MI.items.forEach(it => it.kind === 'shell' && items.push({ y: it.y - 10, draw() { drawMiniItem(it, 1); } }));   // coquillages triés avec Myah : elle passe devant
-  if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); swanBridgeFg(p); } });
+  if (!p.mount) items.push({ y: p.y, draw() { shadow(p.x, p.y, 12); ctx.save(); ctx.globalAlpha = 1; drawMyah(p.x, p.y); ctx.restore(); } });   // sur le pont en arc, Myah marche dessus (plus de main courante devant elle)
   else if (p.mount === 'float') items.push({ y: p.y, draw() { if (drawRide(p.x, p.y, 'float', p.alt)) return; drawLegendSpr(ctx, { x: p.x, y: p.y, s: SW_MOUNT, t: time, dir: p.face, mode: 'float', alt: p.alt, sparkle: .12, rider: drawRider }); } });
   /* le nom du lieu s'affiche seulement dans la pastille en haut de l'écran (#placeB) */
   items.sort((a, b) => a.y - b.y).forEach(o => o.draw());
