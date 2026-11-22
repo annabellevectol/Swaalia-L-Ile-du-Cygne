@@ -5935,7 +5935,7 @@ function updateInterior(dt) {
 /* toucher / cliquer sur la malle, la douche, les toilettes, le lavabo, les sièges : une aurole dorée marque l'endroit, la zone sensible est large */
 function tapSpots() {
   if (!started || !IN.on || dlg.open || wmOpen() || IN.busy || IN.lie || IN.climb || IN.bunk || IN.puff || bedPickOpen() || wardOpen()) return [];
-  const LadT = []; if (SC !== SC_DISP && kobScene() && SC !== SC_KOBHAK && IN_LADDER && IN_LADDER[IN.floor]) { const L = IN_LADDER[IN.floor]; if (dist(IN.x, IN.y, L[0], L[1]) < 110) LadT.push({ id: 'ladder', x: L[0], y: L[1] - 14, go: () => { actQueued = false; const to = 1 - IN.floor; climb(to); if (IN.climb) IN.climb.auto = to ? 1 : -1; } }); }   // échelle : on touche le halo pour monter / descendre
+  const LadT = []; if (false && IN_LADDER && IN_LADDER[IN.floor]) { const L = IN_LADDER[IN.floor]; if (dist(IN.x, IN.y, L[0], L[1]) < 110) LadT.push({ id: 'ladder', x: L[0], y: L[1] - 14, go: () => { actQueued = false; const to = 1 - IN.floor; climb(to); if (IN.climb) IN.climb.auto = to ? 1 : -1; } }); }   // échelle : on touche le halo pour monter / descendre
   const L = LadT, z = IN.zs || 1;
   if (SC === SC_BOAT && IN.floor === 0 && !handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105)
     L.push({ id: 'boat_exit', x: IN_EXIT[0], y: IN_EXIT[1], go: () => { actQueued = false; if (!handsFull() && dist(IN.x, IN.y, IN_EXIT[0], IN_EXIT[1]) < 105) leavePlace(); } });
