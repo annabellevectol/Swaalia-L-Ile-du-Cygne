@@ -2555,7 +2555,7 @@ function dismount() {
     }
     swanWait = null;
     const w = nearestWalk(474, 232, 40) || [474, 232];
-    leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true });
+    { const sp = swanSpot(); GK_PUFF.push({ x: p.x, y: p.y, t: time }, { x: sp[0], y: sp[1], t: time }); }   // pouf : Gaïkin est déjà sur le lac
     p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; p.dismounting = false; sfx.hop(); setAnim('idle'); return;
   }
   if (p.mount === 'fly') {
@@ -2564,7 +2564,7 @@ function dismount() {
   } else {
     const w = nearestWalk(p.x, p.y, 70);
     if (!w) { sfx.no(); return say('Rapproche-toi du rivage pour descendre', 3); }
-    leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true });
+    { const sp = swanSpot(); GK_PUFF.push({ x: p.x, y: p.y, t: time }, { x: sp[0], y: sp[1], t: time }); }
     p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; sfx.hop(); setAnim('idle');
   }
 }
@@ -6336,7 +6336,7 @@ function update(dt) {
     if (phase === 'returned' && !endingSeen && storyOn() && p.state === 'free' && !dlg.open && !cine && !document.getElementById('stOv')) { rideT += dt; if (rideT > 28) { rideT = 0; startEnding(); } }
     if (moving) tryMove(p.mount === 'fly' ? (run ? 220 : 155) : (run ? 66 : 47));
     p.alt += (p.altT - p.alt) * Math.min(1, dt * 5); if (Math.abs(p.altT - p.alt) < .6) p.alt = p.altT;
-    if (p.dismounting && p.alt < 3) { p.dismounting = false; leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true }); p.mount = null; p.alt = 0; sfx.hop(); setAnim('idle'); }
+    if (p.dismounting && p.alt < 3) { p.dismounting = false; { const sp = swanSpot(); GK_PUFF.push({ x: p.x, y: p.y, t: time }, { x: sp[0], y: sp[1], t: time }); } p.mount = null; p.alt = 0; sfx.hop(); setAnim('idle'); }
     p.fr = (p.fr + dt * 10) % 18;
   } else if (p.state === 'free') {
     if (!walkable(p.x, p.y)) { const w = nearestWalk(p.x, p.y, 150); if (w) { p.x = w[0]; p.y = w[1]; } }
