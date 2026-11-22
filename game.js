@@ -2566,6 +2566,11 @@ function dismount() {
     p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; sfx.hop(); setAnim('idle');
   }
 }
+const GK_PUFF = [];
+function gkPuffDraw() {   // petits nuages de Gaïkin (descente de Myah)
+  for (let i = GK_PUFF.length - 1; i >= 0; i--) { const q = GK_PUFF[i], k = (time - q.t) / .8; if (k > 1) { GK_PUFF.splice(i, 1); continue; }
+    if (!FLYC.complete || !FLYC.naturalWidth) continue; const h = 56 + k * 22, w = h * FLYC.naturalWidth / FLYC.naturalHeight; ctx.save(); ctx.globalAlpha = .9 * (1 - k * k); ctx.drawImage(FLYC, q.x - w / 2, q.y - h * .9, w, h); ctx.restore(); }
+}
 function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'écart (hors de la porte)
   const p = player; if (!p.mount) return;
   const w = p.mount === 'fly' ? (walkable(p.x, p.y) ? [p.x, p.y] : nearestWalk(p.x, p.y, 40)) : nearestWalk(p.x, p.y, 70);
@@ -2578,7 +2583,7 @@ function swanWaitHere() {   // Myah descend ici, Gaïkin l'attend un peu à l'é
   }
   if (!best) for (let r = 30; r < 220 && !best; r += 12) for (let a = 0; a < 24 && !best; a++) { const x = w[0] + Math.cos(a * .2618) * r, y = w[1] + Math.sin(a * .2618) * r * .6; if (solid(x, y)) best = [x, y]; }
   swanWait = best || w.slice();
-  leavers.push({ x: p.x, y: p.y, t: 0, dir: p.face, fromPerch: true });
+  GK_PUFF.push({ x: swanWait[0], y: swanWait[1], t: time }, { x: p.x, y: p.y, t: time });   // pouf ! un petit nuage, et Gaïkin est déjà à sa place
   p.x = w[0]; p.y = w[1]; p.mount = null; p.alt = 0; p.altT = 0; p.dismounting = false; sfx.hop(); setAnim('idle');
 }
 /* Voler avec les ailes offertes par Gaïkin (après la fin de l'histoire, ou dès le début en Balade) */
@@ -7129,7 +7134,7 @@ function render() {
 
   // cygne monté en vol : au-dessus de tout
   if (p.mount === 'wings') wingsDraw();
-  wingsPuff();
+  wingsPuff(); gkPuffDraw();
   if (p.mount === 'fly' && !drawRide(p.x, p.y, 'fly', p.alt)) drawLegendSpr(ctx, { x: p.x, y: p.y, s: SW_MOUNT, t: time, dir: p.face, mode: 'fly', alt: p.alt, phase: time * 8.5, sparkle: .12, rider: drawRider });
   // cygnes qui repartent
   for (const l of leavers) { const k = l.t / 1.4; ctx.save(); ctx.globalAlpha = clamp(1 - k * k, 0, 1); drawLegendSpr(ctx, { x: l.x + l.dir * k * 90, y: l.y - k * 40, s: swanLake() ? SW_SMALL * 1.5 : SW_MOUNT, t: time, dir: l.dir, mode: 'fly', alt: 52 + k * 200, phase: time * 8.5, sparkle: .1 }); ctx.restore(); }
