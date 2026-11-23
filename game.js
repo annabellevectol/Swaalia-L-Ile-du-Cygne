@@ -5657,12 +5657,14 @@ function wdPatUi() {
   let p = document.getElementById('wdPat');
   if (!p) {
     const st = document.createElement('style'); st.textContent = '#wdPat{width:100%;margin-top:8px}#wdPat .g{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:4px}#wdPat .g i{display:block;aspect-ratio:1;border-radius:7px;border:2px solid rgba(255,255,255,.7);background:url(assets/patterns.jpg?v=2) no-repeat;background-size:400% 600%;cursor:pointer}#wdPat .g i.sel{border-color:#c7447a;box-shadow:0 0 0 2px #fff}'; document.head.appendChild(st);
-    p = document.createElement('div'); p.id = 'wdPat'; p.innerHTML = '<div class="wdLbl">Motifs</div><div class="g"></div><button class="mini" id="wdPatNo" style="margin-top:6px">Sans motif</button>';
+    p = document.createElement('div'); p.id = 'wdPat'; p.innerHTML = '<div class="wdLbl">Motifs</div><div class="g"></div><div id="wdPatSzW" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0"><span>🔍 Petit</span><input id="wdPatSz" type="range" min="14" max="90" value="30" style="width:min(180px,50vw)"><span>Grand 🔍</span></div><button class="mini" id="wdPatNo" style="margin-top:6px">Sans motif</button>';
+    setTimeout(() => { const r = $('#wdPatSz'); if (r) r.addEventListener('input', () => { wd.o.patSz = +r.value; wdDraw(); }); }, 0);
     const g = p.querySelector('.g'); for (let n = 0; n < 24; n++) { const i = document.createElement('i'); i.dataset.n = n; i.style.backgroundPosition = (n % 4) * 100 / 3 + '% ' + Math.floor(n / 4) * 100 / 5 + '%'; g.appendChild(i); }
     p.addEventListener('click', e => { const t = e.target.closest('i[data-n]'), no = e.target.closest('#wdPatNo'); if (!t && !no) return; if (!wd.o.pat) wd.o.pat = { shirt: null, overall: null, bag: null }; wd.o.pat[wd.part] = t ? +t.dataset.n : null; if (t && wd.part === 'bag') wd.o.bagOn = true; wdDraw(); });
     $('#wdOrig').insertAdjacentElement('afterend', p);
   }
   const ok = wd.part === 'overall' || wd.part === 'shirt' || wd.part === 'bag'; p.style.display = ok ? 'block' : 'none';
+  { const r = $('#wdPatSz'); if (r) r.value = wd.o.patSz || 30; }
   const cur = ok && wd.o && wd.o.pat ? wd.o.pat[wd.part] : null; p.querySelectorAll('i').forEach(i => i.classList.toggle('sel', cur !== null && cur !== undefined && +i.dataset.n === cur));
 }
 function wdSubUi() {   // sous-onglets Couleur / Motifs / Stickers (salopette, t-shirt, sac)
@@ -6887,7 +6889,7 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
     if (k !== 'glass') { _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     if (k !== 'glass') { c.globalCompositeOperation = 'destination-out'; c.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     if (hasPat) { _fx.globalCompositeOperation = 'saturation'; _fx.fillStyle = '#808080'; _fx.fillRect(0, 0, 256, 256); if (k === 'ov') { _fx.globalCompositeOperation = 'lighter'; _fx.fillStyle = 'rgb(66,66,66)'; _fx.fillRect(0, 0, 256, 256); }
-      _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = patFill(_fx, pn, 30); _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
+      _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = patFill(_fx, pn, o.patSz || 30); _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     else if (col && k === 'sh') { _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 100) + '%,' + Math.round(Math.max(.5, col.l) * 100 + (col.l > .5 ? 0 : 6)) + '%)'; _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }   // t-shirt blanc : on multiplie (la teinte « color » ne marche pas sur du blanc)
     else if (col) { _fx.globalCompositeOperation = 'color'; _fx.fillStyle = hslStr(col); _fx.fillRect(0, 0, 256, 256);
       if (k === 'hair') { _fx.globalCompositeOperation = 'lighter'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 85) + '%,' + Math.round(col.l * 50) + '%)'; _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'multiply'; _fx.globalAlpha = .35; _fx.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256); _fx.globalAlpha = 1; }   // on garde le relief des mèches (ombres) au lieu d'un aplat   // cheveux très sombres : on ajoute de la couleur en gardant le relief des mèches
@@ -6930,6 +6932,7 @@ function setOutfit(o) {
     outfit.stickers = (o.stickers || []).filter(t => STK_BY[t.id]).slice(0, 8).map(t => ({ id: t.id, u: +t.u || .5, v: +t.v || .5, w: clamp(+t.w || .3, .08, .8), tint: t.tint ? { h: +t.tint.h, s: +t.tint.s, l: +t.tint.l } : null })); }
   if (o && o.bagOn) { outfit.bagOn = true; const c = o.bag; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit.bag = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; if (Number.isInteger(o.patch) && o.patch >= 0 && o.patch < 10) outfit.patch = o.patch; if (Array.isArray(o.bagStk)) outfit.bagStk = o.bagStk.filter(s => s && STK.some(d => d.id === s.id) && isFinite(s.u) && isFinite(s.v)).slice(0, 3).map(s => ({ id: s.id, u: clamp(+s.u, 0, 1), v: clamp(+s.v, 0, 1) })); }
   outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
+  outfit.patSz = o && isFinite(o.patSz) ? clamp(+o.patSz, 14, 90) : 30;
   if (o && o.pat) ['shirt', 'overall', 'bag'].forEach(k => { const n = o.pat[k]; if (Number.isInteger(n) && n >= 0 && n < 24) outfit.pat[k] = n; });
   outfitDirty = true; bakeOutfit();
 }
