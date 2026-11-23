@@ -8587,3 +8587,13 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
   };
   setInterval(spawn, 85);
 })();
+
+// Hors ligne : télécharge tout le jeu dans la mémoire de l'appareil (téléphone, tablette ou ordinateur)
+(() => { const b = document.getElementById('setOff'); if (!b) return; let busy = false;
+  b.addEventListener('pointerdown', async e => { e.preventDefault(); e.stopPropagation(); if (busy) return;
+    if (!('serviceWorker' in navigator)) { b.textContent = '❌ Pas possible sur ce navigateur'; return; }
+    busy = true; b.textContent = '📥 Préparation…';
+    try { const reg = await navigator.serviceWorker.ready, ch = new MessageChannel();
+      ch.port1.onmessage = ev => { const d = ev.data; if (d.done) { busy = false; b.textContent = '✅ Prêt à jouer hors ligne'; try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (er) {} } else b.textContent = '📥 Téléchargement… ' + Math.round(d.n * 100 / d.tot) + ' %'; };
+      reg.active.postMessage({ t: 'dl' }, [ch.port2]); } catch (er) { busy = false; b.textContent = '❌ Réessaie avec internet'; } });
+})();

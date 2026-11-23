@@ -5,7 +5,8 @@
   #scrB.ready{box-shadow:0 0 0 3px #7cc36a,0 3px 0 rgba(0,0,0,.25)}
   #quests .q.qred{border:2.5px solid #e2574c;border-radius:14px}#quests .q.qgreen{border:2.5px solid #6dbb5c;border-radius:14px}.qok{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#6dbb5c;color:#fff;font-weight:900}
   #jrnOv{position:fixed;inset:0;z-index:80;background:rgba(40,25,50,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}.jbook{position:relative;width:min(96vw,760px,150vh);aspect-ratio:1041/655;display:flex;padding:7% 8% 9% 9%;box-sizing:border-box;gap:9%}.jbg{position:absolute;inset:0;width:100%;height:100%;z-index:-1}.jp{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#4a2c12;font-size:clamp(11px,2.2vw,17px);line-height:1.25;overflow:hidden}.jst{position:absolute;top:0;right:0;width:22%;max-width:60px;transform:rotate(-12deg);opacity:.9}.jpt{width:28%;max-width:80px;aspect-ratio:1;border-radius:50%;object-fit:cover;object-position:top;border:2px solid #e6cfa3;background:#fff3d6;margin-bottom:4%}.jtx{font-family:"Comic Sans MS","Chalkboard SE",cursive;padding:0 6%}.jstars{color:#e8b630;font-size:1.3em;margin-top:3%}.jnav{display:flex;gap:18px;align-items:center}.jnav button,.jx{font-size:22px;width:46px;height:46px;border-radius:50%;border:3px solid #b79ad6;background:#fff8ec;color:#6b4a8a;font-weight:900}.jn{color:#fff;font-weight:800;min-width:60px;text-align:center}.jx{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px}
-</style></head><body>
+</style><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+</head><body>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1087,7 +1088,7 @@
           <div class="tiles"><button id="setSound" class="go alt wide tile"><span class="ti">🔊</span><span class="tl">Son</span></button></div>
         </div>
       </details>
-      <button id="setTips" class="go alt wide" style="margin:4px 0">💡 Astuces du jeu</button>
+      <button id="setTips" class="go alt wide" style="margin:4px 0">💡 Astuces du jeu</button><button id="setOff" class="go alt wide" style="margin:4px 0">📥 Jouer hors ligne</button>
       <details class="setGroup">
         <summary>✨ Affichage et confort</summary>
         <div class="setKid">
@@ -1163,7 +1164,8 @@
 <script src="mymask.js?v=4"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=370"></script>
+<script src="game.js?v=371"></script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
 
