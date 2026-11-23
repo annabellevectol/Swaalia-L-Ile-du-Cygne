@@ -5716,7 +5716,9 @@ function wdRenderSaved() {
   });
 }
 function wdBagUi() {
-  const on = !!wd.o.bagOn; $('#wdBagOn').textContent = on ? '🎒 Porter le sac : OUI' : '🎒 Porter le sac : NON'; $('#wdBagOn').classList.toggle('on', on);
+  const on = !!wd.o.bagOn; $('#wdBagOn').textContent = on ? '👜 Sac à main : OUI' : '👜 Sac à main : NON'; $('#wdBagOn').classList.toggle('on', on);
+  { let bb = $('#wdBpOn'); if (!bb) { bb = document.createElement('button'); bb.id = 'wdBpOn'; bb.className = 'mini'; $('#wdBagOn').insertAdjacentElement('afterend', bb); bb.addEventListener('click', () => { wd.o.bp = !wd.o.bp; wdDraw(); }); }
+    bb.textContent = wd.o.bp ? '🎒 Sac à dos : OUI' : '🎒 Sac à dos : NON'; bb.classList.toggle('on', !!wd.o.bp); }
   const g = $('#wdBagP'); if (!g.children.length) {
     const mk = (label, val) => { const b = document.createElement('button'); b.dataset.v = val; if (label) b.textContent = label; g.appendChild(b); return b; };
     mk('Sans', -1).addEventListener('click', () => { wd.o.patch = null; wd.o.bagOn = true; wdDraw(); });
@@ -6755,9 +6757,9 @@ function stkGive(id) {   // un nouveau sticker pour l'album (une seule fois)
   if (!id || !STK_BY[id] || post.stk.includes(id)) return false; post.stk.push(id); save();
   setTimeout(() => { sfx.star && sfx.star(); say('🎉 Nouveau sticker : « ' + STK_BY[id].n + ' » ! Colle-le sur ta salopette au vestiaire.', 6); }, 700); return true;
 }
-const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, glassId: null, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
+const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, bp: false, glassId: null, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
 let outfit = outfitEmpty(), outSheet = {}, outfitDirty = false;
-const isDefaultOutfit = o => !o.glassId && !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
+const isDefaultOutfit = o => !o.bp && !o.glassId && !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
 const hslStr = c => 'hsl(' + Math.round(c.h) + ',' + Math.round(c.s * 100) + '%,50%)';
 function lightAdj(x, l, W, H) {   // éclaircit ou assombrit uniquement les pixels déjà présents
   if (Math.abs(l - .5) < .01) return;
@@ -6842,6 +6844,7 @@ const BIJOUX = [   // colliers à acheter : chez Kykah (île du Cygne) et chez K
   { id: 'n_gum', nm: 'Collier de noix d\'eucalyptus', isl: 'kob', shell: 10 }, { id: 'n_kobois', nm: 'Collier petit koala en bois', isl: 'kob', shell: 12 },
   { id: 'n_opale', nm: 'Collier d\'opale', isl: 'kob', shell: 50, leg: 1 }, { id: 'n_koor', nm: 'Collier eucalyptus d\'or', isl: 'kob', shell: 60, leg: 1 }];
 const LUNETTES = [{ id: 'heart', nm: 'Lunettes cœur', shell: 15 }, { id: 'star', nm: 'Lunettes étoiles', shell: 15 }];   // montures qui remplacent les lunettes de Myah (planches redessinées)
+const BPIMG = {}; ['walk', 'walkbask', 'walknet', 'walkrod'].forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/bp/' + MY[k].file.split('/').pop().split('?')[0] + '?v=1'; BPIMG[k] = im; });
 const GLMK = {}; function glMask(id, sh) { if (!id) return null; GLMK[id] = GLMK[id] || {}; if (!GLMK[id][sh]) { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/mk_' + sh + '_glass.png?v=8'; GLMK[id][sh] = im; } const m = GLMK[id][sh]; return m.naturalWidth ? m : null; }
 const GLIMG = {}; function glImg(id, sh) { if (!GLIMG[id]) { GLIMG[id] = {}; Object.keys(MY).forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/' + MY[k].file.split('/').pop().split('?')[0] + '?v=6'; GLIMG[id][k] = im; }); } return GLIMG[id][sh]; }
 const mySrc = (sh, o) => { const g = o && o.glassId ? glImg(o.glassId, sh) : null; return g && g.naturalWidth ? g : img['m_' + sh]; };
@@ -6908,6 +6911,7 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
     }
     c.globalCompositeOperation = 'source-over'; c.drawImage(_ft, 0, 0);
   }
+  if (o.bp && BPIMG[sheet] && BPIMG[sheet].naturalWidth) { c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.drawImage(BPIMG[sheet], sx, sy, 256, 256, 0, 0, 256, 256); }   // sac à dos (dos et profils)
   if (o.neck) drawNeckOnFrame(c, sheet, name, box || (MBOX[sheet] && MBOX[sheet][MY[sheet].names.indexOf(name.replace(/^(f?)d[rl]/, '$1down'))]), o);
   if (o.bagOn) drawBagOnFrame(c, sheet, name, box, o);
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
@@ -6931,7 +6935,7 @@ function setOutfit(o) {
   if (o) { ['shirt', 'overall', 'shoes', 'hair', 'glasses'].forEach(k => { const c = o[k]; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit[k] = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; });
     outfit.stickers = (o.stickers || []).filter(t => STK_BY[t.id]).slice(0, 8).map(t => ({ id: t.id, u: +t.u || .5, v: +t.v || .5, w: clamp(+t.w || .3, .08, .8), tint: t.tint ? { h: +t.tint.h, s: +t.tint.s, l: +t.tint.l } : null })); }
   if (o && o.bagOn) { outfit.bagOn = true; const c = o.bag; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit.bag = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; if (Number.isInteger(o.patch) && o.patch >= 0 && o.patch < 10) outfit.patch = o.patch; if (Array.isArray(o.bagStk)) outfit.bagStk = o.bagStk.filter(s => s && STK.some(d => d.id === s.id) && isFinite(s.u) && isFinite(s.v)).slice(0, 3).map(s => ({ id: s.id, u: clamp(+s.u, 0, 1), v: clamp(+s.v, 0, 1) })); }
-  outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
+  outfit.bp = !!(o && o.bp); outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
   outfit.patSz = o && isFinite(o.patSz) ? clamp(+o.patSz, 14, 90) : 30;
   if (o && o.pat) ['shirt', 'overall', 'bag'].forEach(k => { const n = o.pat[k]; if (Number.isInteger(n) && n >= 0 && n < 24) outfit.pat[k] = n; });
   outfitDirty = true; bakeOutfit();
