@@ -1724,6 +1724,22 @@ function bagItemsHtml() {
   return h;
 }
 let questTab = 'todo', questIsl = null;   // onglet d'île choisi (null = l'île où on est)
+const KOB_STEPS = ['J\'ai rencontré le docteur Tarah', 'J\'ai cueilli toutes les plantes de l\'île', 'Je suis retournée voir le docteur Tarah', 'J\'ai préparé la tisane au poste de soin', 'J\'ai soigné la famille koala', 'J\'ai raconté au docteur Tarah', 'J\'ai soigné les animaux malades de l\'île', 'Le docteur Tarah m\'a remerciée'];
+function jrnEntries() {   // le journal intime de Myah : les missions passées, île par île
+  const E = [];
+  QUESTS.forEach(q => { if (qState[q.id] !== 'done' || !opened[q.id]) return; let pt = ''; try { pt = q.portrait || ''; } catch (e) {} const nst = 2 + (bonusStar[q.id] ? 1 : 0); E.push({ st: 'swan', pt, t: questTitle(q), s: nst }); });
+  try { const nf = QUESTS.filter(o => !o.final && opened[o.id]).length; SCI.slice(0, nf).concat(phase === 'returned' ? [SCI[4]] : []).forEach(x => E.push({ st: 'star', t: x })); } catch (e) {}
+  try { for (let i = 0; i < Math.min(kobQ | 0, KOB_STEPS.length); i++) E.push({ st: 'koala', t: KOB_STEPS[i] }); } catch (e) {}
+  return E;
+}
+let jrnPg = 0;
+function jrnOpen() {
+  let ov = $('#jrnOv'); if (!ov) { ov = document.createElement('div'); ov.id = 'jrnOv'; document.body.appendChild(ov); ov.addEventListener('pointerdown', e => { const b = e.target.closest('[data-j]'); if (!b && e.target !== ov) return; e.preventDefault(); e.stopPropagation(); const a = b ? b.dataset.j : 'x'; if (a === 'x') { ov.remove(); return; } jrnPg += a === 'n' ? 2 : -2; jrnOpen(); }); }
+  const E = jrnEntries(), n = E.length; jrnPg = Math.max(0, Math.min(jrnPg, Math.max(0, n - 1) & ~1));
+  const page = e => !e ? '<div class="jp"></div>' : '<div class="jp"><img class="jst" src="assets/journal/st_' + e.st + '.png" alt="">' + (e.pt ? '<img class="jpt" src="' + e.pt + '" alt="">' : '') + '<div class="jtx">' + e.t + '</div>' + (e.s ? '<div class="jstars">' + '★'.repeat(e.s) + '</div>' : '') + '</div>';
+  ov.innerHTML = emoFix('<div class="jbook"><img class="jbg" src="assets/journal/book.webp" alt="">' + (n ? page(E[jrnPg]) + page(E[jrnPg + 1]) : '<div class="jp"><div class="jtx">Mon journal est encore vide. Chaque mission réussie y laissera un souvenir ✨</div></div><div class="jp"></div>') + '</div><div class="jnav">' + (jrnPg > 0 ? '<button data-j="p">◀</button>' : '<span></span>') + '<span class="jn">' + (n ? (jrnPg / 2 + 1) + ' / ' + Math.ceil(n / 2) : '') + '</span>' + (jrnPg + 2 < n ? '<button data-j="n">▶</button>' : '<span></span>') + '</div><button class="jx" data-j="x">✕</button>');
+}
+$('#inv').addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('#jrnOpen'); if (b) { e.preventDefault(); e.stopPropagation(); jrnPg = 0; jrnOpen(); } }, true);
 const SCI = ['🐟 <b>Observation 1</b> : au bord du lac, les fines particules de la plume se déposent dans l\'eau. Un petit poisson est venu s\'en nourrir.',
   '🌱 <b>Observation 2</b> : les plumes agissent comme un engrais naturel. Autour de la flaque, l\'herbe est plus verte qu\'ailleurs.',
   '💧 <b>Observation 3</b> : les particules piègent la vase. Près de la rive, l\'eau est devenue plus transparente.',
@@ -1738,15 +1754,15 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     QUESTS.forEach(q => { h += `<img src="${FICON[q.fe]}" class="${opened[q.id] ? '' : 'off'}" alt="">`; });
     h += `<span>${no}/5</span></div>`;
   } else h += `<div class="row pl"><span>Collection du musée : ${collected}/${COLL.length}</span></div>`;
-  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button>';
+  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button><button class="mapOpen" id="jrnOpen"><img src="assets/journal/diary.png" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon journal</button>';
   $('#inv').innerHTML = emoFix(h);
   { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
   let kq = 0, isl = 'swan'; try { kq = kobQ; isl = IN.on && kobScene() ? 'kob' : 'swan'; } catch (e) {}   // chaque île a ses propres missions : on voit celles de l'île où l'on est
   if (kq >= 1 && isl === 'kob') {
     const KS = ['Parler au docteur Tarah', 'Cueillir toutes les plantes de l\'île', 'Retourner voir le docteur Tarah', 'Préparer la tisane au poste de soin', 'Soigner la famille koala', 'Retourner voir le docteur Tarah', 'Soigner les animaux malades de l\'île', 'Retourner voir le docteur Tarah'];
-    t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
-    if (kobQ >= KS.length) t += '<div class="q done"><span>Tous les animaux de l\'île sont soignés 🐨</span><span class="cnt">✔</span></div>';
+    t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q qred"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
+    if (kobQ >= KS.length) t += '<div class="q"><span>Tous les animaux de l\'île sont soignés 🐨 Retrouve tes souvenirs dans ton journal 📔</span></div>';
     $('#quests').innerHTML = emoFix(shopLine() + t);
   } else {
   const seen = QUESTS.filter(q => qState[q.id] !== 'new');
@@ -1761,12 +1777,13 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     const ic = [0, 1, 2].map(i => i < nst ? '<b>★</b>' : '<i>★</i>').join('');
     const stars = lock ? '' : `<span class="stars" title="${nst} étoile${nst > 1 ? 's' : ''} sur 3">${ic}</span>`;
     let pt = ''; if (!lock) try { const u = q.portrait; if (u) pt = '<img src="' + u + '" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;background:#fff3d6;border:2px solid #e6cfa3;flex:none;margin-right:6px;vertical-align:middle">'; } catch (e) {}   // le visage de l'habitant qui demande
-    return `<div class="q ${st === 'done' && opened[q.id] ? 'done' : ''} ${lock ? 'locked' : ''}"><span style="display:flex;align-items:center">${pt}<span>${txt}${stars}</span></span><span class="cnt">${cnt}</span></div>`;
+    if (st === 'done' && !opened[q.id]) cnt = '<span class="qok">✔</span>';
+    return `<div class="q ${st === 'active' && !lock ? 'qred' : ''} ${st === 'done' && !opened[q.id] ? 'qgreen' : ''} ${lock ? 'locked' : ''}"><span style="display:flex;align-items:center">${pt}<span>${txt}${stars}</span></span><span class="cnt">${cnt}</span></div>`;
   };
   const doneQ = seen.filter(q => qState[q.id] === 'done' && opened[q.id]), todoQ = seen.filter(q => !(qState[q.id] === 'done' && opened[q.id]));
   const tabB = (id, lbl) => `<button class="qtab ${questTab === id ? 'sel' : ''}" data-qt="${id}">${lbl}</button>`;
-  t += `<div class="qtabs">${tabB('todo', '📜 En cours <small>' + todoQ.length + '</small>')}${tabB('done', '✔ Accomplies <small>' + doneQ.length + '/5</small>')}${storyOn() ? tabB('sci', '🔬 Carnet') : ''}</div>`;
-  if (questTab !== 'done') { const g = nextTarget(); if (g) t += '<div class="q guide"><span>Prochaine étape : ' + g.txt + '</span></div>'; }
+  questTab = 'todo';   // plus d'onglets : les missions passées sont dans le journal (sac à dos)
+  { const g = nextTarget(); if (g) t += '<div class="q guide"><span>Prochaine étape : ' + g.txt + '</span></div>'; }
   if (questTab === 'sci') {   // le carnet de science de Myah : une observation par plume, et une à la fin
     const nf = QUESTS.filter(o => !o.final && opened[o.id]).length, L = SCI.slice(0, nf).concat(phase === 'returned' ? [SCI[4]] : []);
     t += L.length ? L.map(x => '<div class="q"><span>' + x + '</span></div>').join('') : '<div class="q"><span>Ton carnet est encore vide. Chaque plume trouvée t\'apprendra quelque chose sur le lac 🔬</span></div>';
