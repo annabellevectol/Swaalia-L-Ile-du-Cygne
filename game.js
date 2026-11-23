@@ -1429,7 +1429,9 @@ $('#vetX').onclick = () => vetClose(); $('#remX').onclick = () => { try { window
 $('#kobX').onclick = kobBkClose; $('#kobBk').addEventListener('pointerdown', e => { if (e.target.id === 'kobBk') kobBkClose(); });
 function tipsTab(t) { $('#tipCy').style.display = t === 'kob' ? 'none' : ''; $('#tipKo').style.display = t === 'kob' ? '' : 'none'; document.querySelectorAll('#tipsTabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t)); }   // onglets des astuces : île du Cygne / île Koala (visible une fois sur place)
 document.querySelectorAll('#tipsTabs button').forEach(b => { b.onclick = () => tipsTab(b.dataset.tab); });
-press($('#tipsB'), () => { const k = kobScene(); $('#tipsTabs').style.display = k || kobD.seen ? 'flex' : 'none'; tipsTab(k ? 'kob' : 'cygne'); $('#tips').style.display = 'grid'; fitTipIcons(); });
+const openTips = () => { const k = kobScene(); $('#tipsTabs').style.display = k || kobD.seen ? 'flex' : 'none'; tipsTab(k ? 'kob' : 'cygne'); $('#tips').style.display = 'grid'; fitTipIcons(); };
+press($('#tipsB'), openTips); press($('#setTips'), () => { try { $('#settings').style.display = 'none'; } catch (e) {} openTips(); });
+$('#quests').addEventListener('pointerdown', e => { if (!e.target.closest('.qshop')) return; e.preventDefault(); e.stopPropagation(); shopOpen(); });
 press($('#tipsX'), () => { $('#tips').style.display = 'none'; });
 $('#tips').addEventListener('click', e => { if (e.target.id === 'tips') $('#tips').style.display = 'none'; });
 press($('#mute'), () => { muted = !muted; try { localStorage.setItem('sw_muted', muted ? '1' : '0'); } catch (e) {} $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
@@ -1720,7 +1722,7 @@ const SCI = ['🐟 <b>Observation 1</b> : au bord du lac, les fines particules d
   '💧 <b>Observation 3</b> : les particules piègent la vase. Près de la rive, l\'eau est devenue plus transparente.',
   '🪶 <b>Observation 4</b> : quatre plumes suffisent pour nettoyer le lac. Mais pour qu\'il reste propre, il faut les mues régulières de Gaïkin.',
   '🦢 <b>Observation 5</b> : Gaïkin est revenu ! Plus de poissons, des fleurs qui repoussent, des papillons partout : tout le milieu naturel de l\'île se rétablit.'];
-function renderHud() {
+function renderHud() { try { shopBtn(); } catch (e) {}
   const no = nOpened();
   const collected = COLL.filter(item => coll[item.id]).length;
   let h = bagItemsHtml();
@@ -1739,7 +1741,7 @@ function renderHud() {
     const KS = ['Parler au docteur Tarah', 'Cueillir toutes les plantes de l\'île', 'Retourner voir le docteur Tarah', 'Préparer la tisane au poste de soin', 'Soigner la famille koala', 'Retourner voir le docteur Tarah', 'Soigner les animaux malades de l\'île', 'Retourner voir le docteur Tarah'];
     t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
     if (kobQ >= KS.length) t += '<div class="q done"><span>Tous les animaux de l\'île sont soignés 🐨</span><span class="cnt">✔</span></div>';
-    $('#quests').innerHTML = emoFix(t);
+    $('#quests').innerHTML = emoFix(shopLine() + t);
   } else {
   const seen = QUESTS.filter(q => qState[q.id] !== 'new');
   const line = q => {
@@ -1765,7 +1767,7 @@ function renderHud() {
   else { if (!seen.length) t += '<div class="q"><span>' + (storyOn() ? 'Va parler aux habitants de l\'île : chacun a besoin d\'un coup de main !' : 'Promène-toi à ton rythme : si un habitant a besoin d\'aide, tu peux l\'aider quand tu veux.') + '</span></div>'; todoQ.forEach(q => { t += line(q); }); }
   const sw = phase === 'quests' || phase === 'reveal';
   if (storyOn() && !sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''}"><span>🦢 Rendre les plumes au Cygne</span><span class="cnt">${phase === 'returned' ? '✔' : '! lac'}</span></div>`;
-  $('#quests').innerHTML = emoFix(t);
+  $('#quests').innerHTML = emoFix(shopLine() + t);
   }
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
   $('#bFly').classList.toggle('on', wingsOk()); $('#bFly').classList.toggle('kob', IN.on && SC === SC_KOBHAK && IN.floor === 0);
@@ -2008,7 +2010,7 @@ function talkTo0(q) {
   if (st === 'done') return openDialog(q.who, opened[q.id] ? chatter(q.npc) : [q.inside ? 'Mon coffre est caché ' + q.inside.where + ' ✨ Cherche-le, Myah !' : 'Cherche le buisson qui scintille ✨ ' + (q.where || 'près de moi') + ', Myah !'], opened[q.id] ? freeO : free, q.portrait);
   if (st === 'new' && isEve()) return openDialog(q.who, ['Il se fait tard, Myah. Reviens demain matin, on en reparlera !'], freeO, q.portrait);   // pas de mission proposée la nuit tombée
   if (st === 'new') {
-    const accept = () => { qState[q.id] = 'active'; if (q.tool) flashTool(q.tool); save(); renderHud(); if (hasAll(q)) setTimeout(() => talkTo0(q), 100); else free0(); };
+    const accept = () => { qState[q.id] = 'active'; { const dk = Object.keys(q.need || {}).find(k => RECIPES[k]); if (dk && !((inv[dk] | 0) >= q.need[dk])) setTimeout(() => shopSet(dk, 'dish'), 900); } if (q.tool) flashTool(q.tool); save(); renderHud(); if (hasAll(q)) setTimeout(() => talkTo0(q), 100); else free0(); };
     if (!storyOn()) return openDialog(q.who, questText(q, 'start'), () => askQuest('Aider ' + String(q.who).split(',')[0].trim() + ' ?', accept, () => { free0(); say('D\'accord, reviens quand tu veux !', 2.6); }), q.portrait);   // Balade : jamais obligé, et dans l\'ordre qu\'on veut
     return openDialog(q.who, q.start, accept, q.portrait);
   }
@@ -4276,7 +4278,7 @@ function deskMenu() {
   if (kobQ < 2) { openDialog('Poste de soin', ['C\'est le poste de soin du docteur Tarah.', 'Il me faudra d\'abord cueillir toutes les plantes de l\'île !'], null, ''); return; }
   const tab = deskMenu.tab || 'rem', tb = (k, n) => '<button class="kvBtn" data-tab="' + k + '" style="flex:1;' + (tab === k ? 'background:#4b2a7a;color:#fff' : 'opacity:.75') + '">' + n + '</button>', ico = k => '<img src="assets/kob2/' + k + '.png?v=2" alt="" style="height:46px;display:block;margin:0 auto 4px">';
   $('#remBody').innerHTML = '<div class="kvH">Poste de soin</div><div class="kvBtns" style="gap:6px;margin:4px 0 8px">' + tb('base', '🧪 Préparations de base') + tb('rem', '💊 Remèdes') + '</div>' + (tab === 'base' ? '<p class="kvMsg">Prépare d\'abord les ingrédients des remèdes.</p><div class="kvTools"><button class="kvTool" id="pxM">' + ico('miel') + '<span>Miel</span></button><button class="kvTool" id="pxC">' + ico('cire') + '<span>Cire</span></button><button class="kvTool" id="pxH">' + ico('huile') + '<span>Huile de cacahuète</span></button></div>' : '<p class="kvMsg">Les recettes de la vétérinaire. Quelle recette veux-tu préparer ?</p><div class="kvTools">' + REC.map(r => { const on = kobQ >= r.q || vetShowAll === 1; return '<button class="kvTool' + (on ? '' : ' lock') + '" data-k="' + r.k + '">' + r.ico() + '<span>' + r.n + (on ? (kobRx[r.k] ? ' ×' + kobRx[r.k] : '') : ' (bientôt)') + '</span></button>'; }).join('') + '</div>') + '<p class="kvMsg" style="font-size:13px">🧺 Dans ton panier : ' + KOB_PLT.map(p => p.n.split(' ')[0] + ' ×' + (kobHS()[p.k] | 0)).join(' · ') + ' · Rayon ×' + (kobHS().rayon | 0) + ' · Cire ×' + (kobHS().cire | 0) + ' · Miel ×' + (kobHS().mielj | 0) + ' · Huile ×' + (kobHS().huile | 0) + '</p><p class="kvMsg" id="rcD">Touche une recette.</p>';
-  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { const miss = (RMD[r.k] || []).filter(d => ingKey(d[0]) && !(kobHS()[ingKey(d[0])] > 0)).map(d => d[0] === 'huile' ? 'Huile de cacahuète (à préparer ici)' : ING[d[0]][0].replace(/ \(.*\)/, '')); if ((kobQ >= r.q || vetShowAll === 1) && miss.length && vetShowAll !== 1) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te manque : <b>' + miss.join(', ') + '</b>. Prends le panier et va les cueillir sur l\'île : les plantes repoussent ! 🧺' + ((kobD.bkH | 0) < 2 ? (kobD.bkH = (kobD.bkH | 0) + 1, save(), '<br><i>Docteur Tarah : « Tu ne sais plus à quoi elles ressemblent ? Regarde dans le carnet de plantes ! »</i><br><button class="kvTool" id="rcBk" style="margin-top:6px">📖 Ouvrir le carnet de plantes</button>') : ''); { const bk = $('#rcBk'); if (bk) bk.onclick = () => kobBkOpenNow(); } return; } if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
+  document.querySelectorAll('#remBody .kvTool').forEach(b => { const r = REC.find(x => x.k === b.dataset.k); b.onclick = () => { if ((RMD[r.k] || []).some(d => ingKey(d[0]) && !(kobHS()[ingKey(d[0])] > 0))) shopSet(r.k, 'rem'); const miss = (RMD[r.k] || []).filter(d => ingKey(d[0]) && !(kobHS()[ingKey(d[0])] > 0)).map(d => d[0] === 'huile' ? 'Huile de cacahuète (à préparer ici)' : ING[d[0]][0].replace(/ \(.*\)/, '')); if ((kobQ >= r.q || vetShowAll === 1) && miss.length && vetShowAll !== 1) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te manque : <b>' + miss.join(', ') + '</b>. Prends le panier et va les cueillir sur l\'île : les plantes repoussent ! 🧺' + ((kobD.bkH | 0) < 2 ? (kobD.bkH = (kobD.bkH | 0) + 1, save(), '<br><i>Docteur Tarah : « Tu ne sais plus à quoi elles ressemblent ? Regarde dans le carnet de plantes ! »</i><br><button class="kvTool" id="rcBk" style="margin-top:6px">📖 Ouvrir le carnet de plantes</button>') : ''); { const bk = $('#rcBk'); if (bk) bk.onclick = () => kobBkOpenNow(); } return; } if (kobQ >= r.q || vetShowAll === 1) kobRem(r.k); else $('#rcD').textContent = r.n + ' : ' + r.d + ' Le docteur Tarah t\'apprendra cette recette quand les koalas seront guéris !'; }; });
   document.querySelectorAll('#remBody [data-tab]').forEach(b => b.onclick = () => { deskMenu.tab = b.dataset.tab; sfx.pick && sfx.pick(); deskMenu(); });
   if ($('#pxM')) $('#pxM').onclick = () => { if (!(kobHS().rayon > 0)) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te faut un <b>rayon de miel</b> : grimpe à la ruche avec le panier 🐝'; return; } kobPrep('xmiel'); };
   if ($('#pxC')) $('#pxC').onclick = () => { if (!(kobHS().cireb > 0)) { sfx.no && sfx.no(); $('#rcD').innerHTML = 'Il te faut d\'abord la <b>cire d\'un rayon</b> : prépare le miel, la cire reste après 🐝'; return; } kobPrep('xcire'); };
@@ -7642,7 +7644,7 @@ setInterval(() => {   // le temps de pousse compte quand on joue (le jeu est ouv
 }, 250);
 function gardenBuild() {
   const o = document.createElement('div'); o.id = 'garden';
-  o.innerHTML = '<div class="gbox"><div class="gbed" id="gBed"></div><div class="gbar"><div class="gtit">🌱 Le potager</div><div class="gmsg" id="gMsg"></div><div class="gpick" id="gPick"></div><button class="gok" id="gWater">🚿 Tout arroser</button><button class="gok" id="gHarv" style="display:none">🧺 Tout cueillir</button><button class="gx" id="gClose">✕ Fermer</button></div></div>';
+  o.innerHTML = '<div class="gbox"><div class="gbed" id="gBed"></div><div class="gbar"><div class="gtit">🌱 Le potager</div><div class="gmsg" id="gMsg"></div><div class="gpick" id="gPick"></div><button class="gok" id="gWater">🚿 Tout arroser</button><button class="gok" id="gHarv" style="display:none">🧺 Tout cueillir</button><button class="gx" id="gClose" aria-label="Fermer" style="position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;padding:0;font:900 20px/1 sans-serif;display:grid;place-items:center">✕</button></div></div>';
   document.body.appendChild(o); G.el = o;
   const bed = o.querySelector('#gBed');
   GPTS.forEach((pt, i) => {
@@ -7759,6 +7761,51 @@ function handIn(q, ok, cancel) {
   o.addEventListener('pointerdown', e => e.stopPropagation()); document.body.appendChild(o); draw();
 }
 
+
+/* ----- la liste de courses : ce qu'il faut réunir pour un plat ou un remède, et où le trouver ----- */
+const SHOP_SRC = {
+  mango: 'Sur les manguiers, panier en main 🧺', banana: 'Sur les bananiers, panier en main 🧺', coconut: 'Sur les cocotiers, panier en main 🧺',
+  fish: 'Pêche-le avec la canne 🎣', crab: 'Sur la plage, attrape les crabes 🦀',
+  farine: 'Plante du maïs au potager 🌽, puis échange 2 épis chez Kykah', sucre: 'Plante de la canne à sucre au potager 🎋, puis échange-la chez Kykah',
+  oeuf: 'Chez Kykah : 6 œufs contre 3 coquillages 🐚', epices: 'Chez Kykah : un pot d\'épices contre 2 coquillages 🐚', citron: 'Chez Kykah ou chez Koki : 1 coquillage 🐚',
+  riz: 'Boutique de Koki, plage de l\'île du Koala 🐚', laitcoco: 'Boutique de Koki, plage de l\'île du Koala 🐚', citronnelle: 'Bacs de Tomba ou boutique de Koki (île du Koala)',
+  patate: 'Plante-la au potager, ou bacs de Tomba (île du Koala)', taro: 'Plante une igname au potager 🌱', plantain: 'Plante une banane plantain au potager 🌱', arachide: 'Potager, ou bac de Tomba (île du Koala) 🥜',
+  mielj: 'Prépare-le au poste de soin avec un rayon de la ruche 🐝', huile: 'Prépare-la au poste de soin avec 2 cacahuètes 🥜', cire: 'Prépare-la au poste de soin avec un rayon de la ruche 🐝',
+  euca: 'Cueille-le sur l\'île du Koala, panier en main 🧺', miel: 'Cueille-la sur l\'île du Koala, panier en main 🧺', mousse: 'Cueille-la sur l\'île du Koala, panier en main 🧺', baies: 'Cueille-les sur l\'île du Koala, panier en main 🧺', racine: 'Cueille-la sur l\'île du Koala, panier en main 🧺', coq: 'Cueille-le sur l\'île du Koala, panier en main 🧺' };
+const SHOP_NM = { mango: 'Mangues', banana: 'Bananes', coconut: 'Noix de coco', fish: 'Poisson', crab: 'Crabes', farine: 'Farine de maïs', sucre: 'Sucre de canne', oeuf: 'Œufs', epices: 'Épices', citron: 'Citron vert', riz: 'Riz blanc', laitcoco: 'Lait de coco', citronnelle: 'Citronnelle', patate: 'Patate douce', taro: 'Igname', plantain: 'Banane plantain', arachide: 'Cacahuètes', mielj: 'Pot de miel', huile: 'Huile de cacahuète', cire: 'Cire d\'abeille' };
+function shopItems() {
+  const L = kobD.shop; if (!L) return null;
+  if (L.t === 'rem') { const r = REC.find(x => x.k === L.k); if (!r) return null; const it = [], seen = {};
+    (RMD[L.k] || []).forEach(([k]) => { const kk = ingKey(k); if (!kk || seen[kk]) return; seen[kk] = 1; it.push({ k: kk, nm: SHOP_NM[kk] || (ING[k] ? ING[k][0].replace(/ \(.*\)/, '') : kk), n: 1, have: kobHS()[kk] | 0 }); });
+    return { title: r.n, where: 'Prépare-le au poste de soin du dispensaire (île du Koala)', it }; }
+  const r = RECIPES[L.k]; if (!r) return null; const it = [];
+  Object.entries(r.need || {}).forEach(([k, n]) => it.push({ k, nm: SHOP_NM[k] || k, n, have: inv[k] | 0 }));
+  Object.entries(r.kneed || {}).forEach(([k, n]) => it.push({ k, nm: SHOP_NM[k] || k, n, have: kobHS()[k] | 0 }));
+  return { title: r.emoji + ' ' + r.name, where: r.nuna ? 'Cuisine-le au fourneau de Nuna (île du Koala)' : 'Cuisine-le dans la cuisine de la maison de Myah 🏠', it };
+}
+function shopSet(k, t) {
+  if (kobD.shop && kobD.shop.k === k) return; kobD.shop = { k, t: t || 'dish' }; save(); shopBtn();
+  if (!kobD.shopTuto) { kobD.shopTuto = 1; save(); const S = shopItems(); openDialog('Liste de courses', ['Pour préparer ' + (S ? S.title.replace(/^\S+ /, '') : 'ça') + ', il faut d\'abord réunir les ingrédients !', 'Ouvre tes missions 📜 en haut de l\'écran : ta liste de courses est tout en haut. Tu verras ce qu\'il te manque, et où le trouver.', 'Chaque ingrédient se coche ✅ dès que tu l\'as dans ton sac.'], () => shopOpen(), ''); }
+  else say('🛒 Ajouté à ta liste de courses !', 2.6);
+}
+function shopBtn() { const S = shopItems(), b = $('#scrB'); if (b) b.classList.toggle('ready', !!S && S.it.every(i => i.have >= i.n)); }   // la liste est rangée dans les missions 📜 (parchemin entouré de vert quand tout est prêt)
+function shopLine() { const S = shopItems(); if (!S) return ''; const ok = S.it.filter(i => i.have >= i.n).length; return '<div class="q qshop" style="cursor:pointer;background:' + (ok === S.it.length ? '#dff3d6' : '#fff3d6') + '"><span>🛒 Liste de courses : <b>' + S.title.replace(/^\S+ /, '') + '</b><br><small>Touche pour voir ce qu\'il manque et où le trouver</small></span><span class="cnt">' + ok + '/' + S.it.length + '</span></div>'; }
+function shopOpen() {
+  const S = shopItems(); if (!S) return; let o = $('#shopOv'); if (o) o.remove();
+  o = document.createElement('div'); o.id = 'shopOv'; o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif';
+  const all = S.it.every(i => i.have >= i.n);
+  o.innerHTML = '<div style="position:relative;width:min(420px,92vw);max-height:84vh;overflow-y:auto;background:#fff8e8;border:3px solid #7a4b24;border-radius:18px;box-shadow:0 5px 0 rgba(0,0,0,.25);padding:14px 14px 16px;color:#5a3412">' +
+    '<button id="shopX" aria-label="Fermer" style="position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;border:2px solid #7a4c14;background:#e8a33a;color:#fff;font:900 20px/1 sans-serif">✕</button>' +
+    '<div style="font:700 20px \'Trebuchet MS\';text-align:center;margin:2px 40px 2px">🛒 Liste de courses</div><div style="text-align:center;font-weight:700;font-size:17px;margin-bottom:2px">' + S.title + '</div>' +
+    '<div style="text-align:center;font-size:13px;opacity:.85;margin-bottom:10px">' + S.where + '</div>' +
+    S.it.map(i => { const ok = i.have >= i.n; return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;margin:6px 0;border-radius:12px;background:' + (ok ? '#dff3d6' : '#fff') + ';border:2px solid ' + (ok ? '#7cc36a' : '#e6cfa3') + '"><div style="font-size:22px;line-height:1">' + (ok ? '✅' : '⬜') + '</div><div style="flex:1"><div style="font-weight:700;font-size:15px">' + i.nm + ' <span style="font-weight:400;opacity:.8">(' + Math.min(i.have, i.n) + ' / ' + i.n + ')</span></div>' + (ok ? '' : '<div style="font-size:13px;margin-top:2px">📍 ' + (SHOP_SRC[i.k] || '') + '</div>') + '</div></div>'; }).join('') +
+    (all ? '<div style="text-align:center;font-weight:700;color:#2e7d32;margin-top:8px">Tout est prêt ! ' + S.where.replace(/^Cuisine-le|^Prépare-le/, 'Va le préparer') + '</div>' : '') +
+    '<div style="display:flex;justify-content:center;margin-top:10px"><button id="shopDel" style="border:2px solid #b9915a;background:#f3e2c3;color:#5a3412;border-radius:99px;padding:6px 14px;font:700 13px \'Trebuchet MS\'">Effacer la liste</button></div></div>';
+  document.body.appendChild(o);
+  const close = () => o.remove(); o.addEventListener('pointerdown', e => { if (e.target === o) close(); });
+  o.querySelector('#shopX').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); close(); });
+  o.querySelector('#shopDel').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); delete kobD.shop; save(); shopBtn(); close(); });
+}
 /* ----- Myah tend le légume (planche Myah + légumes) ----- */
 const GIVE_IT = { flower: { c: [0, 5], n: 'Fleur', e: '🌸' }, mango: { c: [1], n: 'Mangue', e: '🥭' }, banana: { c: [2], n: 'Bananes', e: '🍌' }, coconut: { c: [3], n: 'Noix de coco', e: '🥥' }, fish: { c: [6], n: 'Poisson', e: '🐟' }, shell: { c: [4, 7], n: 'Coquillage', e: '🐚' }, butterfly: { c: [8], n: 'Papillon', e: '🦋' }, crab: { c: [9], n: 'Crabe', e: '🦀' } };   // planche « Myah + objets » : 4 × 2
 function giveAnim(need, done) { return done();   // plus d'image de Myah tenant l'objet : la remise se fait directement
@@ -8102,7 +8149,7 @@ function cookMenu() {
   CK.box.innerHTML = emoFix(h); cookBind();
   CK.box.querySelectorAll('.lvb[data-l]').forEach(b => btn(b, () => { mini.cklv = +b.dataset.l; save(); cookMenu(); }));
   btn(CK.box.querySelector('#ckDf'), () => { mini.ckdef = !mini.ckdef; save(); cookMenu(); });
-  CK.box.querySelectorAll('.rcard').forEach(b => btn(b, () => { const r = RECIPES[b.dataset.r]; if (!cookNeed(r)) { const sm = b.querySelector('small') || b; const o = sm.textContent; sm.textContent = 'Il manque des ingrédients'; setTimeout(() => { sm.textContent = o; }, 1400); sfx.blip && sfx.blip(); return; } cookStart(b.dataset.r); }));
+  CK.box.querySelectorAll('.rcard').forEach(b => btn(b, () => { const r = RECIPES[b.dataset.r]; if (!cookNeed(r)) { shopSet(b.dataset.r, 'dish'); const sm = b.querySelector('small') || b; const o = sm.textContent; sm.textContent = 'Il manque des ingrédients'; setTimeout(() => { sm.textContent = o; }, 1400); sfx.blip && sfx.blip(); return; } cookStart(b.dataset.r); }));
 }
 function cookStart(id) {
   const r = RECIPES[id]; Object.entries(r.need).forEach(([k, n]) => { inv[k] -= n; }); Object.entries(r.kneed || {}).forEach(([k, n]) => { kobHS()[k] -= n; }); save(); renderHud();
