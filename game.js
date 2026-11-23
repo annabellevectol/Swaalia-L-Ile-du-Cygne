@@ -1799,6 +1799,12 @@ function renderHud() { try { shopBtn(); } catch (e) {}
   { const sn = $('#scrN'); sn.textContent = act || '!'; sn.classList.toggle('show', act > 0); }
 }
 function hudToggle(which) {   // un seul panneau ouvert à la fois
+  if (which === 'scr' && !$('#quests').classList.contains('open')) try {   // une mission en cours demande un plat : sa liste de courses passe en premier
+    let isl = IN.on && kobScene() ? 'kob' : 'swan';
+    if (isl === 'swan') for (const q of QUESTS) { if (qState[q.id] !== 'active') continue; const k = Object.keys(q.need).find(k => RECIPES[k] && (inv[k] | 0) < (q.need[k] | 0 || 1)); if (!k) continue;
+      if (kobD.shop && kobD.shop.k === k) break; const old = kobD.shop; kobD.shop = { k, t: 'dish' }; const S = shopItems(); if (!S || S.it.every(i => i.have >= i.n)) { if (old) kobD.shop = old; else delete kobD.shop; } else save(); break; }
+    renderHud();
+  } catch (e) {}
   const map = { bag: ['#inv', '#bagB'], scr: ['#quests', '#scrB'] };
   for (const k in map) { const on = k === which && !$(map[k][0]).classList.contains('open'); $(map[k][0]).classList.toggle('open', on); $(map[k][1]).classList.toggle('on', on); }
 }
