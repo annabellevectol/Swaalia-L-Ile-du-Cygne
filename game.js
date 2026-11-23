@@ -8592,7 +8592,7 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
 (() => { const b = document.getElementById('setOff'); let busy = false;
   const LS = k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, LSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
   const getMap = () => { try { return JSON.parse(LS('swaaliaOffMap') || '{}'); } catch (e) { return {}; } };
-  async function manifest() { const j = await (await fetch('offline.json', { cache: 'no-store' })).json(); return Array.isArray(j) ? { v: 'old', files: Object.fromEntries(j.map(f => [f, '?'])) } : j; }
+  async function manifest() { const r = await fetch('offline.json?t=' + Date.now()); if (!r.ok) throw new Error('liste ' + r.status); const j = await r.json(); return Array.isArray(j) ? { v: 'old', files: Object.fromEntries(j.map(f => [f, '?'])) } : j; }
   async function dl(show, M) {
     if (busy) return; busy = true; show('📥 Préparation…');
     try { M = M || await manifest(); const c = await caches.open('swaalia-v1'), old = getMap(), todo = Object.keys(M.files).filter(f => old[f] !== M.files[f]); let n = 0, ko = 0; const done = Object.assign({}, old);
@@ -8603,7 +8603,7 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
       LSet('swaaliaOffMap', JSON.stringify(done));
       try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (er) {}
       if (ko > 20) show('⚠️ ' + ko + ' fichiers manqués : réessaie avec internet', true); else { LSet('swaaliaOff', M.v); show('✅ Prêt à jouer hors ligne !', true); }
-    } catch (er) { show('❌ Réessaie avec internet', true); }
+    } catch (er) { show('❌ Réessaie avec internet (' + String(er && (er.name || er.message) || er).slice(0, 40) + ')', true); }
     busy = false;
   }
   if (!('caches' in window) || !('serviceWorker' in navigator)) { if (b) b.style.display = 'none'; return; }
