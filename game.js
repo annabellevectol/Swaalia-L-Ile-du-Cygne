@@ -208,7 +208,7 @@ const FCOLOR = [['#ff7eb6', '#ffd6e8'], ['#4aa3ff', '#cfe6ff'], ['#ffd23d', '#ff
 const FNAME = ['rose', 'bleue', 'dorée', 'turquoise', 'violette'];
 
 const QUESTS = [
-  { id: 'rose', npc: 'maman', spot: 'rose', who: 'Miraaï, ta maman', need: { coconut: 4, gmangue: 1 }, title: '4 noix de coco et un gâteau pour Miraaï', tool: 'basket', fe: 0,
+  { id: 'rose', npc: 'maman', spot: 'rose', who: 'Miraaï, ta maman', need: { coconut: 4, gmangue: 1 }, title: '4 noix de coco et un gâteau pour Maman', tool: 'basket', fe: 0,
     start: ['Myah, ma chérie ! Bientôt, c\'est la fête du Cygne. 🦢 Chaque année, on prépare un grand repas pour dire : « Reviens, Gaïkin ! »', 'Peux-tu me rapporter 4 noix de coco 🥥 pour la boisson de la fête ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Et pour la table de la fête, prépare un Maïmaïa 🍰, le gâteau de maïs à la mangue ! Cueille 2 mangues 🥭 près du musée. Pour la farine de maïs, le sucre de canne, les œufs et les épices, va voir Kykah à son épicerie : elle échange contre du maïs et de la canne à sucre du potager, ou des coquillages. Ensuite, cuisine-le à la maison !', 'Avant de partir, Gaïkin m\'a confié un coffre avec une de ses plumes. Je ne dois la donner qu\'à quelqu\'un de confiance… et pour moi, c\'est toi ! 💛'],
     remind: ['Pour la fête, il me faut 4 noix de coco 🥥 et un Maïmaïa 🍰. Les mangues 🥭 sont près du musée, et on cuisine à la maison !'],
     done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰 Je le garde pour la table de la fête.', 'Ta grand-mère m\'a confié cette plume il y a longtemps. Je l\'ai gardée cachée pour que les pirates ne la trouvent pas. Maintenant, c\'est toi qui en prendras soin. Mon coffre est caché dans le buisson qui scintille ✨ devant la maison, à gauche de la porte. La plume est pour toi !'] },
@@ -390,7 +390,7 @@ const recOf = k => { try { return RECIPES[k] || null; } catch (e) { return null;
 const needStr = q => Object.entries(q.need).filter(([, n]) => n !== 0).map(([k, n]) => [k, typeof n === 'number' ? n : 1]).map(([k, n]) => `${recOf(k) ? '<img src="assets/cook/' + recOf(k).ok + '.jpg" alt="" style="height:1.4em;vertical-align:-5px;border-radius:6px">' : ICON[k]}${Math.min(inv[k] | 0, n)}/${n}`).join(' ');   // le plat demandé est montré en image
 const FREE_QUEST_TEXT = {
   rose: {
-    title: 'Noix de coco et gâteau pour Miraaï',
+    title: 'Noix de coco et gâteau pour Maman',
     start: ['Myah, ma chérie ! Je prépare un goûter pour la famille. 🥥', 'Peux-tu me rapporter 4 noix de coco ? Prends ton panier [panier] et cherche les cocotiers, près de la maison rose et du bassin !', 'Et prépare aussi un Maïmaïa 🍰, le gâteau à la mangue : 2 mangues 🥭 près du musée, et chez Kykah la farine, le sucre, les œufs et les épices. Puis direction la cuisine !'],
     remind: ['Pour le goûter, il me faut 4 noix de coco 🥥 et un Maïmaïa 🍰 !'],
     done: ['Oh merci ma puce ! Ces noix de coco sont parfaites, et ce gâteau sent si bon ! 🥥🍰', 'Un petit coffre t’attend dans le buisson qui scintille ✨ devant la maison, à gauche de la porte.']
