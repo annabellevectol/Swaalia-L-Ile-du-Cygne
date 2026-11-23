@@ -8603,7 +8603,7 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
       LSet('swaaliaOffMap', JSON.stringify(done));
       try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (er) {}
       if (ko > 20) show('⚠️ ' + ko + ' fichiers manqués : réessaie avec internet', true); else { LSet('swaaliaOff', M.v); show('✅ Prêt à jouer hors ligne !', true); }
-    } catch (er) { show('❌ Réessaie avec internet (' + String(er && (er.name || er.message) || er).slice(0, 40) + ')', true); }
+    } catch (er) { show('❌ Réessaie avec internet (' + String(er && (er.message || er.name) || er).slice(0, 50) + ')', true); }
     busy = false;
   }
   if (!('caches' in window) || !('serviceWorker' in navigator)) { if (b) b.style.display = 'none'; return; }
