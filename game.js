@@ -1429,8 +1429,9 @@ $('#vetX').onclick = () => vetClose(); $('#remX').onclick = () => { try { window
 $('#kobX').onclick = kobBkClose; $('#kobBk').addEventListener('pointerdown', e => { if (e.target.id === 'kobBk') kobBkClose(); });
 function tipsTab(t) { $('#tipCy').style.display = t === 'kob' ? 'none' : ''; $('#tipKo').style.display = t === 'kob' ? '' : 'none'; document.querySelectorAll('#tipsTabs button').forEach(b => b.classList.toggle('sel', b.dataset.tab === t)); }   // onglets des astuces : île du Cygne / île Koala (visible une fois sur place)
 document.querySelectorAll('#tipsTabs button').forEach(b => { b.onclick = () => tipsTab(b.dataset.tab); });
-press($('#tipsB'), () => { const k = kobScene(); $('#tipsTabs').style.display = k || kobD.seen ? 'flex' : 'none'; tipsTab(k ? 'kob' : 'cygne'); $('#tips').style.display = 'grid'; fitTipIcons(); });
-press($('#shopB'), () => shopOpen());
+const openTips = () => { const k = kobScene(); $('#tipsTabs').style.display = k || kobD.seen ? 'flex' : 'none'; tipsTab(k ? 'kob' : 'cygne'); $('#tips').style.display = 'grid'; fitTipIcons(); };
+press($('#tipsB'), openTips); press($('#setTips'), () => { try { $('#settings').style.display = 'none'; } catch (e) {} openTips(); });
+$('#quests').addEventListener('pointerdown', e => { if (!e.target.closest('.qshop')) return; e.preventDefault(); e.stopPropagation(); shopOpen(); });
 press($('#tipsX'), () => { $('#tips').style.display = 'none'; });
 $('#tips').addEventListener('click', e => { if (e.target.id === 'tips') $('#tips').style.display = 'none'; });
 press($('#mute'), () => { muted = !muted; try { localStorage.setItem('sw_muted', muted ? '1' : '0'); } catch (e) {} $('#mute').textContent = muted ? '🔇' : '🔊'; musApply(); });
@@ -1740,7 +1741,7 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     const KS = ['Parler au docteur Tarah', 'Cueillir toutes les plantes de l\'île', 'Retourner voir le docteur Tarah', 'Préparer la tisane au poste de soin', 'Soigner la famille koala', 'Retourner voir le docteur Tarah', 'Soigner les animaux malades de l\'île', 'Retourner voir le docteur Tarah'];
     t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
     if (kobQ >= KS.length) t += '<div class="q done"><span>Tous les animaux de l\'île sont soignés 🐨</span><span class="cnt">✔</span></div>';
-    $('#quests').innerHTML = emoFix(t);
+    $('#quests').innerHTML = emoFix(shopLine() + t);
   } else {
   const seen = QUESTS.filter(q => qState[q.id] !== 'new');
   const line = q => {
@@ -1766,7 +1767,7 @@ function renderHud() { try { shopBtn(); } catch (e) {}
   else { if (!seen.length) t += '<div class="q"><span>' + (storyOn() ? 'Va parler aux habitants de l\'île : chacun a besoin d\'un coup de main !' : 'Promène-toi à ton rythme : si un habitant a besoin d\'aide, tu peux l\'aider quand tu veux.') + '</span></div>'; todoQ.forEach(q => { t += line(q); }); }
   const sw = phase === 'quests' || phase === 'reveal';
   if (storyOn() && !sw) t += `<div class="q ${phase === 'returned' ? 'done' : ''}"><span>🦢 Rendre les plumes au Cygne</span><span class="cnt">${phase === 'returned' ? '✔' : '! lac'}</span></div>`;
-  $('#quests').innerHTML = emoFix(t);
+  $('#quests').innerHTML = emoFix(shopLine() + t);
   }
   $('#bSwan').classList.toggle('on', mountUnlocked || level === 'balade');
   $('#bFly').classList.toggle('on', wingsOk()); $('#bFly').classList.toggle('kob', IN.on && SC === SC_KOBHAK && IN.floor === 0);
@@ -7784,10 +7785,11 @@ function shopItems() {
 }
 function shopSet(k, t) {
   if (kobD.shop && kobD.shop.k === k) return; kobD.shop = { k, t: t || 'dish' }; save(); shopBtn();
-  if (!kobD.shopTuto) { kobD.shopTuto = 1; save(); const S = shopItems(); openDialog('Liste de courses', ['Pour préparer ' + (S ? S.title.replace(/^\S+ /, '') : 'ça') + ', il faut d\'abord réunir les ingrédients !', 'Touche le bouton 🛒 en haut de l\'écran : tu verras ce qu\'il te manque, et où le trouver.', 'Chaque ingrédient se coche ✅ dès que tu l\'as dans ton sac.'], () => shopOpen(), ''); }
+  if (!kobD.shopTuto) { kobD.shopTuto = 1; save(); const S = shopItems(); openDialog('Liste de courses', ['Pour préparer ' + (S ? S.title.replace(/^\S+ /, '') : 'ça') + ', il faut d\'abord réunir les ingrédients !', 'Ouvre tes missions 📜 en haut de l\'écran : ta liste de courses est tout en haut. Tu verras ce qu\'il te manque, et où le trouver.', 'Chaque ingrédient se coche ✅ dès que tu l\'as dans ton sac.'], () => shopOpen(), ''); }
   else say('🛒 Ajouté à ta liste de courses !', 2.6);
 }
-function shopBtn() { const b = $('#shopB'); if (!b) return; const S = shopItems(); b.style.display = S ? '' : 'none'; if (S) b.classList.toggle('ready', S.it.every(i => i.have >= i.n)); }
+function shopBtn() { const S = shopItems(), b = $('#scrB'); if (b) b.classList.toggle('ready', !!S && S.it.every(i => i.have >= i.n)); }   // la liste est rangée dans les missions 📜 (parchemin entouré de vert quand tout est prêt)
+function shopLine() { const S = shopItems(); if (!S) return ''; const ok = S.it.filter(i => i.have >= i.n).length; return '<div class="q qshop" style="cursor:pointer;background:' + (ok === S.it.length ? '#dff3d6' : '#fff3d6') + '"><span>🛒 Liste de courses : <b>' + S.title.replace(/^\S+ /, '') + '</b><br><small>Touche pour voir ce qu\'il manque et où le trouver</small></span><span class="cnt">' + ok + '/' + S.it.length + '</span></div>'; }
 function shopOpen() {
   const S = shopItems(); if (!S) return; let o = $('#shopOv'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'shopOv'; o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif';
