@@ -8620,6 +8620,6 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
   if (navigator.onLine) setTimeout(async () => { let M; try { M = await manifest(); } catch (e) { return; }
     const have = LS('swaaliaOff');
     if (have && have !== M.v) { const old = getMap(), n = Object.keys(M.files).filter(f => old[f] !== M.files[f]).length; if (n) ask('Mise à jour du jeu', 'Il y a des nouveautés ! Je mets à jour le jeu sur cet appareil pour pouvoir y jouer sans internet (' + n + ' fichier' + (n > 1 ? 's' : '') + ').', 'Mettre à jour', M); else LSet('swaaliaOff', M.v); }
-    else if (!have && !LS('swaaliaOffAsk')) { LSet('swaaliaOffAsk', '1'); ask('Jouer sans internet ?', 'Je peux télécharger tout le jeu sur cet appareil (environ 170 Mo, mieux en Wi-Fi). Ta partie est déjà sauvegardée dessus.', 'Télécharger', M); }
+    else if (!have && Date.now() - (+LS('swaaliaOffAsk2') || 0) > 864e5) { LSet('swaaliaOffAsk2', Date.now()); ask('Jouer sans internet ?', 'Je peux télécharger tout le jeu sur cet appareil (environ 170 Mo, mieux en Wi-Fi). Ta partie est déjà sauvegardée dessus.', 'Télécharger', M); }
   }, 2500);
 })();
