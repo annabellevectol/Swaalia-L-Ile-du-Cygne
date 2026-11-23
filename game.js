@@ -5584,7 +5584,14 @@ function wdStkRect(st, box) {   // rectangle du sticker choisi, en unités de l'
   const bw = box[2] - box[0], sc = stickerCanvas(st.id, st.tint), asp = sc ? sc.height / sc.width : 1, hw = st.w * bw / 2;
   return { cx: box[0] + st.u * bw, cy: box[1] + st.v * bw, hw, hh: hw * asp * (st.sy || 1), asp, bw };
 }
+function wdGlUi() {   // choix de la monture (onglet Lunettes)
+  let p = $('#wdGl'); if (!p) { p = document.createElement('div'); p.id = 'wdGl'; p.style.cssText = 'display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0'; $('#wdOrig').insertAdjacentElement('afterend', p);
+    p.addEventListener('click', e => { const b = e.target.closest('[data-gl]'); if (!b) return; wd.o.glassId = b.dataset.gl === 'base' ? null : b.dataset.gl; if (wd.o.glassId) glImg(wd.o.glassId, 'walk'); wdDraw(); setTimeout(wdDraw, 400); }); }
+  const L = LUNETTES.filter(l => mini.glasses && mini.glasses[l.id]); p.style.display = wd.part === 'glasses' && L.length ? 'flex' : 'none'; if (!L.length) return;
+  const cur = wd.o.glassId || 'base'; p.innerHTML = [{ id: 'base', nm: 'Mes lunettes' }].concat(L).map(l => '<button class="mini" data-gl="' + l.id + '" style="border:3px solid ' + (cur === l.id ? '#e2574c' : '#e6cfa3') + '">' + (l.id === 'base' ? '👓 ' : l.id === 'heart' ? '💜 ' : '⭐ ') + l.nm + '</button>').join('');
+}
 function wdDraw() {
+  wdGlUi();
   if (wd.part === 'bag') wdBagUi();
   wdPatUi();
   const o = wd.o, cur = JSON.stringify(o), now = performance.now();   // historique pour « Retour » : un pas par série de changements
@@ -6731,9 +6738,9 @@ function stkGive(id) {   // un nouveau sticker pour l'album (une seule fois)
   if (!id || !STK_BY[id] || post.stk.includes(id)) return false; post.stk.push(id); save();
   setTimeout(() => { sfx.star && sfx.star(); say('🎉 Nouveau sticker : « ' + STK_BY[id].n + ' » ! Colle-le sur ta salopette au vestiaire.', 6); }, 700); return true;
 }
-const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
+const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, glassId: null, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
 let outfit = outfitEmpty(), outSheet = {}, outfitDirty = false;
-const isDefaultOutfit = o => !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
+const isDefaultOutfit = o => !o.glassId && !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
 const hslStr = c => 'hsl(' + Math.round(c.h) + ',' + Math.round(c.s * 100) + '%,50%)';
 function lightAdj(x, l, W, H) {   // éclaircit ou assombrit uniquement les pixels déjà présents
   if (Math.abs(l - .5) < .01) return;
@@ -6817,6 +6824,9 @@ const BIJOUX = [   // colliers à acheter : chez Kykah (île du Cygne) et chez K
   { id: 'n_or', nm: 'Collier de perles nacrées et plume d\'or', isl: 'swan', shell: 40, perle: 4, leg: 1 }, { id: 'n_cygne', nm: 'Collier du Cygne légendaire', isl: 'swan', shell: 60, leg: 1 },
   { id: 'n_gum', nm: 'Collier de noix d\'eucalyptus', isl: 'kob', shell: 10 }, { id: 'n_kobois', nm: 'Collier petit koala en bois', isl: 'kob', shell: 12 },
   { id: 'n_opale', nm: 'Collier d\'opale', isl: 'kob', shell: 50, leg: 1 }, { id: 'n_koor', nm: 'Collier eucalyptus d\'or', isl: 'kob', shell: 60, leg: 1 }];
+const LUNETTES = [{ id: 'heart', nm: 'Lunettes cœur', shell: 15 }, { id: 'star', nm: 'Lunettes étoiles', shell: 15 }];   // montures qui remplacent les lunettes de Myah (planches redessinées)
+const GLIMG = {}; function glImg(id, sh) { if (!GLIMG[id]) { GLIMG[id] = {}; Object.keys(MY).forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/' + MY[k].file.split('/').pop().split('?')[0] + '?v=1'; GLIMG[id][k] = im; }); } return GLIMG[id][sh]; }
+const mySrc = (sh, o) => { const g = o && o.glassId ? glImg(o.glassId, sh) : null; return g && g.naturalWidth ? g : img['m_' + sh]; };
 const BIJ_IMG = {}; BIJOUX.forEach(b => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/neck/' + b.id + '.png?v=1'; BIJ_IMG[b.id] = im; });
 const bijOwned = id => !!(mini.necks && mini.necks[id]);
 const neckSrc = o => { const im = o && o.neckId && BIJ_IMG[o.neckId]; return im && im.naturalWidth ? im : neckSheet(o.neckCols); };
@@ -6847,7 +6857,7 @@ function patSprite(spr, n) {   // sac : on garde les ombres du sac, on pose le m
 }
 const GLD = {}; function glassDil(sh, m) { if (!m || !m.naturalWidth) return m; if (GLD[sh] && GLD[sh].src === m) return GLD[sh].c; const c = document.createElement('canvas'); c.width = m.naturalWidth; c.height = m.naturalHeight; const g = c.getContext('2d'); for (let dx = -6; dx <= 6; dx += 2) for (let dy = -6; dy <= 6; dy += 2) g.drawImage(m, dx, dy); GLD[sh] = { src: m, c }; return c; }   // masque des lunettes un peu élargi : toute la monture est prise
 function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa tenue : recolore chaque pièce (teinte du choix, ombres d'origine) puis pose les stickers
-  const cols = MY[sheet].cols, sx = (i % cols) * 256, sy = Math.floor(i / cols) * 256, src = img['m_' + sheet], M = MK[sheet], c = out.getContext('2d');
+  const cols = MY[sheet].cols, sx = (i % cols) * 256, sy = Math.floor(i / cols) * 256, src = mySrc(sheet, o), M = MK[sheet], c = out.getContext('2d');
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.clearRect(0, 0, 256, 256);
   if (sy + 256 > src.naturalHeight || sx + 256 > src.naturalWidth) return;   // image absente de la planche (ex. « 0 » de la marche) : sinon les couleurs remplissaient tout le carré
   c.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256);
@@ -6889,10 +6899,10 @@ function bakeOutfit() {   // recolore toutes les images de Myah d'un coup (quelq
   if (isDefaultOutfit(outfit)) { outSheet = {}; return; }
   if (outfit.neck && !NECKIMG.naturalWidth) { outfitDirty = true; return; }
   if ((outfit.pat.shirt != null || outfit.pat.overall != null || outfit.pat.bag != null) && !PATIMG.naturalWidth) { outfitDirty = true; return; }
-  for (const sh of Object.keys(MY)) { const src = img['m_' + sh]; if (!src || !src.naturalWidth || !['ov', 'sh', 'shoe', 'hair', 'glass'].every(p => MK[sh][p].naturalWidth)) { outfitDirty = true; return; } }
+  for (const sh of Object.keys(MY)) { const src = mySrc(sh, outfit); if (outfit.glassId && !glImg(outfit.glassId, sh).complete) { outfitDirty = true; return; } if (!src || !src.naturalWidth || !['ov', 'sh', 'shoe', 'hair', 'glass'].every(p => MK[sh][p].naturalWidth)) { outfitDirty = true; return; } }
   const fo = document.createElement('canvas'); fo.width = fo.height = 256; const res = {};
   for (const sh of Object.keys(MY)) {
-    const src = img['m_' + sh], c = document.createElement('canvas'); c.width = src.naturalWidth; c.height = src.naturalHeight; const cx = c.getContext('2d'), cols = MY[sh].cols;
+    const src = mySrc(sh, outfit), c = document.createElement('canvas'); c.width = src.naturalWidth; c.height = src.naturalHeight; const cx = c.getContext('2d'), cols = MY[sh].cols;
     MY[sh].names.forEach((n, i) => { renderFrameOutfit(sh, i, outfit, fo); cx.drawImage(fo, (i % cols) * 256, Math.floor(i / cols) * 256); });
     res[sh] = c;
   }
@@ -6903,7 +6913,7 @@ function setOutfit(o) {
   if (o) { ['shirt', 'overall', 'shoes', 'hair', 'glasses'].forEach(k => { const c = o[k]; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit[k] = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; });
     outfit.stickers = (o.stickers || []).filter(t => STK_BY[t.id]).slice(0, 8).map(t => ({ id: t.id, u: +t.u || .5, v: +t.v || .5, w: clamp(+t.w || .3, .08, .8), tint: t.tint ? { h: +t.tint.h, s: +t.tint.s, l: +t.tint.l } : null })); }
   if (o && o.bagOn) { outfit.bagOn = true; const c = o.bag; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit.bag = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; if (Number.isInteger(o.patch) && o.patch >= 0 && o.patch < 10) outfit.patch = o.patch; if (Array.isArray(o.bagStk)) outfit.bagStk = o.bagStk.filter(s => s && STK.some(d => d.id === s.id) && isFinite(s.u) && isFinite(s.v)).slice(0, 3).map(s => ({ id: s.id, u: clamp(+s.u, 0, 1), v: clamp(+s.v, 0, 1) })); }
-  outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
+  outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
   if (o && o.pat) ['shirt', 'overall', 'bag'].forEach(k => { const n = o.pat[k]; if (Number.isInteger(n) && n >= 0 && n < 24) outfit.pat[k] = n; });
   outfitDirty = true; bakeOutfit();
 }
@@ -7940,7 +7950,7 @@ function kykahShop(e, free, epOnly, list, title) {
     else if (ksTab === 'ep') h += '<div class="kg">' + EPL.map(x => { const ok = (inv[x.pay] || 0) >= x.n; return '<div class="kk' + (ok ? '' : ' z') + '">' + (x.emo ? '<div class="ki" style="font-size:48px;line-height:1.2;text-align:center;filter:hue-rotate(45deg) saturate(1.3)">' + x.emo + '</div>' : '<img class="ki" src="assets/spr/ing_' + x.img + '.png?v=2" alt="">') + '<div class="kn">' + x.nm + '</div><div class="kp">' + x.n + ' ' + x.payN + '</div><div class="kp">Tu as ' + (inv[x.pay] || 0) + ' ' + x.payN + ' · en stock : ' + (inv[x.k] || 0) + '</div><button class="kb" data-ep="' + x.k + '" ' + (ok ? '' : 'disabled') + '>Échanger</button></div>'; }).join('') + '</div><div class="kNote">' + (list ? 'De quoi cuisiner chez Nuna : le lait de coco, le citron vert et la citronnelle parfument ses plats de poisson.' : 'Tout ce qu\'il faut pour le gâteau de maïs : un sac de farine et un sachet de sucre par gâteau. Le pot d\'épices et la boîte d\'œufs (3 par gâteau) servent pour deux gâteaux.') + '</div>';
     else if (ksTab === 'bij') { const isl = list ? 'kob' : 'swan';
       h += '<div class="kg">' + BIJOUX.filter(b => b.isl === isl).map(b => { const own = bijOwned(b.id), have = inv.shell | 0, ok = !own && have >= b.shell && (inv.perle | 0) >= (b.perle | 0), pc = Math.min(100, Math.round(have * 100 / b.shell));
-        return '<div class="kk' + (own || ok ? '' : ' z') + '"' + (b.leg ? ' style="border-color:#e8b630;background:#fff4cf"' : '') + '><img class="ki" src="assets/neck/' + b.id + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;aspect-ratio:1"><div class="kn">' + (b.leg ? '✨ ' : '') + b.nm + '</div><div class="kp">' + b.shell + ' coquillages' + (b.perle ? ' + ' + b.perle + ' perles (tu en as ' + (inv.perle | 0) + ')' : '') + '</div>' + (b.leg && !own ? '<div style="height:10px;border-radius:6px;background:#f0e0b8;overflow:hidden;margin:4px 6px"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,#f5cf55,#e8a530)"></div></div><div class="kp">' + Math.min(have, b.shell) + ' / ' + b.shell + ' 🐚</div>' : '') + '<button class="kb" data-bj="' + b.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') + '</div><div class="kNote">' + (isl === 'kob' ? 'Des bijoux de l\'île Koala.' : 'Des bijoux de l\'île du Cygne.') + ' Les colliers dorés sont précieux : mets tes coquillages de côté ! Change de collier au vestiaire, dans le coffre à tenues.</div>'; }
+        return '<div class="kk' + (own || ok ? '' : ' z') + '"' + (b.leg ? ' style="border-color:#e8b630;background:#fff4cf"' : '') + '><img class="ki" src="assets/neck/' + b.id + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;aspect-ratio:1"><div class="kn">' + (b.leg ? '✨ ' : '') + b.nm + '</div><div class="kp">' + b.shell + ' coquillages' + (b.perle ? ' + ' + b.perle + ' perles (tu en as ' + (inv.perle | 0) + ')' : '') + '</div>' + (b.leg && !own ? '<div style="height:10px;border-radius:6px;background:#f0e0b8;overflow:hidden;margin:4px 6px"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,#f5cf55,#e8a530)"></div></div><div class="kp">' + Math.min(have, b.shell) + ' / ' + b.shell + ' 🐚</div>' : '') + '<button class="kb" data-bj="' + b.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') + (isl === 'swan' ? LUNETTES.map(l => { const own = !!(mini.glasses && mini.glasses[l.id]), ok = !own && (inv.shell | 0) >= l.shell; return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/myah/gl_icon_' + l.id + '.png?v=1" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + l.nm + '</div><div class="kp">' + l.shell + ' coquillages</div><button class="kb" data-gla="' + l.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') : '') + '</div><div class="kNote">' + (isl === 'kob' ? 'Des bijoux de l\'île Koala.' : 'Des bijoux de l\'île du Cygne.') + ' Les colliers dorés sont précieux : mets tes coquillages de côté ! Change de collier au vestiaire, dans le coffre à tenues.</div>'; }
     else if (ksTab === 'aq') h += '<div class="kg">' + items.filter(i => i.id.startsWith('aq')).map(card).join('') + '</div><div class="kNote">Les poissons du jour changent chaque jour.</div>';
     else {
       const vg = dayVeg();
@@ -7959,6 +7969,9 @@ function kykahShop(e, free, epOnly, list, title) {
     const bjb = t.closest('button[data-bj]'); if (bjb) { stop(ev); if (bjb.disabled) return; const b = BIJOUX.find(x => x.id === bjb.dataset.bj); if (!b) return;
       if (!bijOwned(b.id)) { if ((inv.shell | 0) < b.shell || (inv.perle | 0) < (b.perle | 0)) return; inv.shell -= b.shell; inv.perle = (inv.perle | 0) - (b.perle | 0); mini.necks = mini.necks || {}; mini.necks[b.id] = 1; }
       outfit.neck = true; outfit.neckId = b.id; outfitDirty = true; bakeOutfit(); save(); renderHud(); try { sfx.chest(); if (b.leg) sfx.star(); } catch (e) {} say((b.leg ? '✨ ' : '') + b.nm + ' : Myah le porte ! Tu peux en changer au vestiaire.', 4); draw(); return; }
+    const glb = t.closest('button[data-gla]'); if (glb) { stop(ev); if (glb.disabled) return; const l = LUNETTES.find(x => x.id === glb.dataset.gla); if (!l) return;
+      if (!(mini.glasses && mini.glasses[l.id])) { if ((inv.shell | 0) < l.shell) return; inv.shell -= l.shell; mini.glasses = mini.glasses || {}; mini.glasses[l.id] = 1; }
+      outfit.glassId = l.id; glImg(l.id, 'walk'); outfitDirty = true; save(); renderHud(); try { sfx.chest(); } catch (e) {} say(l.nm + ' : Myah les porte ! Tu peux en changer au vestiaire.', 4); draw(); return; }
     const tbb = t.closest('button[data-ks]'); if (tbb) { stop(ev); ksTab = tbb.dataset.ks; draw(); return; }
     const gb = t.closest('button[data-g]'); if (gb) { stop(ev); if (gb.disabled || (inv.arachide || 0) < 3) return; inv.arachide -= 3; inv.graine = (inv.graine || 0) + 2; save(); renderHud(); try { sfx.chest(); } catch (e) {} say('Un sachet de graines pour les cygneaux ! (2 repas)', 3.5); draw(); return; }
     const bt = t.closest('button[data-t]');
