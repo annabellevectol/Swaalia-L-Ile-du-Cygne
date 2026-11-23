@@ -6825,7 +6825,7 @@ const BIJOUX = [   // colliers à acheter : chez Kykah (île du Cygne) et chez K
   { id: 'n_gum', nm: 'Collier de noix d\'eucalyptus', isl: 'kob', shell: 10 }, { id: 'n_kobois', nm: 'Collier petit koala en bois', isl: 'kob', shell: 12 },
   { id: 'n_opale', nm: 'Collier d\'opale', isl: 'kob', shell: 50, leg: 1 }, { id: 'n_koor', nm: 'Collier eucalyptus d\'or', isl: 'kob', shell: 60, leg: 1 }];
 const LUNETTES = [{ id: 'heart', nm: 'Lunettes cœur', shell: 15 }, { id: 'star', nm: 'Lunettes étoiles', shell: 15 }];   // montures qui remplacent les lunettes de Myah (planches redessinées)
-const GLMK = {}; function glMask(id, sh) { if (!id) return null; GLMK[id] = GLMK[id] || {}; if (!GLMK[id][sh]) { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/mk_' + sh + '_glass.png?v=1'; GLMK[id][sh] = im; } const m = GLMK[id][sh]; return m.naturalWidth ? m : null; }
+const GLMK = {}; function glMask(id, sh) { if (!id) return null; GLMK[id] = GLMK[id] || {}; if (!GLMK[id][sh]) { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/mk_' + sh + '_glass.png?v=3'; GLMK[id][sh] = im; } const m = GLMK[id][sh]; return m.naturalWidth ? m : null; }
 const GLIMG = {}; function glImg(id, sh) { if (!GLIMG[id]) { GLIMG[id] = {}; Object.keys(MY).forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/' + MY[k].file.split('/').pop().split('?')[0] + '?v=1'; GLIMG[id][k] = im; }); } return GLIMG[id][sh]; }
 const mySrc = (sh, o) => { const g = o && o.glassId ? glImg(o.glassId, sh) : null; return g && g.naturalWidth ? g : img['m_' + sh]; };
 const BIJ_IMG = {}; BIJOUX.forEach(b => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/neck/' + b.id + '.png?v=1'; BIJ_IMG[b.id] = im; });
@@ -6866,7 +6866,7 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
   for (const [k, col] of [['ov', o.overall], ['sh', o.shirt], ['shoe', o.shoes], ['hair', o.hair], ['glass', o.glasses]]) {
     const stk = k === 'ov' && o.stickers.length && box && !BACKFRAME.test(name), pn = o.pat ? (k === 'ov' ? o.pat.overall : k === 'sh' ? o.pat.shirt : null) : null, hasPat = pn !== null && pn !== undefined && PATIMG.naturalWidth > 0;
     if (!col && !stk && !hasPat) continue;
-    const mk = k === 'glass' ? glassDil(sheet + (o.glassId || ''), glMask(o.glassId, sheet) || M[k]) : M[k];
+    const mk = k === 'glass' ? (o.glassId && glMask(o.glassId, sheet) ? glMask(o.glassId, sheet) : glassDil(sheet, M[k])) : M[k];
     if (!mk || sy + 256 > (mk.naturalHeight || mk.height) || sx + 256 > (mk.naturalWidth || mk.width)) continue;   // masque trop court : sans ça la couleur remplissait tout le carré
     _fx.globalCompositeOperation = 'source-over'; _fx.globalAlpha = 1; _fx.clearRect(0, 0, 256, 256); _fx.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256);
     if (k !== 'glass') { _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
