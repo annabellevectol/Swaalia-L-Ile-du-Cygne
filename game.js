@@ -5563,10 +5563,11 @@ const WD_SW = [[352, .85, .55], [330, .75, .62], [20, .9, .55], [48, .95, .55], 
 const wdIdx = () => myIdx.walk.down1, wdBox = () => MBOX.walk && MBOX.walk[wdIdx()];
 function wdTarget() {   // la couleur en cours de réglage : une pièce, ou le sticker choisi
   if (wd.part === 'neck') return wd.neckCur || null;
+  if (wd.part === 'brace') return wd.brCur || null;
   if (wd.part === 'stickers') return wd.sel >= 0 && wd.o.stickers[wd.sel] ? wd.o.stickers[wd.sel].tint : null;
   return wd.o[wd.part];
 }
-function wdSetTarget(c) { if (wd.part === 'saved') return; if (wd.part === 'neck') { wd.neckCur = c; return; } if (wd.part === 'stickers') { if (wd.sel >= 0 && wd.o.stickers[wd.sel]) wd.o.stickers[wd.sel].tint = c; } else { wd.o[wd.part] = c; if (c && wd.o.pat && wd.o.pat[wd.part] != null) wd.o.pat[wd.part] = null; if (wd.part === 'bag' && c) wd.o.bagOn = true; } }
+function wdSetTarget(c) { if (wd.part === 'saved') return; if (wd.part === 'neck') { wd.neckCur = c; return; } if (wd.part === 'brace') { wd.brCur = c; return; } if (wd.part === 'stickers') { if (wd.sel >= 0 && wd.o.stickers[wd.sel]) wd.o.stickers[wd.sel].tint = c; } else { wd.o[wd.part] = c; if (c && wd.o.pat && wd.o.pat[wd.part] != null) wd.o.pat[wd.part] = null; if (wd.part === 'bag' && c) wd.o.bagOn = true; } }
 function wdDrawWheel() {
   const cv = $('#wdWheel'), x = cv.getContext('2d'), R = cv.width / 2;
   if (!wd.wheel) {
@@ -5604,7 +5605,7 @@ function wdDraw() {
   wd.last = cur; $('#wdUndo').disabled = !wd.hist.length; $('#wdRedo').disabled = !(wd.redo && wd.redo.length); renderFrameOutfit('walk', wdIdx(), o, wd.frame);
   const cv = $('#wdPrev'), x = cv.getContext('2d'), k = cv.width / 256; x.clearRect(0, 0, cv.width, cv.height);
   x.fillStyle = 'rgba(0,70,80,.18)'; x.beginPath(); x.ellipse(cv.width / 2, 213 * k, 52 * k, 9 * k, 0, 0, TAU); x.fill();
-  x.imageSmoothingEnabled = true; if (wd.part === 'glasses' || wd.part === 'neck') { const zy = wd.part === 'neck' ? 62 : 22, zx = wd.part === 'neck' ? 78 : 68, zw = wd.part === 'neck' ? 100 : 120; x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, zx, zy, zw, zw, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
+  x.imageSmoothingEnabled = true; if (wd.part === 'brace') { x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); const T = WRIST && WRIST.walk && WRIST.walk[wdIdx()], q = T && (T[wd.brSide || 'r'] || T.r || T.l), zx = q ? q[0] - 26 : 60, zy = q ? q[1] - 24 : 110; x.drawImage(wd.frame, zx, zy, 52, 52, 0, 0, cv.width, cv.height); }   // gros plan sur le poignet choisi else if (wd.part === 'glasses' || wd.part === 'neck') { const zy = wd.part === 'neck' ? 62 : 22, zx = wd.part === 'neck' ? 78 : 68, zw = wd.part === 'neck' ? 100 : 120; x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, zx, zy, zw, zw, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
   const box = wdBox(); if (box && wd.part === 'stickers' && wd.sel >= 0 && o.stickers[wd.sel]) {   // cadre de sélection du sticker, avec des poignées pour l'étirer
     const R = wdStkRect(o.stickers[wd.sel], box), M = 6;   // le cadre est un peu plus grand que le sticker, pour que les poignées ne le cachent pas
     x.save(); x.setLineDash([6, 5]); x.lineWidth = 3; x.strokeStyle = '#fff'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.lineWidth = 1.5; x.strokeStyle = '#c7447a'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.setLineDash([]);
@@ -5656,8 +5657,24 @@ function neckAvg(k) {   // couleur d'origine moyenne d'un coquillage
   for (let i = 0; i < 192 * 192; i++) { const px = i % 192, py = (i / 192) | 0, j = py * 768 + px; if (NLAB[j] === k && d[j * 4 + 3] > 200) { r += d[j * 4]; g += d[j * 4 + 1]; b += d[j * 4 + 2]; n++; } }
   n = n || 1; return '#' + [r, g, b].map(v => Math.round(v / n).toString(16).padStart(2, '0')).join('');
 }
+function wdBrUi() {   // onglet Bracelets : un bracelet par poignet, pot de peinture pour le jonc et chaque perle
+  const tabs = document.querySelector('.wdTabs'); if (!tabs) return; let t = document.getElementById('wdBrT');
+  if (!t) { t = document.createElement('button'); t.id = 'wdBrT'; t.dataset.part = 'brace'; t.innerHTML = '<span style="font-size:26px;line-height:34px">💍</span><span>Bracelets</span>'; t.addEventListener('click', () => wdTab('brace')); tabs.appendChild(t); }
+  let p = document.getElementById('wdBrEd');
+  if (!p) { p = document.createElement('div'); p.id = 'wdBrEd'; p.style.cssText = 'width:100%;margin:6px 0;text-align:center'; $('#wdStkRow').insertAdjacentElement('beforebegin', p);
+    p.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.w) { const k = b.dataset.w === 'l' ? 'brL' : 'brR'; wd.o[k] = b.dataset.v === 'none' ? null : b.dataset.v; wd.brSide = b.dataset.w; }
+      if (b.dataset.pt) { const side = wd.brSide || 'r', k = side === 'l' ? 'brLc' : 'brRc'; wd.o[k] = wd.o[k] || {}; const c = wd.brCur || { h: 200, s: .6, l: .6 }, hx = hslHex2(c.h, c.s, c.l); if (b.dataset.pt === 'jonc') wd.o[k].jonc = hx; else { wd.o[k].b = (wd.o[k].b || BR_DEF.b.slice()).slice(); wd.o[k].b[+b.dataset.pt] = hx; } }
+      if (b.dataset.side) wd.brSide = b.dataset.side;
+      wdDraw(); }); }
+  p.style.display = wd.part === 'brace' ? 'block' : 'none'; if (wd.part !== 'brace') return;
+  const side = wd.brSide || 'r', row = (w, lab) => { const cur = wd.o[w === 'l' ? 'brL' : 'brR'] || 'none'; return '<div style="margin:4px 0"><b>' + lab + '</b> ' + [['none', 'Aucun'], ['jonc', 'Jonc'], ['perles', '3 perles']].map(([v, n]) => '<button class="mini" data-w="' + w + '" data-v="' + v + '" style="border:3px solid ' + (cur === v ? '#e2574c' : '#e6cfa3') + '">' + n + '</button>').join(' ') + '</div>'; };
+  const cols = wd.o[side === 'l' ? 'brLc' : 'brRc'] || {}, kind = wd.o[side === 'l' ? 'brL' : 'brR'];
+  const sw = (pt, hx, lab) => '<button class="mini" data-pt="' + pt + '" style="display:inline-flex;align-items:center;gap:4px"><i style="display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid #3a1e14;background:' + hx + '"></i>' + lab + '</button>';
+  p.innerHTML = row('l', 'Poignet gauche') + row('r', 'Poignet droit') + '<div class="wdLbl" style="margin-top:8px">🪣 Choisis une couleur sur la roue, puis touche une partie</div><div style="margin:4px 0">' + ['l', 'r'].map(w => '<button class="mini" data-side="' + w + '" style="border:3px solid ' + (side === w ? '#e2574c' : '#e6cfa3') + '">' + (w === 'l' ? 'Gauche' : 'Droit') + '</button>').join(' ') + '</div>' + (kind ? '<div>' + sw('jonc', cols.jonc || BR_DEF.jonc, 'Jonc') + (kind === 'perles' ? [0, 1, 2].map(k => ' ' + sw(k, (cols.b && cols.b[k]) || BR_DEF.b[k], 'Perle ' + (k + 1))).join('') : '') + '</div>' : '<div style="opacity:.7">Pas de bracelet de ce côté.</div>');
+}
 function wdPatUi() {
-  wdNeckUi();
+  wdNeckUi(); wdBrUi();
   let p = document.getElementById('wdPat');
   if (!p) {
     const st = document.createElement('style'); st.textContent = '#wdPat{width:100%;margin-top:8px}#wdPat .g{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:4px}#wdPat .g i{display:block;aspect-ratio:1;border-radius:7px;border:2px solid rgba(255,255,255,.7);background:url(assets/patterns.jpg?v=2) no-repeat;background-size:400% 600%;cursor:pointer}#wdPat .g i.sel{border-color:#c7447a;box-shadow:0 0 0 2px #fff}'; document.head.appendChild(st);
@@ -6763,7 +6780,7 @@ function stkGive(id) {   // un nouveau sticker pour l'album (une seule fois)
 }
 const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, bp: false, glassId: null, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
 let outfit = outfitEmpty(), outSheet = {}, outfitDirty = false;
-const isDefaultOutfit = o => !o.bp && !o.glassId && !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
+const isDefaultOutfit = o => !o.brL && !o.brR && !o.bp && !o.glassId && !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
 const hslStr = c => 'hsl(' + Math.round(c.h) + ',' + Math.round(c.s * 100) + '%,50%)';
 function lightAdj(x, l, W, H) {   // éclaircit ou assombrit uniquement les pixels déjà présents
   if (Math.abs(l - .5) < .01) return;
@@ -6921,7 +6938,24 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
       c.save(); c.globalCompositeOperation = 'source-atop'; c.lineCap = 'butt'; c.beginPath(); c.moveTo(pts[0], pts[1]); c.lineTo(pts[2], pts[3]); c.strokeStyle = '#3a2010'; c.lineWidth = 5; c.stroke(); c.strokeStyle = '#7a4a26'; c.lineWidth = 3.4; c.stroke(); c.restore(); } }
   if (o.neck) drawNeckOnFrame(c, sheet, name, box || (MBOX[sheet] && MBOX[sheet][MY[sheet].names.indexOf(name.replace(/^(f?)d[rl]/, '$1down'))]), o);
   if (o.bagOn) drawBagOnFrame(c, sheet, name, box, o);
+  if (o.brL || o.brR) drawBraceOnFrame(c, sheet, i, o);
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+}
+let WRIST = null; fetch('assets/myah/wrist.json?v=1').then(r => r.json()).then(d => { WRIST = d; outfitDirty = true; }).catch(() => {});
+const BR_DEF = { jonc: '#ec806e', b: ['#ffffff', '#78c8ff', '#ffdc5a'] };
+function drawBrace1(c, x, y, w, kind, cols, prof) {   // un jonc vu de face : la moitié avant de l'anneau (+ 3 perles)
+  const jc = cols.jonc || BR_DEF.jonc, rw = w / 2, rh = Math.max(1.6, w * (prof ? .12 : .2));
+  c.save(); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.lineCap = 'round';
+  c.beginPath(); c.ellipse(x, y, rw, rh, 0, 0, Math.PI); c.strokeStyle = '#3a1e14'; c.lineWidth = 3.4; c.stroke(); c.strokeStyle = jc; c.lineWidth = 2; c.stroke();
+  if (kind === 'perles') { const offs = prof ? [-1.6, 1.6] : [-3.3, 0, 3.3], by = y + rh + .6;
+    offs.forEach((dx, k) => { const bc = (cols.b && cols.b[k]) || BR_DEF.b[k]; c.beginPath(); c.arc(x + dx, by, 1.9, 0, 7); c.fillStyle = '#32190f'; c.fill(); c.beginPath(); c.arc(x + dx, by, 1.35, 0, 7); c.fillStyle = bc; c.fill(); c.beginPath(); c.arc(x + dx - .45, by - .5, .45, 0, 7); c.fillStyle = 'rgba(255,255,255,.8)'; c.fill(); }); }
+  c.restore();
+}
+function drawBraceOnFrame(c, sheet, i, o) {
+  const T = WRIST && WRIST[sheet] && WRIST[sheet][i]; if (!T) return;
+  if (T.p) { const kind = o.brR || o.brL, cols = o.brR ? (o.brRc || {}) : (o.brLc || {}); if (kind) drawBrace1(c, T.p[0], T.p[1], T.p[2], kind, cols, true); return; }
+  if (o.brL && T.l) drawBrace1(c, T.l[0], T.l[1], T.l[2], o.brL, o.brLc || {}, false);   // poignet à gauche de l'image
+  if (o.brR && T.r) drawBrace1(c, T.r[0], T.r[1], T.r[2], o.brR, o.brRc || {}, false);
 }
 function bakeOutfit() {   // recolore toutes les images de Myah d'un coup (quelques dizaines de ms)
   outfitDirty = false;
@@ -6942,7 +6976,7 @@ function setOutfit(o) {
   if (o) { ['shirt', 'overall', 'shoes', 'hair', 'glasses'].forEach(k => { const c = o[k]; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit[k] = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; });
     outfit.stickers = (o.stickers || []).filter(t => STK_BY[t.id]).slice(0, 8).map(t => ({ id: t.id, u: +t.u || .5, v: +t.v || .5, w: clamp(+t.w || .3, .08, .8), tint: t.tint ? { h: +t.tint.h, s: +t.tint.s, l: +t.tint.l } : null })); }
   if (o && o.bagOn) { outfit.bagOn = true; const c = o.bag; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit.bag = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; if (Number.isInteger(o.patch) && o.patch >= 0 && o.patch < 10) outfit.patch = o.patch; if (Array.isArray(o.bagStk)) outfit.bagStk = o.bagStk.filter(s => s && STK.some(d => d.id === s.id) && isFinite(s.u) && isFinite(s.v)).slice(0, 3).map(s => ({ id: s.id, u: clamp(+s.u, 0, 1), v: clamp(+s.v, 0, 1) })); }
-  outfit.bp = !!(o && o.bp); outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
+  outfit.bp = !!(o && o.bp); ['brL', 'brR'].forEach(k => { outfit[k] = o && (o[k] === 'jonc' || o[k] === 'perles') ? o[k] : null; outfit[k + 'c'] = o && o[k + 'c'] ? o[k + 'c'] : {}; }); outfit.glassId = o && LUNETTES.some(l => l.id === o.glassId) ? o.glassId : null; outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
   outfit.patSz = o && isFinite(o.patSz) ? clamp(+o.patSz, 14, 90) : 30;
   if (o && o.pat) ['shirt', 'overall', 'bag'].forEach(k => { const n = o.pat[k]; if (Number.isInteger(n) && n >= 0 && n < 24) outfit.pat[k] = n; });
   outfitDirty = true; bakeOutfit();
