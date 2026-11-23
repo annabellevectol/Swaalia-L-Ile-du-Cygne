@@ -6945,9 +6945,9 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
 let WRIST = null; fetch('assets/myah/wrist.json?v=1').then(r => r.json()).then(d => { WRIST = d; outfitDirty = true; }).catch(() => {});
 const BR_CH = {}; ['koala', 'cygne', 'coq'].forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/wdico/ch_' + k + '.png?v=1'; BR_CH[k] = im; });
 const BR_LIST = [['jonc', 'Jonc', 6, 0, 'swan'], ['coq', 'Jonc coquillage', 6, 0, 'swan'], ['cygne', 'Jonc cygne', 3, 1, 'swan', { flower: 12 }], ['perles', 'Jonc à perles', 6, 3, 'kob'], ['koala', 'Jonc koala', 3, 0, 'kob', { miel: 12, racine: 1 }]];
-const BR_X = { flower: ['fleurs', () => inv.flower | 0, n => { inv.flower -= n; }], miel: ['fleurs de miel', () => kobHS().miel | 0, n => { kobHS().miel -= n; }], racine: ['souche (racine)', () => kobHS().racine | 0, n => { kobHS().racine -= n; }] };
+const BR_X = { flower: ['fleurs', () => inv.flower | 0, n => { inv.flower -= n; }], miel: ['fleurs sauvages', () => Object.values(kobD.fls || {}).reduce((a, v) => a + (v | 0), 0), n => { const F = kobD.fls || {}; for (const k of Object.keys(F)) { const t = Math.min(F[k] | 0, n); F[k] -= t; n -= t; if (!n) break; } }], racine: ['souche (racine)', () => kobHS().racine | 0, n => { kobHS().racine -= n; }] };
 const brCan = b => (inv.shell | 0) >= b[2] && (inv.perle | 0) >= b[3] && Object.entries(b[5] || {}).every(([k, n]) => BR_X[k][1]() >= n);
-const brCost = b => [b[5] && b[5].flower ? b[5].flower + ' fleurs' : '', b[5] && b[5].miel ? b[5].miel + ' fleurs de miel' : '', b[2] + ' coquillages', b[3] ? b[3] + ' perle' + (b[3] > 1 ? 's' : '') : '', b[5] && b[5].racine ? b[5].racine + ' souche' : ''].filter(Boolean).join(' + ');
+const brCost = b => [b[5] && b[5].flower ? b[5].flower + ' fleurs' : '', b[5] && b[5].miel ? b[5].miel + ' fleurs sauvages' : '', b[2] + ' coquillages', b[3] ? b[3] + ' perle' + (b[3] > 1 ? 's' : '') : '', b[5] && b[5].racine ? b[5].racine + ' souche' : ''].filter(Boolean).join(' + ');
 const BR_DEF = { jonc: '#ec806e', b: ['#ffffff', '#78c8ff', '#ffdc5a'] };
 function drawBrace1(c, x, y, w, kind, cols, prof) {   // un jonc vu de face : la moitié avant de l'anneau (+ 3 perles)
   const jc = cols.jonc || BR_DEF.jonc, rw = w / 2, rh = Math.max(1.6, w * (prof ? .12 : .2));
