@@ -7830,7 +7830,7 @@ function shopOpen() {
   const S = shopItems(); if (!S) return; let o = $('#shopOv'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'shopOv'; o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif';
   const all = S.it.every(i => i.have >= i.n);
-  o.innerHTML = '<div style="position:relative;width:min(400px,90vw);max-height:86vh;overflow-y:auto;background:url(assets/ui/ticket.png) center/100% 100% no-repeat;padding:12% 25% 22% 9%;box-sizing:border-box;color:#5a3412;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))">' +
+  o.innerHTML = '<div style="position:relative;width:min(400px,90vw);max-height:86vh;overflow-y:auto;background:url(assets/ui/ticket.png) center/100% 100% no-repeat;padding:9% 25% 40% 9%;box-sizing:border-box;color:#5a3412;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))">' +
     '<button id="shopX" aria-label="Fermer" style="position:absolute;top:7%;right:20%;width:38px;height:38px;border-radius:50%;border:2px solid #7a4c14;background:#e8a33a;color:#fff;font:900 20px/1 sans-serif">✕</button>' +
     '<div style="font:700 21px \'Chalkboard SE\',\'Comic Sans MS\',cursive;text-align:center;margin:2px 30px 2px">🧾 Liste de courses</div><div style="text-align:center;font-weight:700;font-size:17px;margin-bottom:2px">' + S.title + '</div>' +
     '<div style="text-align:center;font-size:13px;opacity:.85;margin-bottom:10px">' + S.where + '</div>' +
