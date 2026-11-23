@@ -5673,7 +5673,8 @@ function wdSubUi() {   // sous-onglets Couleur / Motifs / Stickers (salopette, t
   const sub = wd.part === 'stickers' ? 'stk' : (wd.sub === 'pat' ? 'pat' : 'col');
   bar.innerHTML = [['col', 'Couleur'], ['pat', 'Motifs']].concat(base === 'overall' ? [['stk', 'Stickers']] : []).map(([k, n]) => '<button data-sub="' + k + '" class="' + (sub === k ? 'sel' : '') + '">' + n + '</button>').join('');
   const pat = $('#wdPat'); if (pat && pat.parentElement !== $('#wdStkRow').parentElement) $('#wdStkRow').insertAdjacentElement('afterend', pat); if (pat) pat.style.display = sub === 'pat' ? 'block' : 'none';
-  $('#wdColorCol').style.display = sub === 'pat' ? 'none' : '';
+  $('#wdColorCol').style.display = sub === 'col' ? '' : 'none';
+  $('#wardrobe').classList.toggle('stkOnly', sub === 'stk');
 }
 function wdTab(part) {
   if (part !== 'stickers' && !['overall', 'shirt', 'bag'].includes(part)) wd.sub = 'col'; if (part !== 'stickers' && wd.sub === 'stk') wd.sub = 'col';
