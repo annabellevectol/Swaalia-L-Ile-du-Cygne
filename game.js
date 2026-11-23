@@ -5656,7 +5656,7 @@ function wdPatUi() {
   wdNeckUi();
   let p = document.getElementById('wdPat');
   if (!p) {
-    const st = document.createElement('style'); st.textContent = '#wdPat{width:100%;margin-top:8px}#wdPat .g{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:4px}#wdPat .g i{display:block;aspect-ratio:1;border-radius:7px;border:2px solid rgba(255,255,255,.7);background:url(assets/patterns.jpg) no-repeat;background-size:400% 600%;cursor:pointer}#wdPat .g i.sel{border-color:#c7447a;box-shadow:0 0 0 2px #fff}'; document.head.appendChild(st);
+    const st = document.createElement('style'); st.textContent = '#wdPat{width:100%;margin-top:8px}#wdPat .g{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:4px}#wdPat .g i{display:block;aspect-ratio:1;border-radius:7px;border:2px solid rgba(255,255,255,.7);background:url(assets/patterns.jpg?v=2) no-repeat;background-size:400% 600%;cursor:pointer}#wdPat .g i.sel{border-color:#c7447a;box-shadow:0 0 0 2px #fff}'; document.head.appendChild(st);
     p = document.createElement('div'); p.id = 'wdPat'; p.innerHTML = '<div class="wdLbl">Motifs</div><div class="g"></div><button class="mini" id="wdPatNo" style="margin-top:6px">Sans motif</button>';
     const g = p.querySelector('.g'); for (let n = 0; n < 24; n++) { const i = document.createElement('i'); i.dataset.n = n; i.style.backgroundPosition = (n % 4) * 100 / 3 + '% ' + Math.floor(n / 4) * 100 / 5 + '%'; g.appendChild(i); }
     p.addEventListener('click', e => { const t = e.target.closest('i[data-n]'), no = e.target.closest('#wdPatNo'); if (!t && !no) return; if (!wd.o.pat) wd.o.pat = { shirt: null, overall: null, bag: null }; wd.o.pat[wd.part] = t ? +t.dataset.n : null; if (t && wd.part === 'bag') wd.o.bagOn = true; wdDraw(); });
@@ -5673,7 +5673,9 @@ function wdSubUi() {   // sous-onglets Couleur / Motifs / Stickers (salopette, t
   const sub = wd.part === 'stickers' ? 'stk' : (wd.sub === 'pat' ? 'pat' : 'col');
   bar.innerHTML = [['col', 'Couleur'], ['pat', 'Motifs']].concat(base === 'overall' ? [['stk', 'Stickers']] : []).map(([k, n]) => '<button data-sub="' + k + '" class="' + (sub === k ? 'sel' : '') + '">' + n + '</button>').join('');
   const pat = $('#wdPat'); if (pat && pat.parentElement !== $('#wdStkRow').parentElement) $('#wdStkRow').insertAdjacentElement('afterend', pat); if (pat) pat.style.display = sub === 'pat' ? 'block' : 'none';
-  $('#wdColorCol').style.display = sub === 'col' ? '' : 'none';
+  $('#wdColorCol').style.display = sub === 'pat' ? 'none' : '';
+  ['#wdWheel', '#wdLumW', '#wdOrig'].forEach(q => { const e = $(q); if (e) e.style.display = sub === 'stk' ? 'none' : ''; });
+  document.querySelectorAll('#wdColorCol .wdLbl').forEach((e, i) => e.style.display = sub === 'stk' && i === 0 ? 'none' : ''); const sp = $('#wdSwP'); if (sp) sp.style.display = sub === 'stk' ? 'none' : '';
   $('#wardrobe').classList.toggle('stkOnly', sub === 'stk');
 }
 function wdTab(part) {
@@ -6859,7 +6861,7 @@ function drawNeckOnFrame(c, sheet, name, box, o) {
   c.drawImage(neckSrc(o), idx * 192 + b[0], sy0, sw, sh, -w / 2, 0, w, h); c.restore();
 }
 const NECK_CUT = .3, NECK_W = .9, NECK_Y = -.03;
-const PATIMG = new Image(); PATIMG.src = 'assets/patterns.jpg'; PATIMG.onload = () => { outfitDirty = true; };   // 24 motifs (4 × 6 cases de 96 px)
+const PATIMG = new Image(); PATIMG.src = 'assets/patterns.jpg?v=2'; PATIMG.onload = () => { outfitDirty = true; };   // 24 motifs (4 × 6 cases de 96 px)
 const _patC = {};
 function patFill(cx, n, px) { const key = n + '_' + px; if (!_patC[key]) { const t = document.createElement('canvas'); t.width = t.height = px; t.getContext('2d').drawImage(PATIMG, (n % 4) * 96 + 2, Math.floor(n / 4) * 96 + 2, 92, 92, 0, 0, px, px); _patC[key] = t; } return cx.createPattern(_patC[key], 'repeat'); }
 function patSprite(spr, n) {   // sac : on garde les ombres du sac, on pose le motif par-dessus
@@ -7535,7 +7537,7 @@ $('#wdBagOn').addEventListener('click', () => { wd.o.bagOn = !wd.o.bagOn; wdDraw
 const wdApiLbl = () => { const cc = $('#wdApiC'); if (cc) { cc.style.display = mini.apiOwn && IN.wdApiO ? 'block' : 'none'; cc.querySelectorAll('i[data-p]').forEach(e => e.style.outline = (+e.dataset.c === (mini[e.dataset.p] | 0)) ? '3px solid #4b2a7a' : 'none'); cc.querySelectorAll('i[data-pp]').forEach(e => e.style.outline = (+e.dataset.pp === (mini.apiPat == null ? -1 : mini.apiPat)) ? '3px solid #4b2a7a' : 'none'); } const b = $('#wdApi'); if (b) { b.style.display = mini.apiOwn ? 'block' : 'none'; b.textContent = '🐝 Personnaliser la tenue d\'apicultrice ' + (IN.wdApiO ? '▲' : '▼'); b.classList.toggle('on', !!mini.api); } };
 { const cc = document.createElement('div'); cc.id = 'wdApiC'; cc.style.cssText = 'text-align:center;margin:0 0 6px;font-size:13px;color:#4b2a7a;display:none';
   const row = (p, lb) => '<div>' + lb + ' ' + API_COL.map((c, i) => '<i data-p="' + p + '" data-c="' + i + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:' + (c || 'linear-gradient(135deg,#e9dcbf 50%,#fff 50%)') + '"></i>').join('') + '</div>';
-  cc.innerHTML = row('apiSuit', 'Couleur de la tenue') + '<div>Motif <i data-pp="-1" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:#fff;font-style:normal;line-height:22px">✕</i>' + Array.from({ length: 24 }, (_, n) => '<i data-pp="' + n + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:url(assets/patterns.jpg) -' + ((n % 4) * 96 * 22 / 92 + 1) + 'px -' + (Math.floor(n / 4) * 96 * 22 / 92 + 1) + 'px/' + (384 * 22 / 92) + 'px ' + (576 * 22 / 92) + 'px"></i>').join('') + '</div>'; $('#wdApi').after(cc);
+  cc.innerHTML = row('apiSuit', 'Couleur de la tenue') + '<div>Motif <i data-pp="-1" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:#fff;font-style:normal;line-height:22px">✕</i>' + Array.from({ length: 24 }, (_, n) => '<i data-pp="' + n + '" style="display:inline-block;width:22px;height:22px;border-radius:50%;margin:2px;vertical-align:middle;cursor:pointer;border:1px solid #b9a37a;background:url(assets/patterns.jpg?v=2) -' + ((n % 4) * 96 * 22 / 92 + 1) + 'px -' + (Math.floor(n / 4) * 96 * 22 / 92 + 1) + 'px/' + (384 * 22 / 92) + 'px ' + (576 * 22 / 92) + 'px"></i>').join('') + '</div>'; $('#wdApi').after(cc);
   cc.addEventListener('click', e => { const pp = e.target.closest('i[data-pp]'); if (pp) { const n = +pp.dataset.pp; mini.apiPat = n < 0 ? null : n; save(); wdApiLbl(); sfx.pick && sfx.pick(); return; } const i = e.target.closest('i[data-p]'); if (!i) return; mini[i.dataset.p] = +i.dataset.c; save(); wdApiLbl(); sfx.pick && sfx.pick(); }); }
 $('#wdApi').addEventListener('click', () => { if (!mini.apiOwn) { sfx.no && sfx.no(); say('La tenue d\'apicultrice se trouve chez Koki, à la boutique de la plage de l\'île aux Koalas 🐝', 4); return; } IN.wdApiO = !IN.wdApiO; wdApiLbl(); sfx.pick && sfx.pick(); }); setInterval(wdApiLbl, 500);
 $('#wdStkDel').addEventListener('click', () => { if (wd.sel >= 0) { wd.o.stickers.splice(wd.sel, 1); wd.sel = -1; wdDraw(); } });
