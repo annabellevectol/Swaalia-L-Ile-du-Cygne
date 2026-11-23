@@ -6466,7 +6466,7 @@ function update(dt) {
         p.fr += dt * 14;
         if (!fs.caught && p.fr >= 18) {
           fs.caught = true; const f = fs.fish; if (f) { f.state = 'gone'; f.t = 10; }
-          { const tf = f; if (tf) showTrophy(trophyImgFish(tf), tf.region === 'pond' ? 'Poisson du lac' : 'Poisson de mer', 'Bravo Myah, il frétille encore !'); } { const fb = Array.isArray(mini.fishBag) ? mini.fishBag : (mini.fishBag = []); if (f) fb.push(f.col | 0); if (fb.length > 12) fb.shift(); } collect('fish', fs.tx, fs.ty); sfx.fish(); burst(fs.tx, fs.ty, 14, ['#bfe9ff', '#fff', '#7fd1ff']); floatText(p.x + p.face * 14, p.y - 56, '+1 🐟'); fs.fish = null;
+          { const tf = f, rp = tf && tf.region !== 'pond' && Math.random() < .05 ? COLL.filter(c => /^r\d$/.test(c.id) && !coll[c.id]) : [], rc = rp.length ? rp[Math.floor(Math.random() * rp.length)] : null; if (rc) { coll[rc.id] = true; showTrophy(trophyImgColl(rc.id), rc.name, 'Un poisson rare ! Il rejoint la collection du musée.'); } else if (tf) showTrophy(trophyImgFish(tf), tf.region === 'pond' ? 'Poisson du lac' : 'Poisson de mer', 'Bravo Myah, il frétille encore !'); } { const fb = Array.isArray(mini.fishBag) ? mini.fishBag : (mini.fishBag = []); if (f) fb.push(f.col | 0); if (fb.length > 12) fb.shift(); } collect('fish', fs.tx, fs.ty); sfx.fish(); burst(fs.tx, fs.ty, 14, ['#bfe9ff', '#fff', '#7fd1ff']); floatText(p.x + p.face * 14, p.y - 56, '+1 🐟'); fs.fish = null;
         }
         if (p.fr >= An.n - .01) endFishing();
       }
