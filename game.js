@@ -386,7 +386,8 @@ let introSeen = false, endingSeen = false, rideT = 0;
 const nOpened = () => QUESTS.filter(q => opened[q.id]).length;
 const unlocked = q => !q.final || level === 'balade' || QUESTS.filter(o => !o.final).every(o => qState[o.id] === 'done');
 const hasAll = q => Object.entries(q.need).every(([k, n]) => inv[k] >= n);
-const needStr = q => Object.entries(q.need).map(([k, n]) => `${ICON[k]}${Math.min(inv[k], n)}/${n}`).join(' ');
+const recOf = k => { try { return RECIPES[k] || null; } catch (e) { return null; } };
+const needStr = q => Object.entries(q.need).filter(([, n]) => n !== 0).map(([k, n]) => [k, typeof n === 'number' ? n : 1]).map(([k, n]) => `${recOf(k) ? '<img src="assets/cook/' + recOf(k).ok + '.jpg" alt="" style="height:1.4em;vertical-align:-5px;border-radius:6px">' : ICON[k]}${Math.min(inv[k] | 0, n)}/${n}`).join(' ');   // le plat demandé est montré en image
 const FREE_QUEST_TEXT = {
   rose: {
     title: 'Noix de coco et gâteau pour Miraaï',
@@ -1735,8 +1736,7 @@ function renderHud() { try { shopBtn(); } catch (e) {}
   $('#inv').innerHTML = emoFix(h);
   { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
-  let kq = 0, isl = 'swan'; try { kq = kobQ; isl = questIsl || (IN.on && kobScene() ? 'kob' : 'swan'); } catch (e) {}
-  if (kq >= 1) t += `<div class="qtabs"><button class="qtab ${isl === 'swan' ? 'sel' : ''}" data-qi="swan">🦢 Île du Cygne</button><button class="qtab ${isl === 'kob' ? 'sel' : ''}" data-qi="kob">🐨 Île aux Koalas</button></div>`;
+  let kq = 0, isl = 'swan'; try { kq = kobQ; isl = IN.on && kobScene() ? 'kob' : 'swan'; } catch (e) {}   // chaque île a ses propres missions : on voit celles de l'île où l'on est
   if (kq >= 1 && isl === 'kob') {
     const KS = ['Parler au docteur Tarah', 'Cueillir toutes les plantes de l\'île', 'Retourner voir le docteur Tarah', 'Préparer la tisane au poste de soin', 'Soigner la famille koala', 'Retourner voir le docteur Tarah', 'Soigner les animaux malades de l\'île', 'Retourner voir le docteur Tarah'];
     t += KS.map((s, i) => i < kobQ ? '' : i === kobQ ? '<div class="q"><span>' + s + '</span><span class="cnt">!</span></div>' : '').join('');
@@ -1754,7 +1754,8 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     const nst = (st === 'done' ? 1 : 0) + (opened[q.id] ? 1 : 0) + (st === 'done' && bonusStar[q.id] ? 1 : 0);   // étoiles de mission (jusqu'à 3)
     const ic = [0, 1, 2].map(i => i < nst ? '<b>★</b>' : '<i>★</i>').join('');
     const stars = lock ? '' : `<span class="stars" title="${nst} étoile${nst > 1 ? 's' : ''} sur 3">${ic}</span>`;
-    return `<div class="q ${st === 'done' && opened[q.id] ? 'done' : ''} ${lock ? 'locked' : ''}"><span>${txt}${stars}</span><span class="cnt">${cnt}</span></div>`;
+    let pt = ''; if (!lock) try { const u = q.portrait; if (u) pt = '<img src="' + u + '" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;background:#fff3d6;border:2px solid #e6cfa3;flex:none;margin-right:6px;vertical-align:middle">'; } catch (e) {}   // le visage de l'habitant qui demande
+    return `<div class="q ${st === 'done' && opened[q.id] ? 'done' : ''} ${lock ? 'locked' : ''}"><span style="display:flex;align-items:center">${pt}<span>${txt}${stars}</span></span><span class="cnt">${cnt}</span></div>`;
   };
   const doneQ = seen.filter(q => qState[q.id] === 'done' && opened[q.id]), todoQ = seen.filter(q => !(qState[q.id] === 'done' && opened[q.id]));
   const tabB = (id, lbl) => `<button class="qtab ${questTab === id ? 'sel' : ''}" data-qt="${id}">${lbl}</button>`;
@@ -7789,7 +7790,7 @@ function shopSet(k, t) {
   else say('🛒 Ajouté à ta liste de courses !', 2.6);
 }
 function shopBtn() { const S = shopItems(), b = $('#scrB'); if (b) b.classList.toggle('ready', !!S && S.it.every(i => i.have >= i.n)); }   // la liste est rangée dans les missions 📜 (parchemin entouré de vert quand tout est prêt)
-function shopLine() { const S = shopItems(); if (!S) return ''; const ok = S.it.filter(i => i.have >= i.n).length; return '<div class="q qshop" style="cursor:pointer;background:' + (ok === S.it.length ? '#dff3d6' : '#fff3d6') + '"><span>🛒 Liste de courses : <b>' + S.title.replace(/^\S+ /, '') + '</b><br><small>Touche pour voir ce qu\'il manque et où le trouver</small></span><span class="cnt">' + ok + '/' + S.it.length + '</span></div>'; }
+function shopLine() { const S = shopItems(); if (!S) return ''; { const L = kobD.shop, kob = L.t === 'rem' || (RECIPES[L.k] && RECIPES[L.k].nuna), here = IN.on && kobScene(); if (!!kob !== !!here) return ''; } const ok = S.it.filter(i => i.have >= i.n).length; return '<div class="q qshop" style="cursor:pointer;background:' + (ok === S.it.length ? '#dff3d6' : '#fff3d6') + '"><span>🛒 Liste de courses : <b>' + S.title.replace(/^\S+ /, '') + '</b><br><small>Touche pour voir ce qu\'il manque et où le trouver</small></span><span class="cnt">' + ok + '/' + S.it.length + '</span></div>'; }
 function shopOpen() {
   const S = shopItems(); if (!S) return; let o = $('#shopOv'); if (o) o.remove();
   o = document.createElement('div'); o.id = 'shopOv'; o.style.cssText = 'position:fixed;inset:0;z-index:72;display:flex;align-items:center;justify-content:center;background:rgba(18,30,14,.5);font-family:"Trebuchet MS",system-ui,sans-serif';
