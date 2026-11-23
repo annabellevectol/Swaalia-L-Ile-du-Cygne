@@ -436,7 +436,6 @@ const COLL = [
   { id: 'f7', cat: 'fleurs', img: 'flower7', rare: true, name: 'Oiseau de paradis', desc: 'Elle ressemble à un oiseau multicolore prêt à s\'envoler.' },
   { id: 'f8', cat: 'fleurs', img: 'flower8', rare: true, name: 'Fleur de la passion sauvage', desc: 'Une fleur à vrilles que le Cygne légendaire aimait, dit-on.' },
   { id: 'p0', cat: 'poissons', img: 'fishA0', name: 'Poisson-perroquet arc-en-ciel', desc: 'Il existe vraiment ! Ses dents soudées forment un bec qui râpe les algues du corail, et il rejette du sable fin.' },
-  { id: 'p1', cat: 'poissons', img: 'fishA1', name: 'Poisson-lune', desc: 'Le plus lourd des poissons osseux ! Il se laisse flotter à plat au soleil pour se réchauffer.' },
   { id: 'p2', cat: 'poissons', img: 'fishA2', name: 'Gourami', desc: 'Il peut respirer l\'air à la surface grâce à un organe spécial, et vit dans les eaux calmes pleines de plantes.' },
   { id: 'p4', cat: 'poissons', img: 'fish4', name: 'Combattant', desc: 'Aussi appelé Betta. Ses longues nageoires en voile ondulent comme les plumes de Gaïkin.' },
   { id: 'p5', cat: 'poissons', img: 'fish5', rare: true, name: 'Exocet', desc: 'Le poisson volant ! Il déploie ses grandes nageoires comme des ailes et plane au-dessus de l\'eau.' },
@@ -1169,7 +1168,7 @@ const LP = () => { if (_lp) return _lp; const im = img.s_swflo0; if (!im || !im.
 /* ================= poissons, cygnes, papillons ================= */
 const fishes = [];
 function mkFish(region, x, y) {
-  const cols = region === 'pond' ? [1, 2, 4] : [1, 2, 4, 5, 6];
+  const cols = region === 'pond' ? [0, 2, 4] : [0, 2, 4, 5, 0, 2, 4, 5, 6];
   return { region, x, y, ang: rnd(0, TAU), col: cols[(Math.random() * cols.length) | 0], size: rnd(.38, .5), ph: rnd(0, 6), sp: rnd(5.5, 9.5), tx: x, ty: y, state: 'swim', cool: 0, pause: 0, t: 0, alpha: .62 };
 }
 const fishMask = f => f.region === 'pond' ? POND_IN : SEAF;
@@ -1179,7 +1178,7 @@ function spread(list, n) {   // points bien répartis (le plus éloigné des dé
   while (out.length < Math.min(n, list.length)) { let best = null, bd = -1; for (const c of list) { if (out.includes(c)) continue; const d = Math.min(...out.map(o => dist(o[0], o[1], c[0], c[1]))); if (d > bd) { bd = d; best = c; } } out.push(best); }
   return out;
 }
-spread(D.pondFish, 3).forEach((p, i) => { const q = snapMask(POND_IN, p[0], p[1]); const f = mkFish('pond', q[0], q[1]); f.col = [1, 2, 4][i % 3]; fishes.push(f); });
+spread(D.pondFish, 3).forEach((p, i) => { const q = snapMask(POND_IN, p[0], p[1]); const f = mkFish('pond', q[0], q[1]); f.col = [0, 2, 4][i % 3]; fishes.push(f); });
 spread(D.seaFishStart.filter(p => beachSea(p[0], p[1]) && cell(SEAF, p[0], p[1])), 14).forEach(p => { const q = snapMask(SEAF, p[0], p[1]); fishes.push(mkFish('sea', q[0], q[1])); });
 
 // ponton : les poissons du lac passent dessous (on repeint la carte sur les cases du ponton)
@@ -1629,7 +1628,7 @@ const jarsL = () => (Array.isArray(mini.jars) ? mini.jars : (mini.jars = []));
 const jarsBag = () => jarsL().filter(j => j.at === 'bag' || j.at === 'tbl');
 const jarsOwned = () => (inv.jar || 0) + jarsL().filter(j => j.k !== 'aqua').length;
 const AQ_CAP = 2, aquaOwned = () => (inv.aqua || 0) + jarsL().filter(j => j.k === 'aqua').length;
-const FISH_COLS = [1, 2, 4, 5, 6], FISH_NAME = { 1: 'poisson-lune', 2: 'poisson-damier', 4: 'poisson-clown', 5: 'ange des brumes', 6: 'globe-soleil' };
+const FISH_COLS = [0, 2, 4, 5, 6], FISH_NAME = { 0: 'poisson-perroquet', 1: 'poisson-lune', 2: 'poisson-damier', 4: 'poisson-clown', 5: 'ange des brumes', 6: 'globe-soleil' };
 const dayFish = () => { const d = mini.dayNo || 0; return [FISH_COLS[d % 5], FISH_COLS[(d + 2) % 5]]; };   // deux variétés qui changent chaque jour de jeu
 const fishImg = c => img['s_' + (c < 4 ? 'fishA' + c : 'fish' + c)];
 const objImg = id => { const c = COLL.find(o => o.id === id); if (!c) return null; const k = 'o_' + c.img; if (!JIMG[k]) { const i = new Image(); i.src = 'assets/spr/' + c.img + '.png?v=2'; JIMG[k] = i; } return JIMG[k]; };
