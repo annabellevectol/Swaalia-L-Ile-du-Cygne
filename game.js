@@ -6811,7 +6811,7 @@ function drawBagOnFrame(c, sheet, name, box, o) {
   c.save(); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.imageSmoothingQuality = 'high';
   if (v === 'front') {
     const w = clamp(bw * .95, 24, 44), h = w * spr.height / spr.width, cx = x1 - w * .2, cy = y0 + hh * .605;
-    strap(x0 + bw * .14, y0 + hh * .04, cx - w * .22, cy - h * .5, 3.4);
+    strap(x0 + bw * .06, y0 - hh * .13, cx - w * .22, cy - h * .5, 3.4);
     c.drawImage(spr, cx - w / 2, cy - h / 2, w, h);
     const pa = BAGIMG.patches; if (o.patch !== null && o.patch !== undefined && pa.complete && pa.naturalWidth) { const pw = w * .3, px = cx, py = cy - h * .16, sx = (o.patch % 5) * 96, sy = Math.floor(o.patch / 5) * 96; c.drawImage(pa, sx, sy, 96, 96, px - pw / 2, py - pw / 2, pw, pw); }
     for (const st of (o.bagStk || [])) { const sc = stickerCanvas(st.id, null); if (!sc) continue; const sw = w * .26, sh = sw * sc.height / sc.width; c.drawImage(sc, cx - w / 2 + st.u * w - sw / 2, cy - h / 2 + st.v * h - sh / 2, sw, sh); }
@@ -6913,7 +6913,7 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
   }
   if (o.bp && BPIMG[sheet] && BPIMG[sheet].naturalWidth) { c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.drawImage(BPIMG[sheet], sx, sy, 256, 256, 0, 0, 256, 256); }   // sac à dos (dos et profils)
   if (o.bp && !o.bagOn) { const v = bagViewOf(sheet, name), bx = box || (MBOX[sheet] && MBOX[sheet][i]); if (bx && v && v !== 'back') { const x0 = bx[0], y0 = bx[1], bw = bx[2] - bx[0], hh = bx[3] - bx[1];   // bandoulière du sac à dos, marron foncé
-      const pts = v === 'front' ? [x0 + bw * .14, y0 + hh * .04, x0 + bw * .86, y0 + hh * .6] : v === 'right' ? [x0 + bw * .3, y0 + hh * .03, x0 + bw * .7, y0 + hh * .58] : [x0 + bw * .7, y0 + hh * .03, x0 + bw * .3, y0 + hh * .58];
+      const pts = v === 'front' ? [x0 + bw * .06, y0 - hh * .13, x0 + bw * .86, y0 + hh * .6] : v === 'right' ? [x0 + bw * .3, y0 - hh * .13, x0 + bw * .7, y0 + hh * .58] : [x0 + bw * .7, y0 - hh * .13, x0 + bw * .3, y0 + hh * .58];
       c.save(); c.globalCompositeOperation = 'source-atop'; c.lineCap = 'butt'; c.beginPath(); c.moveTo(pts[0], pts[1]); c.lineTo(pts[2], pts[3]); c.strokeStyle = '#3a2010'; c.lineWidth = 5; c.stroke(); c.strokeStyle = '#7a4a26'; c.lineWidth = 3.4; c.stroke(); c.restore(); } }
   if (o.neck) drawNeckOnFrame(c, sheet, name, box || (MBOX[sheet] && MBOX[sheet][MY[sheet].names.indexOf(name.replace(/^(f?)d[rl]/, '$1down'))]), o);
   if (o.bagOn) drawBagOnFrame(c, sheet, name, box, o);
