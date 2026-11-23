@@ -376,11 +376,13 @@
   .wdLeft{display:flex;flex-direction:column;align-items:center;gap:8px}
   #wdPrev{width:min(300px,62vw);height:min(300px,62vw);background:radial-gradient(circle at 50% 40%,#fff8 0,#fff3 60%,#fff0 100%),linear-gradient(180deg,#bfeef0,#8fd9de);border:3px solid #fff;border-radius:20px;touch-action:none}
   .wdTabs{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+  #wdNkCv{max-width:min(260px,100%);height:auto!important;width:auto!important;display:block;margin:6px auto}#wdNeckEd .wdLbl{margin:6px 0 8px;display:block}
+  #wardrobe .wdRight,#wardrobe .wdLeft{min-width:0;max-width:100%;overflow-x:hidden}#wdLumW{max-width:100%;box-sizing:border-box;padding:0 4px}#wardrobe button{white-space:normal}#wdPat .g{max-width:100%}
   .wdTabs button,.mini{font:inherit;font-weight:800;font-size:14px;color:#0c4a52;background:rgba(255,255,255,.7);border:2.5px solid #1b8a94;border-radius:999px;padding:5px 11px;cursor:pointer}
   .wdTabs button.sel{background:#fff;color:#c7447a;border-color:#c7447a;box-shadow:0 0 0 2px #fff}
   .wdRight{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:210px;flex:1}
   #wdWheel{width:min(190px,48vw);height:min(190px,48vw);border-radius:50%;touch-action:none;cursor:crosshair;box-shadow:0 3px 10px rgba(0,60,70,.35)}
-  .wdSwr{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:250px}
+  .wdSwr{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:min(250px,100%)}
   .wdLbl{font-weight:800;font-size:12px;color:#0c4a52;margin-bottom:-4px}
   #wdLum{-webkit-appearance:none;appearance:none;height:16px;border-radius:9px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,50,60,.35);background:var(--lg,linear-gradient(90deg,#222,#888,#fff));width:150px}
   #wdLum::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid #c7447a}
@@ -426,8 +428,8 @@
   #wdBagP button.sel{border-color:#4b2a7a;box-shadow:0 0 0 2px #e4d6fa}
   #wardrobe.savedMode #wdBag{display:none !important}
     #wdStk{display:none;flex-direction:column;align-items:center;gap:6px}
-  #wdStkRow{display:flex;justify-content:center;align-items:flex-start;gap:10px}
-  #wdColorCol{display:flex;flex-direction:column;align-items:center;gap:8px}
+  #wdStkRow{display:flex;justify-content:center;align-items:flex-start;gap:6px;max-width:100%}
+  #wdColorCol{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;flex:1 1 auto;max-width:100%}
   .wdStkCol{display:none;grid-template-columns:repeat(1,46px);gap:5px}
   #wardrobe.stkMode .wdStkCol{display:grid}
   #wardrobe.stkMode #wdWheel{width:min(170px,40vw);height:min(170px,40vw)}
@@ -1028,7 +1030,7 @@
       <div class="wdLeft">
         <div class="wdPrevRow"><button id="wdUndo" class="wdArr" disabled title="Revenir en arrière" aria-label="Revenir en arrière"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M27 16H6M15 6L5 16l10 10"/></svg></button><canvas id="wdPrev" width="300" height="300"></canvas><button id="wdRedo" class="wdArr" disabled title="Revenir au présent" aria-label="Revenir au présent"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16h21M17 6l10 10-10 10"/></svg></button></div>
         <div class="wdTabs">
-          <button data-part="hair">Cheveux</button><button data-part="glasses">Lunettes</button><button data-part="overall">Salopette</button><button data-part="shoes">Chaussures</button><button data-part="bag">Sac</button><button data-part="stickers">Stickers</button><button data-part="saved">Mes tenues</button>
+          <button data-part="hair">Cheveux</button><button data-part="glasses">Lunettes</button><button data-part="overall">Salopette</button><button data-part="shoes">Chaussures</button><button data-part="bag">Sac</button><button data-part="stickers" style="display:none">Stickers</button><button data-part="saved">Mes tenues</button>
         </div>
       </div>
       <div class="wdRight">
