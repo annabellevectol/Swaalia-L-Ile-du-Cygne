@@ -5615,7 +5615,7 @@ const hslHex2 = (h, sat, l) => { const a = sat * Math.min(l, 1 - l), f = n => { 
 const hexHsl = hx => { const r = parseInt(hx.slice(1, 3), 16) / 255, g = parseInt(hx.slice(3, 5), 16) / 255, b = parseInt(hx.slice(5, 7), 16) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; let h = 0, sat = 0; if (d) { sat = d / (1 - Math.abs(2 * l - 1)); h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; } return { h, s: sat, l }; };
 function wdNeckUi() {
   const tabs = document.querySelector('.wdTabs'); if (!tabs) return; let t = document.getElementById('wdNeckT');
-  if (!t) { t = document.createElement('button'); t.id = 'wdNeckT'; t.dataset.part = 'neck'; t.textContent = '📿 Collier'; t.addEventListener('click', () => wdTab('neck')); tabs.appendChild(t); }
+  if (!t) { t = document.createElement('button'); t.id = 'wdNeckT'; t.dataset.part = 'neck'; t.innerHTML = '<img src="assets/wdico/neck.png" alt="" class="wdIco"><span>Collier</span>'; t.addEventListener('click', () => wdTab('neck')); tabs.appendChild(t); }
   t.style.display = mini.neck || (mini.necks && Object.keys(mini.necks).length) ? '' : 'none';
   let p = document.getElementById('wdNeckEd');
   if (!p) {
