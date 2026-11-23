@@ -7056,7 +7056,8 @@ function gkBridgeFg() {   // sur le lac, la queue de Gaïkin passe derrière le 
     g.putImageData(d, 0, 0); C.mask = m; C.k = k; C.t = document.createElement('canvas'); C.t.width = Wd; C.t.height = Hd;
   }
   const tg = C.t.getContext('2d'); tg.globalCompositeOperation = 'copy'; tg.drawImage(im, R[0] * k, R[1] * k, Wd, Hd, 0, 0, Wd, Hd); tg.globalCompositeOperation = 'destination-in'; tg.drawImage(C.mask, 0, 0); tg.globalCompositeOperation = 'source-over';
-  ctx.drawImage(C.t, R[0], R[1], R[2], R[3]);
+  ctx.save(); { const p = player; if (!p.mount && p.x > 330 && p.x < 425 && p.y > 200 && p.y < 280) { ctx.beginPath(); ctx.rect(R[0], R[1], R[2], R[3]); ctx.rect(p.x - 20, p.y - 80, 40, 84); ctx.clip('evenodd'); } }   // Myah marche sur le chemin de planches : le pont repeint ne la recouvre pas
+  ctx.drawImage(C.t, R[0], R[1], R[2], R[3]); ctx.restore();
 }
 function gkHutFg() {   // sur le lac, Gaïkin passe derrière la cabane de Kykah : on repeint la cabane pixel par pixel (sans l'eau autour)
   const ds = dayState(), im = img[ds.A.n] || img.map, ref = img.map; if (!im || !im.naturalWidth || !ref || !ref.naturalWidth) return;
@@ -7824,7 +7825,8 @@ function shopSet(k, t) {
   if (!kobD.shopTuto) { kobD.shopTuto = 1; save(); const S = shopItems(); openDialog('Liste de courses', ['Pour préparer ' + (S ? S.title.replace(/^\S+ /, '') : 'ça') + ', il faut d\'abord réunir les ingrédients !', 'Ouvre tes missions 📜 en haut de l\'écran : ta liste de courses est tout en haut. Tu verras ce qu\'il te manque, et où le trouver.', 'Chaque ingrédient se coche ✅ dès que tu l\'as dans ton sac.'], () => shopOpen(), ''); }
   else say('🛒 Ajouté à ta liste de courses !', 2.6);
 }
-function shopBtn() { const S = shopItems(), b = $('#scrB'); if (b) b.classList.toggle('ready', !!S && S.it.every(i => i.have >= i.n)); }   // la liste est rangée dans les missions 📜 (parchemin entouré de vert quand tout est prêt)
+function shopBtn() { const S = shopItems(), b = $('#scrB'); if (b) b.classList.remove('ready');
+  if (S && S.it.every(i => i.have >= i.n)) { delete kobD.shop; save(); setTimeout(() => { try { say('🧾 Tu as tous les ingrédients nécessaires ! ' + S.where.replace(/^Cuisine-le|^Prépare-le/, 'Va préparer : ' + S.title + ',').replace(/ 🏠$/, ''), 5); renderHud(); } catch (e) {} }, 0); } }   // la liste s'efface d'elle-même quand tout est dans le sac   // la liste est rangée dans les missions 📜 (parchemin entouré de vert quand tout est prêt)
 function shopLine() { const S = shopItems(); if (!S) return ''; { const L = kobD.shop, kob = L.t === 'rem' || (RECIPES[L.k] && RECIPES[L.k].nuna), here = IN.on && kobScene(); if (!!kob !== !!here) return ''; } const ok = S.it.filter(i => i.have >= i.n).length; return '<div class="q qshop" style="cursor:pointer;background:' + (ok === S.it.length ? '#dff3d6' : '#fff3d6') + '"><span>🛒 Liste de courses : <b>' + S.title.replace(/^\S+ /, '') + '</b><br><small>Touche pour voir ce qu\'il manque et où le trouver</small></span><span class="cnt">' + ok + '/' + S.it.length + '</span></div>'; }
 function shopOpen() {
   const S = shopItems(); if (!S) return; let o = $('#shopOv'); if (o) o.remove();
@@ -7836,11 +7838,11 @@ function shopOpen() {
     '<div style="text-align:center;font-size:13px;opacity:.85;margin-bottom:10px">' + S.where + '</div>' +
     S.it.map(i => { const ok = i.have >= i.n; return '<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 4px;margin:0;background:none;border-bottom:2px dotted #d4b98c;' + (ok ? 'color:#4a8a3c;' : '') + '"><div style="font-size:22px;line-height:1">' + (ok ? '✅' : '⬜') + '</div><div style="flex:1"><div style="font-weight:700;font-size:15px">' + i.nm + ' <span style="font-weight:400;opacity:.8">(' + Math.min(i.have, i.n) + ' / ' + i.n + ')</span></div>' + (ok ? '' : '<div style="font-size:13px;margin-top:2px">📍 ' + (SHOP_SRC[i.k] || '') + '</div>') + '</div></div>'; }).join('') +
     (all ? '<div style="text-align:center;font-weight:700;color:#2e7d32;margin-top:8px">Tout est prêt ! ' + S.where.replace(/^Cuisine-le|^Prépare-le/, 'Va le préparer') + '</div>' : '') +
-    '<div style="display:flex;justify-content:center;margin-top:10px"><button id="shopDel" style="border:2px solid #b9915a;background:#f3e2c3;color:#5a3412;border-radius:99px;padding:6px 14px;font:700 13px \'Trebuchet MS\'">Effacer la liste</button></div></div>';
+    '</div>';
   document.body.appendChild(o);
   const close = () => o.remove(); o.addEventListener('pointerdown', e => { if (e.target === o) close(); });
   o.querySelector('#shopX').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); close(); });
-  o.querySelector('#shopDel').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); delete kobD.shop; save(); shopBtn(); close(); });
+
 }
 /* ----- Myah tend le légume (planche Myah + légumes) ----- */
 const GIVE_IT = { flower: { c: [0, 5], n: 'Fleur', e: '🌸' }, mango: { c: [1], n: 'Mangue', e: '🥭' }, banana: { c: [2], n: 'Bananes', e: '🍌' }, coconut: { c: [3], n: 'Noix de coco', e: '🥥' }, fish: { c: [6], n: 'Poisson', e: '🐟' }, shell: { c: [4, 7], n: 'Coquillage', e: '🐚' }, butterfly: { c: [8], n: 'Papillon', e: '🦋' }, crab: { c: [9], n: 'Crabe', e: '🦀' } };   // planche « Myah + objets » : 4 × 2
