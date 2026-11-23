@@ -6083,7 +6083,7 @@ function renderInterior(vw, vh) {
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (isHome && !IN.lie ? 1.4 : 1 + .4 * dkz);   // chez Myah : même plan rapproché en haut et en bas (la caméra ne recule plus) ; plan rapproché dans tous les lieux : la caméra suit Myah
   IN.fz = (IN.fz || 1) + ((SC === SC_KOBHAK && IN.wf ? .62 : 1) - (IN.fz || 1)) * Math.min(1, (IN.dtc || .016) * 1.6);
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) : SC !== SC_KOBHAK && kobScene() ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) : SC !== SC_KOBHAK && (kobScene() || !IN.lie) ? Math.max(fit, vh * (kobScene() ? .262 : .21) / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
      SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
@@ -6876,7 +6876,7 @@ function renderFrameOutfit(sheet, i, o, out) {   // une image de Myah, avec sa t
       _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = patFill(_fx, pn, 30); _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }
     else if (col && k === 'sh') { _fx.globalCompositeOperation = 'multiply'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 100) + '%,' + Math.round(Math.max(.5, col.l) * 100 + (col.l > .5 ? 0 : 6)) + '%)'; _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); }   // t-shirt blanc : on multiplie (la teinte « color » ne marche pas sur du blanc)
     else if (col) { _fx.globalCompositeOperation = 'color'; _fx.fillStyle = hslStr(col); _fx.fillRect(0, 0, 256, 256);
-      if (k === 'hair') { _fx.globalCompositeOperation = 'lighter'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 90) + '%,' + Math.round(col.l * 52) + '%)'; _fx.fillRect(0, 0, 256, 256); }   // cheveux très sombres : on ajoute de la couleur en gardant le relief des mèches
+      if (k === 'hair') { _fx.globalCompositeOperation = 'lighter'; _fx.fillStyle = 'hsl(' + Math.round(col.h) + ',' + Math.round(col.s * 85) + '%,' + Math.round(col.l * 50) + '%)'; _fx.fillRect(0, 0, 256, 256); _fx.globalCompositeOperation = 'multiply'; _fx.globalAlpha = .35; _fx.drawImage(src, sx, sy, 256, 256, 0, 0, 256, 256); _fx.globalAlpha = 1; }   // on garde le relief des mèches (ombres) au lieu d'un aplat   // cheveux très sombres : on ajoute de la couleur en gardant le relief des mèches
       _fx.globalCompositeOperation = 'destination-in'; _fx.drawImage(mk, sx, sy, 256, 256, 0, 0, 256, 256); if (k !== 'hair') lightAdj(_fx, col.l, 256, 256); }
     if (stk) {
       _fx.globalCompositeOperation = 'source-atop'; const bw = box[2] - box[0];
