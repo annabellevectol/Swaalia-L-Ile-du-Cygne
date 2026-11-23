@@ -2710,17 +2710,18 @@ function kidTalk0(e) {   // Kito gazouille ; Lila et Romi bavardent et proposent
   const nm = CHAL_NAME[e.key] || 'Romi';
   if (e.key === 'kahn' && !chal && e.met) {   // mission « pour Papa » : une Uja-Jiji contre des poissons rares
     const pp = kobD.papa | 0;
-    if (pp === 1 && (inv.soupe | 0) > 0) {
+    const dk = ['soupe', 'tipaiki', 'papi'].find(k => (inv[k] | 0) > 0);
+    if (pp === 1 && dk) {
       const pool = COLL.filter(c => c.cat === 'poissons' && c.rare && !coll[c.id]), c = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
-      return openDialog(e.who, ['Mmm, une Uja-Jiji ! 🦀 Ma puce, tu cuisines comme ta grand-mère.', c ? 'Tiens, c\'est ma plus belle prise : ' + c.name + ' ! Je l\'ai gardée pour toi.' : 'Tiens, trois poissons tout frais pour toi !'], () => {
-        inv.soupe--; kobD.papa = 2; if (c) coll[c.id] = true; else inv.fish += 3; renderHud();
+      return openDialog(e.who, ['Mmm, ' + ({ soupe: 'une Uja-Jiji ! 🦀', tipaiki: 'un Tipa Iki ! 🐟', papi: 'une Papillote des récifs ! 🐟' })[dk] + ' Ma puce, tu cuisines comme ta grand-mère.', c ? 'Tiens, c\'est ma plus belle prise : ' + c.name + ' ! Je l\'ai gardée pour toi.' : 'Tiens, trois poissons tout frais pour toi !'], () => {
+        inv[dk]--; kobD.papa = 1; if (c) coll[c.id] = true; else inv.fish += 3; renderHud();
         try { sfx.star(); if (!IN.on) burst(player.x, player.y - 24, 18, ['#ffd84d', '#7fd3ff', '#fff'], true); } catch (er) { }
         save(); free(); if (c && !IN.on) showTrophy(trophyImgColl(c.id), c.name, 'Un poisson rare offert par Papa : mets-le dans un bocal !'); }, e.portrait); }
-    if (pp === 1) return openDialog(e.who, ['J\'ai encore faim… Une bonne Uja-Jiji : 2 crabes 🦀, une patate douce et une igname, à cuisiner à la maison !'], free, e.portrait);
+    if (pp === 1) return openDialog(e.who, ['J\'ai faim… Apporte-moi une Uja-Jiji, un Tipa Iki ou une Papillote des récifs, et je t\'offre un poisson rare !'], free, e.portrait);
     if (!pp && !isEve()) return openDialog(e.who, ['Ouf, quelle matinée de pêche ! J\'ai un creux… Tu me ferais une Uja-Jiji, la soupe de crabe ? 🦀'], () => askQuest('Cuisiner une Uja-Jiji pour Papa ? Récompense : un poisson rare à mettre en bocal !', () => { kobD.papa = 1; try { shopSet('soupe', 'dish'); } catch (er) { } save(); say('Ajouté à ta liste de courses !', 2.6); free(); }, free), e.portrait);
   }
   if (chal && chal.done && chal.who === e.key) {   // rapporter les objets : récompense
-    const pool = COLL.filter(c => c.cat === 'tresors' && !coll[c.id]), c = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+    const fp = (chal.c.k === 'fish' || chal.c.k === 'crab') ? COLL.filter(c => /^r\d$/.test(c.id) && !coll[c.id]) : [], pool = fp.length ? fp : COLL.filter(c => c.cat === 'tresors' && !coll[c.id]), c = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
     return openDialog(e.who, ['Bravo, tu as réussi la mission !', c ? 'Tu remportes : ' + c.name + ' ! (voir la collection)' : 'Tu as déjà tous mes trésors ! Tiens, trois beaux coquillages.'], () => {
       if (c) coll[c.id] = true; else { inv.shell += 3; renderHud(); }
       try { sfx.star(); if (!IN.on) burst(player.x, player.y - 24, 18, ['#ffd84d', '#ff8fc4', '#fff'], true); } catch (er) { }
