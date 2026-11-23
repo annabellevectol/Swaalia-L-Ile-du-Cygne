@@ -5600,7 +5600,7 @@ function wdDraw() {
   wd.last = cur; $('#wdUndo').disabled = !wd.hist.length; $('#wdRedo').disabled = !(wd.redo && wd.redo.length); renderFrameOutfit('walk', wdIdx(), o, wd.frame);
   const cv = $('#wdPrev'), x = cv.getContext('2d'), k = cv.width / 256; x.clearRect(0, 0, cv.width, cv.height);
   x.fillStyle = 'rgba(0,70,80,.18)'; x.beginPath(); x.ellipse(cv.width / 2, 213 * k, 52 * k, 9 * k, 0, 0, TAU); x.fill();
-  x.imageSmoothingEnabled = true; x.drawImage(wd.frame, 0, 0, cv.width, cv.height);
+  x.imageSmoothingEnabled = true; if (wd.part === 'glasses') { x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, 68, 22, 120, 120, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
   const box = wdBox(); if (box && wd.part === 'stickers' && wd.sel >= 0 && o.stickers[wd.sel]) {   // cadre de sélection du sticker, avec des poignées pour l'étirer
     const R = wdStkRect(o.stickers[wd.sel], box), M = 6;   // le cadre est un peu plus grand que le sticker, pour que les poignées ne le cachent pas
     x.save(); x.setLineDash([6, 5]); x.lineWidth = 3; x.strokeStyle = '#fff'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.lineWidth = 1.5; x.strokeStyle = '#c7447a'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.setLineDash([]);
@@ -6826,7 +6826,7 @@ const BIJOUX = [   // colliers à acheter : chez Kykah (île du Cygne) et chez K
   { id: 'n_gum', nm: 'Collier de noix d\'eucalyptus', isl: 'kob', shell: 10 }, { id: 'n_kobois', nm: 'Collier petit koala en bois', isl: 'kob', shell: 12 },
   { id: 'n_opale', nm: 'Collier d\'opale', isl: 'kob', shell: 50, leg: 1 }, { id: 'n_koor', nm: 'Collier eucalyptus d\'or', isl: 'kob', shell: 60, leg: 1 }];
 const LUNETTES = [{ id: 'heart', nm: 'Lunettes cœur', shell: 15 }, { id: 'star', nm: 'Lunettes étoiles', shell: 15 }];   // montures qui remplacent les lunettes de Myah (planches redessinées)
-const GLMK = {}; function glMask(id, sh) { if (!id) return null; GLMK[id] = GLMK[id] || {}; if (!GLMK[id][sh]) { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/mk_' + sh + '_glass.png?v=3'; GLMK[id][sh] = im; } const m = GLMK[id][sh]; return m.naturalWidth ? m : null; }
+const GLMK = {}; function glMask(id, sh) { if (!id) return null; GLMK[id] = GLMK[id] || {}; if (!GLMK[id][sh]) { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/mk_' + sh + '_glass.png?v=4'; GLMK[id][sh] = im; } const m = GLMK[id][sh]; return m.naturalWidth ? m : null; }
 const GLIMG = {}; function glImg(id, sh) { if (!GLIMG[id]) { GLIMG[id] = {}; Object.keys(MY).forEach(k => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/myah/gl_' + id + '/' + MY[k].file.split('/').pop().split('?')[0] + '?v=1'; GLIMG[id][k] = im; }); } return GLIMG[id][sh]; }
 const mySrc = (sh, o) => { const g = o && o.glassId ? glImg(o.glassId, sh) : null; return g && g.naturalWidth ? g : img['m_' + sh]; };
 const BIJ_IMG = {}; BIJOUX.forEach(b => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/neck/' + b.id + '.png?v=1'; BIJ_IMG[b.id] = im; });
