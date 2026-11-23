@@ -5607,13 +5607,15 @@ const hexHsl = hx => { const r = parseInt(hx.slice(1, 3), 16) / 255, g = parseIn
 function wdNeckUi() {
   const tabs = document.querySelector('.wdTabs'); if (!tabs) return; let t = document.getElementById('wdNeckT');
   if (!t) { t = document.createElement('button'); t.id = 'wdNeckT'; t.dataset.part = 'neck'; t.textContent = '📿 Collier'; t.addEventListener('click', () => wdTab('neck')); tabs.appendChild(t); }
-  t.style.display = mini.neck ? '' : 'none';
+  t.style.display = mini.neck || (mini.necks && Object.keys(mini.necks).length) ? '' : 'none';
   let p = document.getElementById('wdNeckEd');
   if (!p) {
     p = document.createElement('div'); p.id = 'wdNeckEd'; p.style.cssText = 'width:100%;margin-top:8px;text-align:center';
     p.innerHTML = '<button class="mini" id="wdNeckOn"></button><div class="wdLbl">Colorie ton collier</div><div><button class="mini" id="wdNkBucket">🪣 Pot de peinture</button> <button class="mini" id="wdNkPipe">💧 Pipette</button></div><canvas id="wdNkCv" width="260" height="280" style="margin-top:6px;border-radius:12px;background:rgba(255,255,255,.55);touch-action:none;cursor:crosshair;max-width:100%"></canvas><div class="wdHint" id="wdNkMsg"></div>';
     $('#wdOrig').insertAdjacentElement('afterend', p); wd.nk = 'bucket';
     $('#wdNeckOn').addEventListener('click', () => { wd.o.neck = !wd.o.neck; wdDraw(); });
+    { const ch = document.createElement('div'); ch.id = 'wdNkPick'; ch.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0'; $('#wdNeckOn').insertAdjacentElement('afterend', ch);
+      ch.addEventListener('click', e => { const b = e.target.closest('[data-nk]'); if (!b) return; wd.o.neckId = b.dataset.nk === 'shell' ? null : b.dataset.nk; wd.o.neck = true; wdDraw(); }); }
     $('#wdNkBucket').addEventListener('click', () => { wd.nk = 'bucket'; wdNeckUi(); });
     $('#wdNkPipe').addEventListener('click', () => { wd.nk = 'pipe'; wdNeckUi(); });
     const cv = $('#wdNkCv'); cv.addEventListener('pointerdown', e => {
@@ -5627,7 +5629,10 @@ function wdNeckUi() {
   }
   p.style.display = wd.part === 'neck' ? 'block' : 'none';
   if (wd.part === 'neck') {
-    $('#wdNeckOn').textContent = wd.o.neck ? '📿 Porter le collier : OUI' : '📿 Porter le collier : NON'; $('#wdNkBucket').classList.toggle('sel', wd.nk !== 'pipe'); $('#wdNkPipe').classList.toggle('sel', wd.nk === 'pipe');
+    $('#wdNeckOn').textContent = wd.o.neck ? '📿 Porter un collier : OUI' : '📿 Porter un collier : NON';
+    { const L = (mini.neck ? [{ id: 'shell', nm: 'Coquillages' }] : []).concat(BIJOUX.filter(b => bijOwned(b.id))), cur = wd.o.neckId || 'shell';
+      $('#wdNkPick').innerHTML = L.map(b => '<button data-nk="' + b.id + '" style="width:64px;height:64px;border-radius:12px;border:3px solid ' + (cur === b.id ? '#e2574c' : '#e6cfa3') + ';background:#fff8ec url(' + (b.id === 'shell' ? 'assets/neck.png' : 'assets/neck/' + b.id + '.png?v=1') + ') 0 0/256px 64px no-repeat" title="' + b.nm + '"></button>').join('');
+      const sh = cur === 'shell'; ['wdNkBucket', 'wdNkPipe', 'wdNkCv', 'wdNkMsg'].forEach(i => { const el = $('#' + i); if (el) el.style.display = sh ? '' : 'none'; }); const lb = p.querySelector('.wdLbl'); if (lb) lb.style.display = sh ? '' : 'none'; } $('#wdNkBucket').classList.toggle('sel', wd.nk !== 'pipe'); $('#wdNkPipe').classList.toggle('sel', wd.nk === 'pipe');
     $('#wdNkMsg').textContent = wd.nk === 'pipe' ? 'Touche un coquillage pour reprendre sa couleur.' : 'Choisis une couleur sur la roue, puis touche un coquillage.';
     const cv = $('#wdNkCv'), x = cv.getContext('2d'); x.clearRect(0, 0, 260, 280);
     if (NECKIMG.naturalWidth) { const sh = neckSheet(wd.o.neckCols), b = NB[0]; x.imageSmoothingEnabled = false; x.drawImage(sh, b[0], b[1], b[2] - b[0], b[3] - b[1], 0, 0, (b[2] - b[0]) * 1.5, (b[3] - b[1]) * 1.5); }
@@ -6722,7 +6727,7 @@ function stkGive(id) {   // un nouveau sticker pour l'album (une seule fois)
   if (!id || !STK_BY[id] || post.stk.includes(id)) return false; post.stk.push(id); save();
   setTimeout(() => { sfx.star && sfx.star(); say('🎉 Nouveau sticker : « ' + STK_BY[id].n + ' » ! Colle-le sur ta salopette au vestiaire.', 6); }, 700); return true;
 }
-const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
+const outfitEmpty = () => ({ shirt: null, overall: null, shoes: null, hair: null, glasses: null, stickers: [], bagOn: false, bag: null, patch: null, bagStk: [], neck: false, neckId: null, neckCols: Array(13).fill(null), pat: { shirt: null, overall: null, bag: null } });
 let outfit = outfitEmpty(), outSheet = {}, outfitDirty = false;
 const isDefaultOutfit = o => !o.neck && !(o.pat && (o.pat.shirt != null || o.pat.overall != null || o.pat.bag != null)) && !o.shirt && !o.overall && !o.shoes && !o.hair && !o.glasses && !o.stickers.length && !o.bagOn;
 const hslStr = c => 'hsl(' + Math.round(c.h) + ',' + Math.round(c.s * 100) + '%,50%)';
@@ -6803,6 +6808,14 @@ function neckSheet(cols) {   // planche du collier repeinte : chaque coquillage 
   for (let i = 0; i < NLAB.length; i++) { const k = NLAB[i]; if (!k || !rgb[k - 1] || d[i * 4 + 3] < 8) continue; const C = rgb[k - 1], Y = .299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2], f = Math.max(.5, Math.min(1.3, .6 + .8 * Y / 200)); d[i * 4] = Math.min(255, C[0] * f); d[i * 4 + 1] = Math.min(255, C[1] * f); d[i * 4 + 2] = Math.min(255, C[2] * f); }
   x.putImageData(im, 0, 0); return (_neckT[key] = c);
 }
+const BIJOUX = [   // colliers à acheter : chez Kykah (île du Cygne) et chez Koki (île Koala), contre des coquillages
+  { id: 'n_corail', nm: 'Collier coquillages et corail', isl: 'swan', shell: 8 }, { id: 'n_fleur', nm: 'Collier de fleurs de frangipanier', isl: 'swan', shell: 10 }, { id: 'n_perle', nm: 'Collier de perles et plume blanche', isl: 'swan', shell: 12 },
+  { id: 'n_or', nm: 'Collier de perles nacrées et plume d\'or', isl: 'swan', shell: 50, leg: 1 }, { id: 'n_cygne', nm: 'Collier du Cygne légendaire', isl: 'swan', shell: 60, leg: 1 },
+  { id: 'n_gum', nm: 'Collier de noix d\'eucalyptus', isl: 'kob', shell: 10 }, { id: 'n_kobois', nm: 'Collier petit koala en bois', isl: 'kob', shell: 12 },
+  { id: 'n_opale', nm: 'Collier d\'opale', isl: 'kob', shell: 50, leg: 1 }, { id: 'n_koor', nm: 'Collier eucalyptus d\'or', isl: 'kob', shell: 60, leg: 1 }];
+const BIJ_IMG = {}; BIJOUX.forEach(b => { const im = new Image(); im.onload = () => { outfitDirty = true; }; im.src = 'assets/neck/' + b.id + '.png?v=1'; BIJ_IMG[b.id] = im; });
+const bijOwned = id => !!(mini.necks && mini.necks[id]);
+const neckSrc = o => { const im = o && o.neckId && BIJ_IMG[o.neckId]; return im && im.naturalWidth ? im : neckSheet(o.neckCols); };
 const NB = [[9, 3, 182, 189], [25, 3, 167, 189], [10, 3, 182, 189], [83, 3, 108, 188]];
 function neckView(sheet, name) {
   const v = bagViewOf(sheet, name); if (!v) return null;
@@ -6815,7 +6828,7 @@ function drawNeckOnFrame(c, sheet, name, box, o) {
   const sy0 = idx === 3 ? b[1] : b[1] + (b[3] - b[1]) * NECK_CUT, sw = b[2] - b[0], sh = b[3] - sy0, dir = (v === 'left' || v === '34m') ? -1 : 1;
   const w = idx === 3 ? bw * .15 : bw * NECK_W, h = w * sh / sw, cx = (x0 + x1) / 2 + (idx === 3 ? dir * bw * .1 : idx === 1 ? dir * bw * .02 : 0), top = y0 + hh * NECK_Y;
   c.save(); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.imageSmoothingQuality = 'high'; c.translate(cx, top); if (dir < 0) c.scale(-1, 1);
-  c.drawImage(neckSheet(o.neckCols), idx * 192 + b[0], sy0, sw, sh, -w / 2, 0, w, h); c.restore();
+  c.drawImage(neckSrc(o), idx * 192 + b[0], sy0, sw, sh, -w / 2, 0, w, h); c.restore();
 }
 const NECK_CUT = .3, NECK_W = .9, NECK_Y = -.03;
 const PATIMG = new Image(); PATIMG.src = 'assets/patterns.jpg'; PATIMG.onload = () => { outfitDirty = true; };   // 24 motifs (4 × 6 cases de 96 px)
@@ -6886,7 +6899,7 @@ function setOutfit(o) {
   if (o) { ['shirt', 'overall', 'shoes', 'hair', 'glasses'].forEach(k => { const c = o[k]; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit[k] = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; });
     outfit.stickers = (o.stickers || []).filter(t => STK_BY[t.id]).slice(0, 8).map(t => ({ id: t.id, u: +t.u || .5, v: +t.v || .5, w: clamp(+t.w || .3, .08, .8), tint: t.tint ? { h: +t.tint.h, s: +t.tint.s, l: +t.tint.l } : null })); }
   if (o && o.bagOn) { outfit.bagOn = true; const c = o.bag; if (c && isFinite(c.h) && isFinite(c.s) && isFinite(c.l)) outfit.bag = { h: +c.h, s: clamp(+c.s, 0, 1), l: clamp(+c.l, .05, .95) }; if (Number.isInteger(o.patch) && o.patch >= 0 && o.patch < 10) outfit.patch = o.patch; if (Array.isArray(o.bagStk)) outfit.bagStk = o.bagStk.filter(s => s && STK.some(d => d.id === s.id) && isFinite(s.u) && isFinite(s.v)).slice(0, 3).map(s => ({ id: s.id, u: clamp(+s.u, 0, 1), v: clamp(+s.v, 0, 1) })); }
-  outfit.neck = !!(o && o.neck); if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
+  outfit.neck = !!(o && o.neck); outfit.neckId = o && o.neckId && BIJOUX.some(b => b.id === o.neckId) ? o.neckId : null; if (o && Array.isArray(o.neckCols)) outfit.neckCols = outfit.neckCols.map((_, i) => /^#[0-9a-f]{6}$/i.test(o.neckCols[i]) ? o.neckCols[i] : null);
   if (o && o.pat) ['shirt', 'overall', 'bag'].forEach(k => { const n = o.pat[k]; if (Number.isInteger(n) && n >= 0 && n < 24) outfit.pat[k] = n; });
   outfitDirty = true; bakeOutfit();
 }
@@ -7911,8 +7924,8 @@ function kykahShop(e, free, epOnly, list, title) {
   let ksTab = 'ep';
   const KCSS = '<style>#kshop .kc::-webkit-scrollbar{width:8px}#kshop .kc::-webkit-scrollbar-thumb{background:#d9a54a;border-radius:6px}#kshop .kc::-webkit-scrollbar-track{background:#f6e7c4;border-radius:6px}#kshop .kc{position:relative;background:#fff8e6;width:min(94vw,380px);max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d9a54a #f6e7c4;border-radius:22px;padding:12px 12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.45);color:#5a3b1c;box-sizing:border-box}#kshop .kT{font:800 20px "Trebuchet MS",sans-serif;color:#8a4b1f;text-align:center}#kshop .kSh{display:flex;justify-content:center;align-items:center;gap:6px;margin:4px auto 10px;background:#ffeecb;border:2px solid #e2b95c;border-radius:999px;padding:3px 14px;width:max-content;font-weight:800;font-size:15px}#kshop .kX{all:unset;position:absolute;top:8px;right:10px;width:34px;height:34px;border-radius:50%;background:#fff;border:3px solid #b6862c;color:#7a4b1f;font:800 18px/30px sans-serif;text-align:center;cursor:pointer}#kshop .kTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}#kshop .kTab{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px 4px;border-radius:14px;background:rgba(255,255,255,.45);border:2.5px solid rgba(27,138,148,.7);font-weight:800;font-size:12px;color:#5a3b1c;touch-action:manipulation}#kshop .kTab img{height:30px;width:auto;object-fit:contain}#kshop .kTab.sel{background:#fff3c8;border-color:#c7447a}#kshop .kg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}#kshop .kk{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 8px;border-radius:16px;background:#fff3d8;border:2.5px solid #e2b95c;text-align:center}#kshop .kk.z{opacity:.55}#kshop .kk img.ki{height:54px;width:auto;object-fit:contain}#kshop .kn{font-weight:800;font-size:13px;line-height:1.1}#kshop .kp{font-size:12px;line-height:1.2}#kshop .kb{all:unset;cursor:pointer;margin-top:3px;padding:7px 16px;border-radius:999px;background:#ffd36a;border:2px solid #b6862c;font-weight:800;font-size:14px;color:#5a3b1c;touch-action:manipulation}#kshop .kb[disabled]{cursor:default;background:#e3d9c2;border-color:#cdbf9c;color:#a39a86}#kshop .kv{display:flex;gap:6px;width:100%;margin-top:3px}#kshop .kv .kb{flex:1;padding:6px 4px;font-size:12px;margin:0}#kshop .kNote{font-size:12px;opacity:.8;text-align:center;margin:6px 0 0}</style>';
   const draw = () => {
-    const nj = Object.assign({ id: 'kt' }, { k: 'fly', n: 0 }), tabIco = { jar: '<img src="' + jarIconUrl(nj) + '" alt="">', aq: '<img src="' + jarIconUrl({ id: 'kq', k: 'aqua', n: 0, fish: [] }) + '" alt="">', fr: '<img src="assets/spr/treat2.png" alt="">', ep: '<img src="assets/spr/ing_farine.png" alt="">' }, tabNm = { jar: 'Bocaux', aq: 'Aquariums', fr: 'Friandises', ep: 'Épicerie' };
-    let h = KCSS + '<div class="kc"><button class="kX" id="ksNo" aria-label="Fermer">✕</button><div class="kT"><img src="assets/ui/caisse.png" alt="" style="height:2.2em;vertical-align:-14px;margin-right:6px">' + (title || 'La vitrine de Kykah') + '</div><div class="kSh">' + emoFix('🐚') + ' <span>' + (inv.shell || 0) + '</span></div><div class="kTabs"' + (list ? ' style="display:none"' : '') + '>' + (epOnly ? ['ep'] : ['ep', 'jar', 'aq', 'fr']).map(k => '<button class="kTab' + (ksTab === k ? ' sel' : '') + '" data-ks="' + k + '">' + tabIco[k] + tabNm[k] + '</button>').join('') + '</div>';
+    const nj = Object.assign({ id: 'kt' }, { k: 'fly', n: 0 }), tabIco = { jar: '<img src="' + jarIconUrl(nj) + '" alt="">', aq: '<img src="' + jarIconUrl({ id: 'kq', k: 'aqua', n: 0, fish: [] }) + '" alt="">', fr: '<img src="assets/spr/treat2.png" alt="">', ep: '<img src="assets/spr/ing_farine.png" alt="">' }, tabNm = { jar: 'Bocaux', aq: 'Aquariums', fr: 'Friandises', ep: 'Épicerie', bij: 'Bijoux' }; tabIco.bij = '<img src="assets/neck/' + (list ? 'n_gum' : 'n_fleur') + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;width:28px;height:28px">';
+    let h = KCSS + '<div class="kc"><button class="kX" id="ksNo" aria-label="Fermer">✕</button><div class="kT"><img src="assets/ui/caisse.png" alt="" style="height:2.2em;vertical-align:-14px;margin-right:6px">' + (title || 'La vitrine de Kykah') + '</div><div class="kSh">' + emoFix('🐚') + ' <span>' + (inv.shell || 0) + '</span></div><div class="kTabs">' + (list ? ['ep', 'bij'] : epOnly ? ['ep', 'bij'] : ['ep', 'jar', 'aq', 'fr', 'bij']).map(k => '<button class="kTab' + (ksTab === k ? ' sel' : '') + '" data-ks="' + k + '">' + tabIco[k] + tabNm[k] + '</button>').join('') + '</div>';
     const card = it => {
       const need = it.need ? Object.keys(it.need)[0] : null, haveAll = (inv.shell || 0) >= it.shell && (!need || (inv[need] || 0) >= it.need[need]), room = it.ok(), can = haveAll && room;
       const jj = it.j.k === 'jar' ? { id: 'k', k: 'fly', n: 0 } : Object.assign({ id: 'k' + it.id }, it.j);
@@ -7921,6 +7934,9 @@ function kykahShop(e, free, epOnly, list, title) {
     };
     if (ksTab === 'jar') h += '<div class="kg">' + items.filter(i => i.id.startsWith('jar')).map(card).join('') + '</div><div class="kNote">Le petit bocal vide se remplit toi-même : lucioles, papillons, objets rares.</div>';
     else if (ksTab === 'ep') h += '<div class="kg">' + EPL.map(x => { const ok = (inv[x.pay] || 0) >= x.n; return '<div class="kk' + (ok ? '' : ' z') + '">' + (x.emo ? '<div class="ki" style="font-size:48px;line-height:1.2;text-align:center;filter:hue-rotate(45deg) saturate(1.3)">' + x.emo + '</div>' : '<img class="ki" src="assets/spr/ing_' + x.img + '.png?v=2" alt="">') + '<div class="kn">' + x.nm + '</div><div class="kp">' + x.n + ' ' + x.payN + '</div><div class="kp">Tu as ' + (inv[x.pay] || 0) + ' ' + x.payN + ' · en stock : ' + (inv[x.k] || 0) + '</div><button class="kb" data-ep="' + x.k + '" ' + (ok ? '' : 'disabled') + '>Échanger</button></div>'; }).join('') + '</div><div class="kNote">' + (list ? 'De quoi cuisiner chez Nuna : le lait de coco, le citron vert et la citronnelle parfument ses plats de poisson.' : 'Tout ce qu\'il faut pour le gâteau de maïs : un sac de farine et un sachet de sucre par gâteau. Le pot d\'épices et la boîte d\'œufs (3 par gâteau) servent pour deux gâteaux.') + '</div>';
+    else if (ksTab === 'bij') { const isl = list ? 'kob' : 'swan';
+      h += '<div class="kg">' + BIJOUX.filter(b => b.isl === isl).map(b => { const own = bijOwned(b.id), have = inv.shell | 0, ok = !own && have >= b.shell, pc = Math.min(100, Math.round(have * 100 / b.shell));
+        return '<div class="kk' + (own || ok ? '' : ' z') + '"' + (b.leg ? ' style="border-color:#e8b630;background:#fff4cf"' : '') + '><img class="ki" src="assets/neck/' + b.id + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;aspect-ratio:1"><div class="kn">' + (b.leg ? '✨ ' : '') + b.nm + '</div><div class="kp">' + b.shell + ' coquillages</div>' + (b.leg && !own ? '<div style="height:10px;border-radius:6px;background:#f0e0b8;overflow:hidden;margin:4px 6px"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,#f5cf55,#e8a530)"></div></div><div class="kp">' + Math.min(have, b.shell) + ' / ' + b.shell + ' 🐚</div>' : '') + '<button class="kb" data-bj="' + b.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') + '</div><div class="kNote">' + (isl === 'kob' ? 'Des bijoux de l\'île Koala.' : 'Des bijoux de l\'île du Cygne.') + ' Les colliers dorés sont précieux : mets tes coquillages de côté ! Change de collier au vestiaire, dans le coffre à tenues.</div>'; }
     else if (ksTab === 'aq') h += '<div class="kg">' + items.filter(i => i.id.startsWith('aq')).map(card).join('') + '</div><div class="kNote">Les poissons du jour changent chaque jour.</div>';
     else {
       const vg = dayVeg();
@@ -7936,6 +7952,9 @@ function kykahShop(e, free, epOnly, list, title) {
     ev.stopPropagation(); const t = ev.target;
     if (t.closest('#ksNo')) { stop(ev); o.remove(); clearInput(); actBlock = time + .6; free(); return; }
     const eb = t.closest('button[data-ep]'); if (eb) { stop(ev); const x = EPL.find(y => y.k === eb.dataset.ep); if (eb.disabled || !x || (inv[x.pay] || 0) < x.n) return; inv[x.pay] -= x.n; inv[x.k] = (inv[x.k] || 0) + x.get; save(); renderHud(); try { sfx.chest(); } catch (e) {} say(x.nm + ' : dans ton sac !', 3); draw(); return; }
+    const bjb = t.closest('button[data-bj]'); if (bjb) { stop(ev); if (bjb.disabled) return; const b = BIJOUX.find(x => x.id === bjb.dataset.bj); if (!b) return;
+      if (!bijOwned(b.id)) { if ((inv.shell | 0) < b.shell) return; inv.shell -= b.shell; mini.necks = mini.necks || {}; mini.necks[b.id] = 1; }
+      outfit.neck = true; outfit.neckId = b.id; outfitDirty = true; bakeOutfit(); save(); renderHud(); try { sfx.chest(); if (b.leg) sfx.star(); } catch (e) {} say((b.leg ? '✨ ' : '') + b.nm + ' : Myah le porte ! Tu peux en changer au vestiaire.', 4); draw(); return; }
     const tbb = t.closest('button[data-ks]'); if (tbb) { stop(ev); ksTab = tbb.dataset.ks; draw(); return; }
     const gb = t.closest('button[data-g]'); if (gb) { stop(ev); if (gb.disabled || (inv.arachide || 0) < 3) return; inv.arachide -= 3; inv.graine = (inv.graine || 0) + 2; save(); renderHud(); try { sfx.chest(); } catch (e) {} say('Un sachet de graines pour les cygneaux ! (2 repas)', 3.5); draw(); return; }
     const bt = t.closest('button[data-t]');
