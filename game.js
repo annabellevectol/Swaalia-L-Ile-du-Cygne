@@ -5594,13 +5594,13 @@ function wdGlUi() {   // choix de la monture (onglet Lunettes)
 function wdDraw() {
   wdGlUi();
   if (wd.part === 'bag') wdBagUi();
-  wdPatUi();
+  wdPatUi(); wdSubUi();
   const o = wd.o, cur = JSON.stringify(o), now = performance.now();   // historique pour « Retour » : un pas par série de changements
   if (wd.last !== undefined && cur !== wd.last && !wd.undoing) { if (now - (wd.lastChange || 0) > 500) { wd.hist.push(wd.last); if (wd.hist.length > 80) wd.hist.shift(); } wd.lastChange = now; wd.redo = []; }
   wd.last = cur; $('#wdUndo').disabled = !wd.hist.length; $('#wdRedo').disabled = !(wd.redo && wd.redo.length); renderFrameOutfit('walk', wdIdx(), o, wd.frame);
   const cv = $('#wdPrev'), x = cv.getContext('2d'), k = cv.width / 256; x.clearRect(0, 0, cv.width, cv.height);
   x.fillStyle = 'rgba(0,70,80,.18)'; x.beginPath(); x.ellipse(cv.width / 2, 213 * k, 52 * k, 9 * k, 0, 0, TAU); x.fill();
-  x.imageSmoothingEnabled = true; if (wd.part === 'glasses') { x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, 68, 22, 120, 120, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
+  x.imageSmoothingEnabled = true; if (wd.part === 'glasses' || wd.part === 'neck') { const zy = wd.part === 'neck' ? 62 : 22, zx = wd.part === 'neck' ? 78 : 68, zw = wd.part === 'neck' ? 100 : 120; x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, zx, zy, zw, zw, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
   const box = wdBox(); if (box && wd.part === 'stickers' && wd.sel >= 0 && o.stickers[wd.sel]) {   // cadre de sélection du sticker, avec des poignées pour l'étirer
     const R = wdStkRect(o.stickers[wd.sel], box), M = 6;   // le cadre est un peu plus grand que le sticker, pour que les poignées ne le cachent pas
     x.save(); x.setLineDash([6, 5]); x.lineWidth = 3; x.strokeStyle = '#fff'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.lineWidth = 1.5; x.strokeStyle = '#c7447a'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.setLineDash([]);
@@ -5621,7 +5621,7 @@ function wdNeckUi() {
   if (!p) {
     p = document.createElement('div'); p.id = 'wdNeckEd'; p.style.cssText = 'width:100%;margin-top:8px;text-align:center';
     p.innerHTML = '<button class="mini" id="wdNeckOn"></button><div class="wdLbl">Colorie ton collier</div><div><button class="mini" id="wdNkBucket">🪣 Pot de peinture</button> <button class="mini" id="wdNkPipe">💧 Pipette</button></div><canvas id="wdNkCv" width="260" height="280" style="margin-top:6px;border-radius:12px;background:rgba(255,255,255,.55);touch-action:none;cursor:crosshair;max-width:100%"></canvas><div class="wdHint" id="wdNkMsg"></div>';
-    $('#wdOrig').insertAdjacentElement('afterend', p); wd.nk = 'bucket';
+    $('#wdStkRow').insertAdjacentElement('beforebegin', p); wd.nk = 'bucket';
     $('#wdNeckOn').addEventListener('click', () => { wd.o.neck = !wd.o.neck; wdDraw(); });
     { const ch = document.createElement('div'); ch.id = 'wdNkPick'; ch.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0'; $('#wdNeckOn').insertAdjacentElement('afterend', ch);
       ch.addEventListener('click', e => { const b = e.target.closest('[data-nk]'); if (!b) return; wd.o.neckId = b.dataset.nk === 'shell' ? null : b.dataset.nk; wd.o.neck = true; wdDraw(); }); }
@@ -5665,8 +5665,19 @@ function wdPatUi() {
   const ok = wd.part === 'overall' || wd.part === 'shirt' || wd.part === 'bag'; p.style.display = ok ? 'block' : 'none';
   const cur = ok && wd.o && wd.o.pat ? wd.o.pat[wd.part] : null; p.querySelectorAll('i').forEach(i => i.classList.toggle('sel', cur !== null && cur !== undefined && +i.dataset.n === cur));
 }
+function wdSubUi() {   // sous-onglets Couleur / Motifs / Stickers (salopette, t-shirt, sac)
+  let bar = $('#wdSub'); if (!bar) { bar = document.createElement('div'); bar.id = 'wdSub'; bar.className = 'wdTabs'; bar.style.cssText = 'margin:2px 0 6px'; $('#wdStkRow').insertAdjacentElement('beforebegin', bar);
+    bar.addEventListener('click', e => { const b = e.target.closest('[data-sub]'); if (!b) return; const v = b.dataset.sub; if (v === 'stk') { wd.subFrom = wd.part === 'stickers' ? wd.subFrom : wd.part; wd.sub = 'stk'; wdTab('stickers'); return; } wd.sub = v; if (wd.part === 'stickers') wdTab(wd.subFrom || 'overall'); else { wdSubUi(); wdDraw(); } }); }
+  const base = wd.part === 'stickers' ? (wd.subFrom || 'overall') : wd.part, on = ['overall', 'shirt', 'bag'].includes(base) || wd.part === 'stickers';
+  bar.style.display = on ? 'flex' : 'none'; if (!on) { $('#wdColorCol').style.display = ''; return; }
+  const sub = wd.part === 'stickers' ? 'stk' : (wd.sub === 'pat' ? 'pat' : 'col');
+  bar.innerHTML = [['col', 'Couleur'], ['pat', 'Motifs']].concat(base === 'overall' ? [['stk', 'Stickers']] : []).map(([k, n]) => '<button data-sub="' + k + '" class="' + (sub === k ? 'sel' : '') + '">' + n + '</button>').join('');
+  const pat = $('#wdPat'); if (pat && pat.parentElement !== $('#wdStkRow').parentElement) $('#wdStkRow').insertAdjacentElement('afterend', pat); if (pat) pat.style.display = sub === 'pat' ? 'block' : 'none';
+  $('#wdColorCol').style.display = sub === 'pat' ? 'none' : '';
+}
 function wdTab(part) {
-  wd.part = part; wdPatUi(); $('#wardrobe').classList.toggle('savedMode', part === 'saved'); document.querySelectorAll('.wdTabs button').forEach(b => b.classList.toggle('sel', b.dataset.part === part));
+  if (part !== 'stickers' && !['overall', 'shirt', 'bag'].includes(part)) wd.sub = 'col'; if (part !== 'stickers' && wd.sub === 'stk') wd.sub = 'col';
+  wd.part = part; wdPatUi(); wdSubUi(); $('#wardrobe').classList.toggle('savedMode', part === 'saved'); document.querySelectorAll('.wdTabs button').forEach(b => b.classList.toggle('sel', b.dataset.part === part));
   $('#wardrobe').classList.toggle('stkMode', part === 'stickers'); $('#wdStk').style.display = part === 'stickers' ? 'flex' : 'none'; $('#wdBag').style.display = part === 'bag' ? 'flex' : 'none'; if (part === 'bag') wdBagUi(); $('#wdOrig').textContent = part === 'stickers' ? 'Couleur d\'origine du sticker' : 'Couleur d\'origine'; wdDraw();
 }
 function wdPickColor(e) {
