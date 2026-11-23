@@ -8589,11 +8589,30 @@ window.__game = { kobFx, kobBflyList, kobGather, waterNear, fs, doAction, mgOpen
 })();
 
 // Hors ligne : télécharge tout le jeu dans la mémoire de l'appareil (téléphone, tablette ou ordinateur)
-(() => { const b = document.getElementById('setOff'); if (!b) return; let busy = false;
-  b.addEventListener('pointerdown', async e => { e.preventDefault(); e.stopPropagation(); if (busy) return;
-    if (!('serviceWorker' in navigator)) { b.textContent = '❌ Pas possible sur ce navigateur'; return; }
-    busy = true; b.textContent = '📥 Préparation…';
-    try { const reg = await navigator.serviceWorker.ready, ch = new MessageChannel();
-      ch.port1.onmessage = ev => { const d = ev.data; if (d.done) { busy = false; b.textContent = '✅ Prêt à jouer hors ligne'; try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (er) {} } else b.textContent = '📥 Téléchargement… ' + Math.round(d.n * 100 / d.tot) + ' %'; };
-      reg.active.postMessage({ t: 'dl' }, [ch.port2]); } catch (er) { busy = false; b.textContent = '❌ Réessaie avec internet'; } });
+(() => { const b = document.getElementById('setOff'); let busy = false;
+  const LS = k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, LSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  async function dl(show) {   // la page met elle-même les fichiers en cache (sur iPhone, le service worker est interrompu au bout de 30 s)
+    if (busy) return; busy = true; show('📥 Préparation…');
+    try { const list = await (await fetch('offline.json', { cache: 'no-store' })).json(), c = await caches.open('swaalia-v1'); let n = 0, ko = 0;
+      for (let i = 0; i < list.length; i += 6) {
+        await Promise.all(list.slice(i, i + 6).map(async f => { try { if (!(await c.match(f, { ignoreSearch: true }))) { const r = await fetch(f); if (r.ok) await c.put(f, r); else ko++; } } catch (er) { ko++; } n++; }));
+        show('📥 Téléchargement du jeu… ' + Math.round(n * 100 / list.length) + ' %');
+      }
+      try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (er) {}
+      if (ko > 20) show('⚠️ ' + ko + ' fichiers manqués : réessaie avec internet', true); else { LSet('swaaliaOff', '1'); show('✅ Prêt à jouer hors ligne !', true); }
+    } catch (er) { show('❌ Réessaie avec internet', true); }
+    busy = false;
+  }
+  if (!('caches' in window) || !('serviceWorker' in navigator)) { if (b) b.style.display = 'none'; return; }
+  if (b) { if (LS('swaaliaOff')) b.textContent = '✅ Prêt à jouer hors ligne (mettre à jour)'; b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dl(t => { b.textContent = t; }); }); }
+  // à l'ouverture : on propose une fois de tout télécharger (le jeu ; la partie est déjà gardée dans l'appareil)
+  if (!LS('swaaliaOff') && !LS('swaaliaOffAsk') && navigator.onLine) setTimeout(() => {
+    const d = document.createElement('div'); d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(30,20,40,.55)';
+    d.innerHTML = '<div style="width:min(340px,88vw);background:#fff8e8;border:3px solid #c9a26a;border-radius:20px;padding:18px;text-align:center;color:#4a2c6a;font-family:system-ui,sans-serif"><div style="font-size:34px">📴</div><div style="font-weight:800;font-size:18px;margin:4px 0">Jouer sans internet ?</div><div style="font-size:14px;margin-bottom:12px">Je peux télécharger tout le jeu sur cet appareil (environ 170 Mo, mieux en Wi-Fi). Ta partie est déjà sauvegardée dessus.</div><div id="offBar" style="font-size:14px;min-height:18px;margin-bottom:10px"></div><div id="offBtns" style="display:flex;gap:10px;justify-content:center"><button data-a="y" style="border:2px solid #7a56a8;background:#a982d6;color:#fff;border-radius:99px;padding:9px 18px;font-weight:800;font-size:15px">Télécharger</button><button data-a="n" style="border:2px solid #c9a26a;background:#f3e2c3;color:#5a3412;border-radius:99px;padding:9px 18px;font-weight:800;font-size:15px">Plus tard</button></div></div>';
+    document.body.appendChild(d); LSet('swaaliaOffAsk', '1');
+    d.addEventListener('pointerdown', e => { const a = e.target.closest('[data-a]'); if (!a) return; e.preventDefault(); e.stopPropagation();
+      if (a.dataset.a === 'n' || a.dataset.a === 'ok') { d.remove(); return; }
+      d.querySelector('#offBtns').innerHTML = '<button data-a="ok" style="border:2px solid #c9a26a;background:#f3e2c3;color:#5a3412;border-radius:99px;padding:9px 18px;font-weight:800">Continuer à jouer</button>';
+      dl((t, end) => { d.querySelector('#offBar').textContent = t; if (b) b.textContent = t; if (end) setTimeout(() => d.remove(), 2500); }); });
+  }, 2500);
 })();
