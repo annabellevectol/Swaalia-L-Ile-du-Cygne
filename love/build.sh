@@ -2,6 +2,7 @@
 # Fabrique swaalia.love : à copier dans le dossier love2d de la carte SD de la R36S
 cd "$(dirname "$0")"
 A=assets; R=../assets
+mkdir -p $A/chin && cp $R/chin/*.png $A/chin/
 mkdir -p $A/npc3 $A/spr $A/music $A/piano $A/load
 cp $R/gaikin_fly.png $R/gaikin_perch.png $R/interieur2.jpg $R/soin2.jpg $R/mairie3.jpg $R/musee.jpg $R/bateau.jpg $R/observatoire.jpg $R/ukai.jpg $A/
 cp $R/npc3/*.png $A/npc3/

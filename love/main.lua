@@ -123,6 +123,7 @@ end
 
 -- ======================= habitants =======================
 local npcs = {}
+local HOME_POS = { maman = { "home", 360, 568 }, kito = { "home", 520, 585 }, juliana = { "museum", 185, 750 }, soigneuse = { "care", 330, 800 }, maima = { "hall", 625, 690 } }   -- ceux qui sont dans une maison en journée (comme en ligne)
 local function polyCenter(P)
   local sx, sy = 0, 0
   for _, p in ipairs(P) do sx, sy = sx + p[1], sy + p[2] end
@@ -134,13 +135,8 @@ local function setupNpcs()
   for _, q in ipairs(DATA.indoor) do indoor[q.quest] = q.house end
   for _, n in ipairs(DATA.npcs) do
     local o = { d = n, x = n.x, y = n.y, house = nil }
-    if n.id and indoor[n.id] then
-      for _, h in ipairs(DATA.houses) do
-        if h.id == indoor[n.id] and h.floor then
-          local cx, cy = polyCenter(h.floor); o.house, o.x, o.y = h.id, cx + 60, cy - 10
-        end
-      end
-    end
+    local hp = HOME_POS[n.k]
+    if hp then o.house, o.x, o.y = hp[1], hp[2], hp[3] end
     if o.x > 0 then npcs[#npcs + 1] = o end
   end
 end
@@ -166,6 +162,17 @@ local function openDialog(who, lines, after)
   scene = "dialog"
 end
 
+-- les coffres des plumes : dehors dans un buisson qui scintille, ou cachés dans une maison
+local CHESTS = {
+  rose = { house = nil, x = 142, y = 222, img = "c0" }, soleil = { house = nil, x = 294, y = 250, img = "c0" },
+  bleu = { house = "museum", up = true, x = 405, y = 372, img = "c0" }, plume = { house = "obs", x = 560, y = 740, img = "h1" },
+  toto = { house = "boat", x = 600, y = 600, img = "h0" },
+}
+local function chestReady(id) return S.quest[id] == "done" and not (S.opened or {})[id] end
+local function openChest(id)
+  S.opened = S.opened or {}; S.opened[id] = true; S.plumes = S.plumes + 1; saveGame()
+  openDialog("Le coffre", { "Une plume de Gaïkin ! (" .. S.plumes .. "/5)" }, function() if S.plumes >= 5 then scene = "ending" end end)
+end
 local function talkTo(o)
   local n = o.d
   if n.id then
@@ -177,14 +184,10 @@ local function talkTo(o)
       openDialog(n.who, n.start, function() say("Nouvelle mission : " .. (n.title or "")) end)
     elseif hasNeed(n.need or {}) then
       for k, c in pairs(n.need or {}) do S.inv[k] = inv(k) - c end
-      S.quest[n.id] = "done"; S.plumes = S.plumes + 1
+      S.quest[n.id] = "done"
       local lines = {}
       for _, l in ipairs(n.done or {}) do lines[#lines + 1] = l end
-      lines[#lines + 1] = "Tu reçois une plume de Gaïkin ! (" .. S.plumes .. "/5)"
-      openDialog(n.who, lines, function()
-        saveGame()
-        if S.plumes >= 5 then scene = "ending" end
-      end)
+      openDialog(n.who, lines, function() saveGame(); say("Va chercher la plume dans le coffre !", 4) end)
     else
       local l = {}
       for _, x in ipairs(n.remind or {}) do l[#l + 1] = x end
@@ -307,6 +310,10 @@ local function nearestNpc(maxd)
 end
 
 local function actionA()
+  for id, c in pairs(CHESTS) do
+    local here = (c.house == (place and place.id or nil)) and (not c.up or (place and place.up))
+    if here and chestReady(id) and dist(player.x, player.y, c.x, c.y) < (place and 70 or 20) then openChest(id); return end
+  end
   if place then
     local o = nearestNpc(45 * place.K / 3.5 * 3)
     if o then talkTo(o); return end
@@ -568,6 +575,7 @@ function love.update(dt)
   if scene == "world" then
     moveMyah(dt, walkable, 55)
     follow(dt, player.x, player.y, WORLD_W, WORLD_H, cam.zoom)
+  elseif scene == "inside" and not place then scene = "world"
   elseif scene == "inside" then
     local I = D2.inside[place.id] or {}
     local P = (place.up and I.f1) or place.floor
@@ -657,6 +665,21 @@ local function sprite(name, x, y)   -- un dessin du jeu web, à sa taille dans l
   local kx, ky = d[1] / im:getWidth(), d[2] / im:getHeight()
   love.graphics.setColor(1, 1, 1); love.graphics.draw(im, x, y, 0, kx, ky, d[3] / kx, d[4] / ky)
 end
+local function drawChests(houseId, k)
+  for id, c in pairs(CHESTS) do
+    if c.house == houseId and (not c.up or (place and place.up)) and (S.quest[id] == "done" or c.house) then
+      local open = (S.opened or {})[id]
+      local name = open and "c2" or (chestReady(id) and not c.house and "c1" or c.img)
+      local im = img("assets/chin/" .. name .. ".png")
+      if im then
+        local h = (c.house and 40 or 12) * (k or 1) / (c.house and 1 or 1)
+        local s = (c.house and (place and place.K or 3.5) * 11 or 12) / im:getHeight()
+        if chestReady(id) then love.graphics.setColor(1, 0.95, 0.5, 0.35 + 0.25 * math.sin(love.timer.getTime() * 4)); love.graphics.circle("fill", c.x, c.y - im:getHeight() * s / 2, im:getHeight() * s * 0.8) end
+        love.graphics.setColor(1, 1, 1); love.graphics.draw(im, c.x, c.y, 0, s, s, im:getWidth() / 2, im:getHeight())
+      end
+    end
+  end
+end
 local function drawFlower(f) sprite("flower" .. f.c, f.x, f.y) end
 local function drawButterfly(b)
   local flap = 0.55 + 0.45 * math.abs(math.sin(b.t * 9))
@@ -688,6 +711,7 @@ local function drawWorld()
   for _, c in ipairs(shells) do if c.on then drawImgH("assets/spr/shell" .. c.k .. ".png", c.x, c.y, 7) end end
   for _, f in ipairs(flowers) do if f.on then drawFlower(f) end end
   for _, c in ipairs(crabs) do if c.on then drawCrab(c) end end
+  drawChests(nil)
   for _, t in ipairs(trees) do   -- les fruits qui restent sur l'arbre
     for i = 1, t.fruits do love.graphics.setColor(ITEM_COL[t.kind] or { 1, 1, 1 }); love.graphics.circle("fill", t.x - 8 + i * 3, t.y - 30 + (i % 2) * 3, 1.8) end
   end
@@ -718,6 +742,7 @@ local function drawInside()
   love.graphics.clear(0, 0, 0)
   love.graphics.push(); love.graphics.scale(cam.zoom); love.graphics.translate(-cam.x, -cam.y)
   love.graphics.setColor(1, 1, 1); if bg then love.graphics.draw(bg, 0, 0, 0, place.W / bg:getWidth(), place.H / bg:getHeight()) end
+  drawChests(place.id)
   local list = {}
   for _, o in ipairs(npcs) do if o.house == place.id then list[#list + 1] = { y = o.y, f = function() drawNpc(o, place.K) end } end end
   list[#list + 1] = { y = player.y, f = function() drawMyahAt(player.x, player.y, MS * place.K * 0.75) end }
@@ -930,4 +955,4 @@ local errMsg
 local up0, dr0 = love.update, love.draw
 love.update = function(dt) if errMsg then return end local ok, e = xpcall(up0, debug.traceback, dt); if not ok then errMsg = e; pcall(love.filesystem.write, "erreur.txt", e) end end
 love.draw = function() if errMsg then love.graphics.clear(.2, .1, .3); love.graphics.setColor(1, 1, 1); love.graphics.printf("Oups ! Prends cet écran en photo :\n\n" .. errMsg, 10, 10, W - 20); return end local ok, e = xpcall(dr0, debug.traceback); if not ok then errMsg = e; pcall(love.filesystem.write, "erreur.txt", e) end end
-_G.__T = function() return { scene = scene, place = place, player = player, S = S } end   -- pour les tests
+_G.__T = function() return { scene = scene, place = place, player = player, S = S, setPlace = function(p) place = p end } end   -- pour les tests
