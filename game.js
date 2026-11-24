@@ -539,6 +539,7 @@ function load(n) {
   if (isFinite(s.dayT)) dayT = s.dayT; Object.assign(inv, s.inv); Object.assign(qState, s.qState); Object.assign(opened, s.opened || {}); Object.assign(bonusStar, s.bonusStar || {}); setLevel(s.level || 'aventure'); Object.assign(coll, s.coll || {});
   phase = s.phase === 'reveal' ? 'appeared' : (s.phase || 'quests'); mountUnlocked = !!s.mountUnlocked; introSeen = !!s.introSeen; endingSeen = !!s.endingSeen; rideT = 0;
   if (s.post) post = Object.assign({ day: -1, reqs: [], nd: 0, ring: null, fea: null, mus: {}, egg: 0, eggDay: 0, stk: [] }, s.post); else post = { day: -1, reqs: [], nd: 0, ring: null, fea: null, mus: {}, egg: 0, eggDay: 0, stk: [] }; lastPos = s.pos || null; saveTs = s.ts || 0; playerName = typeof s.name === 'string' ? s.name.slice(0, 16) : ''; setOutfit(s.outfit); Object.assign(mini, { fire: 0, wish: 0, rico: 0, neck: 0 }, s.mini || {});
+  post.egg = 9;   // les bébés cygnes vivent maintenant dans le Tama (plus d'œuf ni de nid sur la plage)
   if (Array.isArray(s.garden)) gd = gdEmpty().map((e, i) => { const o = s.garden[i] || {}; return { c: Number.isInteger(o.c) && o.c >= 0 && o.c < 6 ? o.c : -1, w: +o.w ? 1 : 0, e: isFinite(o.e) ? Math.max(0, +o.e) : (o.w > 1 ? Math.min(240, (Date.now() - o.w) / 1000) : 0), v: (o.v | 0) & 3 }; });
   if (s.kob) { kobPick = s.kob.p || {}; kobNew = s.kob.n || {}; kobQ = s.kob.q | 0; vetS = s.kob.v || {}; vetAdv = s.kob.a || {}; kobRx = s.kob.x || {}; kobD = Object.assign({ acc: {}, done: {}, fr: {}, fi: {}, st: 0, rw: 0 }, s.kob.d || {}); kobKoa = s.kob.k || {}; kobSick = !(kobQ >= 5); if (KOB_PLT.every(p => kobPick[p.k]) && kobQ === 1) kobQ = 2; if (kobQ === 6) try { vetNext(); } catch (e) {} }
   try { paintLoadHung(); } catch (e) {}
@@ -1758,7 +1759,7 @@ function taAsk(html, btns, cb) {   // petite bulle de question (Oui / Non…)
   d.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation(); d.remove(); cb(+b.dataset.i); });
   document.body.appendChild(d); return d;
 }
-const taFr = k => 'assets/tamak/' + (k === 'koala' ? 'frame_k' : 'frame') + '.png?v=1', taBt = (k, b) => 'assets/tamak/' + (k === 'koala' ? 'k' : '') + b + '.png?v=1';
+const taFr = k => 'assets/tamak/' + (k === 'koala' ? 'frame_k' : 'frame') + '.png?v=2', taBt = (k, b) => 'assets/tamak/' + (k === 'koala' ? 'k' : '') + b + '.png?v=1';
 function taStart(k) {   // on touche un tama dans le sac
   const s = taAll()[k]; if (!s) return;
   taAsk('Veux-tu jouer avec ' + (s.name || TAP[k].egg) + ' ?', [['Oui'], ['Non', 1]], i => { if (i === 0) taOpen(k); });
@@ -1803,8 +1804,8 @@ $('#inv').addEventListener('pointerdown', e => { const b = e.target.closest && e
 .taBox{position:relative;width:min(92vw,380px);background:#fff8ec;border:3px solid #c9a6e0;border-radius:24px;padding:12px 10px 10px;text-align:center;color:#4b2a7a;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .taX{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:2.5px solid #c9a6e0;background:#fff;color:#6b3fa0;font-size:18px;font-weight:800;cursor:pointer}
 .taName{font-weight:800;font-size:20px;margin:2px 40px 6px}.taName small{font-size:14px;color:#8a6aa8}
-.taDev{position:relative;width:min(78vw,300px);margin:0 auto;aspect-ratio:424/417}
-.taScr{position:absolute;left:20.5%;top:11.75%;width:59%;height:66.4%;border-radius:50%/48%;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.taDev{position:relative;width:min(74vw,290px);margin:6px auto 4px;aspect-ratio:424/457}
+.taScr{position:absolute;left:20.6%;top:19%;width:58.7%;height:60.7%;border-radius:50%/48%;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
 .taBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .taFr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .taPet{position:relative;margin-bottom:9%;object-fit:contain;animation:taHop 1.6s ease-in-out infinite}
@@ -8163,7 +8164,7 @@ function kykahShop(e, free, epOnly, list, title) {
     const bjb = t.closest('button[data-bj]'); if (bjb) { stop(ev); if (bjb.disabled) return; const b = BIJOUX.find(x => x.id === bjb.dataset.bj); if (!b) return;
       if (!bijOwned(b.id)) { if ((inv.shell | 0) < b.shell || (inv.perle | 0) < (b.perle | 0)) return; inv.shell -= b.shell; inv.perle = (inv.perle | 0) - (b.perle | 0); mini.necks = mini.necks || {}; mini.necks[b.id] = 1; }
       outfit.neck = true; outfit.neckId = b.id; outfitDirty = true; bakeOutfit(); save(); renderHud(); try { sfx.chest(); if (b.leg) sfx.star(); } catch (e) {} say((b.leg ? '✨ ' : '') + b.nm + ' : Myah le porte ! Tu peux en changer au vestiaire.', 4); draw(); return; }
-    const tmb = t.closest('button[data-tam]'); if (tmb) { stop(ev); if (tmb.disabled) return; if (taAll()[tmb.dataset.tam]) { o.remove(); clearInput(); free(); taOpen(tmb.dataset.tam); return; } tamaBuy(tmb.dataset.tam); draw(); return; }
+    const tmb = t.closest('button[data-tam]'); if (tmb) { stop(ev); if (tmb.disabled) return; if (taAll()[tmb.dataset.tam]) { o.remove(); clearInput(); free(); taOpen(tmb.dataset.tam); return; } if (tamaBuy(tmb.dataset.tam)) { const k = tmb.dataset.tam; o.remove(); clearInput(); player.state = 'talk'; openDialog(k === 'koala' ? 'Koki' : 'Kykah', k === 'koala' ? ['Oh, tu as pris le Tama Koala ! 🐨', 'C\'est un vrai petit compagnon : dedans, il y a un œuf. Réchauffe-le trois fois avec le bouton A et il va éclore !', 'Ensuite, nourris-le avec A, lave-le avec B et joue avec lui avec X. S\'il est bien soigné, il grandit : bébé, enfant, ado, puis jeune adulte.', 'Tu le trouveras dans ton sac à dos. Prends-en bien soin !'] : ['Tu as choisi le Tama Cygne ! 🦢', 'Ce n\'est pas un jouet comme les autres : un vrai petit œuf de cygne t\'attend dedans. Touche trois fois le bouton A pour le réchauffer.', 'Quand il aura éclos, donne-lui à manger avec A, un bon bain avec B, et joue avec lui avec X. Plus tu t\'en occupes, plus il grandit !', 'Il est rangé dans ton sac à dos : ouvre-le quand tu veux.'], free); } else draw(); return; }
     const brb = t.closest('button[data-bra]'); if (brb) { stop(ev); if (brb.disabled) return; const id = brb.dataset.bra, bd = BR_LIST.find(b => b[0] === id), sh = bd[2], pe = bd[3]; mini.br = mini.br || {};
       if (!mini.br[id]) { if (!brCan(bd)) return; inv.shell -= sh; inv.perle = (inv.perle | 0) - pe; Object.entries(bd[5] || {}).forEach(([k, n]) => BR_X[k][2](n)); mini.br[id] = 1; if (!outfit.brR) outfit.brR = id; else if (!outfit.brL) outfit.brL = id; outfitDirty = true; }
       save(); renderHud(); try { sfx.chest(); } catch (e) {} say(bd[1] + ' : Myah le porte ! Change ses couleurs au vestiaire, onglet Bracelets.', 4); draw(); return; }
