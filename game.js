@@ -6247,7 +6247,8 @@ function renderInterior(vw, vh) {
   const dkz = isHome && !IN.lie ? Math.min(1, Math.max(0, (IN.dk || 0) / DK_UP)) : 0;   // à l'étage on zoome : on ne voit que le haut de l'échelle
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (isHome && !IN.lie ? 1.4 : 1 + .4 * dkz);   // chez Myah : même plan rapproché en haut et en bas (la caméra ne recule plus) ; plan rapproché dans tous les lieux : la caméra suit Myah
   IN.fz = (IN.fz || 1) + ((SC === SC_KOBHAK && IN.wf ? .62 : 1) - (IN.fz || 1)) * Math.min(1, (IN.dtc || .016) * 1.6);
-  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) : SC !== SC_KOBHAK && (kobScene() || !IN.lie) ? Math.max(fit, vh * (kobScene() ? .262 : .21) / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
+  const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) * 1.3 :   // île Koala : Myah à la même taille que sur l'île du Cygne
+     SC !== SC_KOBHAK && (kobScene() || !IN.lie) ? Math.max(fit, vh * (kobScene() ? .262 : .21) / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
      SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
@@ -6879,7 +6880,7 @@ const MS = 0.26;   // pixels de carte par pixel de case (Myah ≈ 48 px de haut)
 const FIX = Object.fromEntries(Object.keys(MY).map(k => [k, Object.fromEntries(MY[k].names.map(n => [n, .69]))]));   // nouvelle Myah : toutes les images à la même échelle
 { const PF = {"sit1": 1.083, "sit2": 1.083, "sitp": 1.083, "sit34": 1.083, "sit34b": 1.083, "sitkick": 1.083, "nwin": 1.083, "jump": 1.13, "joy": 1.083, "wave": 1.061, "letter": 1.02, "gift": 1.02, "pet": 1.083, "surprise": 1.0, "dance": 1.13, "point": 1.106, "point2": 1.209, "scope": 1.106, "drum": 1.106}; for (const n in FIX.pose) if (PF[n]) FIX.pose[n] = .69 * PF[n]; for (const n in FIX.walk) FIX.walk[n] = .69 * 1.106; for (const sh of ['walkrod', 'walkbask', 'walknet']) for (const n in FIX[sh]) if (/^(right|left|down|up|dr|dl)[1-8]$/.test(n)) FIX[sh][n] = .69 * 1.106; for (const n in FIX.stair) FIX.stair[n] = .69 * 1.106; for (const n in (FIX.lad || {})) FIX.lad[n] = .69 * 1.106; }   // Myah a la même taille à pied qu'en action (panier, filet, canne) et dans les poses : tête mesurée sur les masques de lunettes
 /* ================= tenue de Myah (valise) : couleurs + stickers ================= */
-const MK = {}; Object.keys(MY).forEach(k => { MK[k] = {}; ['ov', 'sh', 'shoe', 'hair', 'glass'].forEach(p => { const i = new Image(); i.src = 'assets/myah/mk_' + k + '_' + p + '.png' + (k === 'walk' ? '?v=7' : '?v=2'); MK[k][p] = i; }); });   // masques : salopette / t-shirt / chaussures
+const MK = {}; Object.keys(MY).forEach(k => { MK[k] = {}; ['ov', 'sh', 'shoe', 'hair', 'glass'].forEach(p => { const i = new Image(); i.src = 'assets/myah/mk_' + k + '_' + p + '.png' + (k === 'walk' ? '?v=8' : '?v=3'); MK[k][p] = i; }); });   // masques : salopette / t-shirt / chaussures
 const MBOX = window.MYMASK || {}; MBOX.wm = [[80, 111, 175, 196]]; FIX.wm.sit = 1;   // cadre de la salopette sur chaque image (pour placer les stickers)
 const STK = [   // stickers : objets de l'île (trim = part du bas retirée : terre, eau)
   { id: 'flower1', k: 'flower1', trim: .2, n: 'Frangipanier' }, { id: 'flower4', k: 'flower4', trim: .2, n: 'Hibiscus' }, { id: 'flower8', k: 'flower8', trim: .2, n: 'Passiflore' },
@@ -7113,7 +7114,8 @@ function setOutfit(o) {
   outfitDirty = true; bakeOutfit();
 }
 setInterval(() => { if (outfitDirty) bakeOutfit(); }, 300);
-const myImg = sheet => outSheet[sheet] || img['m_' + sheet];
+const MY_BLANK = document.createElement('canvas'); MY_BLANK.width = MY_BLANK.height = 1;
+const myImg = sheet => outSheet[sheet] || (isDefaultOutfit(outfit) || performance.now() > 8000 ? img['m_' + sheet] : MY_BLANK);   // tant que la tenue n'est pas prête, on ne montre pas l'ancienne
 const APIIMG = new Image(); APIIMG.src = 'assets/myah/api_walk.png?v=1';   // la tenue d'apicultrice (vestiaire)
 const API_COL = [null, '#f2e6c9', '#ffd6e8', '#cfe8ff', '#d8f5c8', '#fff1a8', '#e3d4ff'];   // 0 = d'origine
 const _apiC = new Map();
