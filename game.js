@@ -1735,6 +1735,96 @@ function jrnEntries() {   // le journal intime de Myah : les missions passées, 
   return E;
 }
 let jrnPg = 0;
+// ===== Le Tama : un petit appareil dans le sac pour élever un bébé cygne ou un bébé koala =====
+const TAP = { swan: { nm: 'Tama Cygne', egg: 'ton œuf de cygne', food: '🌾' }, koala: { nm: 'Tama Koala', egg: 'ton œuf koala', food: '🌿' } };
+const TA_BG = ['plage', 'foret', 'mare', 'prairie'], TA_ST = ['egg', 'bebe', 'enfant', 'ado', 'adulte'], TA_XP = { bebe: 12, enfant: 30, ado: 60 }, TA_STN = { egg: 'œuf', bebe: 'bébé', enfant: 'enfant', ado: 'ado', adulte: 'jeune adulte' };
+const taAll = () => (mini.tamas = mini.tamas || {});
+const taNew = () => ({ st: 'egg', name: '', xp: 0, warm: 0, faim: 80, prop: 80, joie: 80, t: Date.now(), bg: 0 });
+function taTick(s) {   // les besoins baissent doucement avec le vrai temps, même quand le tama est rangé
+  const now = Date.now(), h = Math.min(48, Math.max(0, (now - (s.t || now)) / 36e5)); s.t = now; if (s.st === 'egg') return;
+  s.faim = Math.max(0, s.faim - h * 5); s.prop = Math.max(0, s.prop - h * 4); s.joie = Math.max(0, s.joie - h * 6);
+}
+function taMood(s, act) {
+  if (act) return act;
+  if (s.prop < 35) return 'sale'; if (s.faim < 35 || s.joie < 35) return 'triste'; return 'content';
+}
+function taSpr(kind, s, mood) {   // l'image du petit, selon son âge et son humeur
+  const f = s.st === 'egg' ? (mood === 'hatch' ? 'hatch' : 'egg') : s.st + '_' + mood;
+  return '<img class="taPet" src="assets/' + (kind === 'koala' ? 'tamak' : 'tamas') + '/' + f + '.png?v=1" alt="" style="height:' + ({ egg: 40, bebe: 42, enfant: 50, ado: 56, adulte: 60 }[s.st]) + '%">';
+}
+function taAsk(html, btns, cb) {   // petite bulle de question (Oui / Non…)
+  const d = document.createElement('div'); d.className = 'taAsk';
+  d.innerHTML = '<div class="taAskC"><div class="taAskT">' + html + '</div><div class="taAskB">' + btns.map((b, i) => '<button data-i="' + i + '"' + (b[1] ? ' class="no"' : '') + '>' + b[0] + '</button>').join('') + '</div></div>';
+  d.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation(); d.remove(); cb(+b.dataset.i); });
+  document.body.appendChild(d); return d;
+}
+function taStart() {   // on touche le tama dans le sac
+  const T = taAll(), own = ['swan', 'koala'].filter(k => T[k]); if (!own.length) return;
+  const lab = k => T[k].name || TAP[k].egg;
+  if (own.length === 1) taAsk('Veux-tu jouer avec ' + lab(own[0]) + ' ?', [['Oui'], ['Non', 1]], i => { if (i === 0) taOpen(own[0]); });
+  else taAsk('Veux-tu jouer ?<br>Avec qui ?', [[(T.swan.name || 'Œuf de cygne') + ' 🦢'], [(T.koala.name || 'Œuf koala') + ' 🐨'], ['Non', 1]], i => { if (i < 2) taOpen(own[i]); });
+}
+function taOpen(kind) {
+  const s = taAll()[kind]; if (!s) return; taTick(s); let act = null, actT = 0;
+  let o = document.getElementById('taOv'); if (o) o.remove(); o = document.createElement('div'); o.id = 'taOv'; document.body.appendChild(o);
+  const fx = (t, n = 5) => { const sc = o.querySelector('.taScr'); for (let i = 0; i < n; i++) { const e = document.createElement('span'); e.className = 'taFx'; e.textContent = t; e.style.left = (30 + Math.random() * 40) + '%'; e.style.animationDelay = (i * .12) + 's'; sc.appendChild(e); setTimeout(() => e.remove(), 1600 + i * 120); } };
+  const bar = (v, c, ic) => '<div class="taBar"><span>' + ic + '</span><i><b style="width:' + Math.round(v) + '%;background:' + c + '"></b></i></div>';
+  const draw = () => {
+    const mood = act && performance.now() < actT ? act : taMood(s), egg = s.st === 'egg';
+    o.innerHTML = '<div class="taBox"><button class="taX" data-a="close" aria-label="Fermer">✕</button><div class="taName">' + (s.name || TAP[kind].nm) + (egg ? '' : ' <small>· ' + TA_STN[s.st] + '</small>') + '</div>'
+      + '<div class="taDev"><div class="taScr"><img class="taBg" src="assets/tamak/bg_' + TA_BG[s.bg | 0] + '.jpg?v=1" alt="">'
+      + (egg ? '' : '<div class="taBars">' + bar(s.faim, '#7cc46a', TAP[kind].food) + bar(s.prop, '#6ab8e8', '🫧') + bar(s.joie, '#e889b6', '💜') + '</div>')
+      + taSpr(kind, s, mood) + '</div><img class="taFr" src="assets/tamak/frame.png?v=1" alt=""></div>'
+      + '<div class="taBtns">' + (egg ? '<button data-a="warm"><img src="assets/tamak/ba.png?v=1" alt=""><span>Réchauffer</span></button>' : '<button data-a="play"><img src="assets/tamak/bx.png?v=1" alt=""><span>Jouer</span></button><button data-a="wash"><img src="assets/tamak/bb.png?v=1" alt=""><span>Laver</span></button><button data-a="feed"><img src="assets/tamak/ba.png?v=1" alt=""><span>Nourrir</span></button>') + '</div>'
+      + '<div class="taLow"><button data-a="bg">🖼️ Changer de fond</button><button data-a="reset">↺ Recommencer</button></div>'
+      + '<div class="taMsg">' + (egg ? 'Touche A pour réchauffer l\'œuf (' + (s.warm | 0) + '/3)' : s.st === 'adulte' ? s.name + ' est tout grand ! Continue de bien t\'en occuper.' : 'Prends soin de ' + s.name + ' pour le faire grandir') + '</div></div>';
+  };
+  const grow = () => { if (TA_XP[s.st] && s.xp >= TA_XP[s.st]) { s.st = TA_ST[TA_ST.indexOf(s.st) + 1]; act = 'propre'; actT = performance.now() + 2500; setTimeout(() => { draw(); fx('⭐', 7); }, 30); say('✨ ' + s.name + ' a grandi : il est ' + TA_STN[s.st] + ' !', 3.5); try { sfx.star(); } catch (e) {} } };
+  const care = (k, add, mood, emo) => { const need = s[k] < 90; s[k] = Math.min(100, s[k] + add); if (need) s.xp++; act = mood; actT = performance.now() + 2200; draw(); fx(emo); grow(); save(); setTimeout(() => { if (o.isConnected) draw(); }, 2300); };
+  const askName = () => { const d = taAsk('Un bébé ' + (kind === 'koala' ? 'koala' : 'cygne') + ' ! Comment veux-tu l\'appeler ?<br><input id="taNm" maxlength="14" placeholder="Son nom">', [['C\'est parti !']], () => {}); const inp = d.querySelector('#taNm'); inp.addEventListener('pointerdown', e => e.stopPropagation()); setTimeout(() => inp.focus(), 50);
+    d.querySelector('button').addEventListener('pointerdown', () => { s.name = (inp.value || '').trim().slice(0, 14) || (kind === 'koala' ? 'Kiko' : 'Plume'); save(); draw(); }, true); };
+  o.addEventListener('pointerdown', e => { const b = e.target.closest('[data-a]'); if (!b) { if (e.target === o) { e.preventDefault(); o.remove(); } return; } e.preventDefault(); e.stopPropagation(); try { audio(); } catch (er) {} const a = b.dataset.a;
+    if (a === 'close') { o.remove(); return; }
+    if (a === 'bg') { s.bg = ((s.bg | 0) + 1) % TA_BG.length; save(); draw(); return; }
+    if (a === 'reset') { taAsk('Recommencer à zéro avec un nouvel œuf ?' + (s.name ? '<br><small>' + s.name + ' redeviendra un œuf.</small>' : ''), [['Oui'], ['Non', 1]], i => { if (i) return; taAll()[kind] = Object.assign(taNew(), { bg: s.bg }); save(); taOpen(kind); }); return; }
+    if (a === 'warm') { s.warm = (s.warm | 0) + 1; fx('💗', 3); try { blip(600 + s.warm * 120, .1, 'sine', .07); } catch (er) {} if (s.warm >= 3) { act = 'hatch'; actT = performance.now() + 1800; draw(); fx('✨', 6); setTimeout(() => { s.st = 'bebe'; s.t = Date.now(); act = 'content'; actT = performance.now() + 2000; save(); draw(); fx('💜', 6); askName(); }, 1800); } else { save(); draw(); } return; }
+    if (a === 'feed') care('faim', 30, 'content', TAP[kind].food);
+    if (a === 'wash') care('prop', 100, 'propre', '🫧');
+    if (a === 'play') care('joie', 30, 'content', '💜');
+  });
+  draw(); if (s.st !== 'egg' && !s.name) askName();
+}
+const TAMA_SHOP = { swan: { cost: 'Les mangues, fleurs, coquillages, perles', can: () => (inv.mango | 0) >= 2 && (inv.flower | 0) >= 2 && (inv.shell | 0) >= 6 && (inv.perle | 0) >= 2, pay: () => { inv.mango -= 2; inv.flower -= 2; inv.shell -= 6; inv.perle -= 2; }, txt: '2 mangues + 2 fleurs + 6 coquillages + 2 perles' },
+  koala: { can: () => BR_X.miel[1]() >= 6 && (inv.shell | 0) >= 6, pay: () => { BR_X.miel[2](6); inv.shell -= 6; }, txt: '6 fleurs sauvages + 6 coquillages' } };
+const tamaCard = isl => { const k = isl === 'kob' ? 'koala' : 'swan', own = !!taAll()[k], ok = !own && TAMA_SHOP[k].can(); return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/tamak/frame.png?v=1" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + TAP[k].nm + '</div><div class="kp">' + TAMA_SHOP[k].txt + '</div><button class="kb" data-tam="' + k + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Dans ton sac' : 'Acheter') + '</button></div>'; };
+const tamaBuy = k => { if (taAll()[k] || !TAMA_SHOP[k].can()) return false; TAMA_SHOP[k].pay(); taAll()[k] = taNew(); save(); renderHud(); try { sfx.chest(); } catch (e) {} say(TAP[k].nm + ' : rangé dans ton sac ! Ouvre-le pour réchauffer l\'œuf.', 4); return true; };
+$('#inv').addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('#tamOpen'); if (b) { e.preventDefault(); e.stopPropagation(); taStart(); } }, true);
+{ const st = document.createElement('style'); st.textContent = `
+#taOv{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(40,25,60,.55);font-family:"Trebuchet MS",system-ui,sans-serif}
+.taBox{position:relative;width:min(92vw,380px);background:#fff8ec;border:3px solid #c9a6e0;border-radius:24px;padding:12px 10px 10px;text-align:center;color:#4b2a7a;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.taX{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:2.5px solid #c9a6e0;background:#fff;color:#6b3fa0;font-size:18px;font-weight:800;cursor:pointer}
+.taName{font-weight:800;font-size:20px;margin:2px 40px 6px}.taName small{font-size:14px;color:#8a6aa8}
+.taDev{position:relative;width:min(78vw,300px);margin:0 auto;aspect-ratio:424/417}
+.taScr{position:absolute;left:20.5%;top:11.75%;width:59%;height:66.4%;border-radius:50%/48%;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.taBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.taFr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.taPet{position:relative;margin-bottom:9%;object-fit:contain;animation:taHop 1.6s ease-in-out infinite}
+@keyframes taHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-5%)}}
+.taBars{position:absolute;top:7%;left:50%;transform:translateX(-50%);width:50%;display:flex;flex-direction:column;gap:3px;z-index:2}
+.taBar{display:flex;align-items:center;gap:3px;font-size:10px}.taBar i{flex:1;height:5px;border-radius:9px;background:rgba(255,255,255,.75);overflow:hidden;box-shadow:0 0 0 1px rgba(75,42,122,.35)}.taBar b{display:block;height:100%}
+.taFx{position:absolute;bottom:30%;font-size:22px;animation:taUp 1.5s ease-out forwards;z-index:3;pointer-events:none}
+@keyframes taUp{from{transform:translateY(0) scale(.6);opacity:1}to{transform:translateY(-120%) scale(1.2);opacity:0}}
+.taBtns{display:flex;justify-content:center;gap:14px;margin:8px 0 4px}
+.taBtns button{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:inherit;font-weight:800;font-size:13px;color:#6b3fa0}
+.taBtns img{width:58px;height:58px;object-fit:contain;transition:transform .1s}.taBtns button:active img{transform:scale(.88)}
+.taLow{display:flex;justify-content:center;gap:8px;margin-top:4px}.taLow button{font:inherit;font-weight:800;font-size:12px;border:2px solid #d8c2ea;background:#fff;color:#6b3fa0;border-radius:99px;padding:5px 10px;cursor:pointer}
+.taMsg{font-size:13px;margin-top:6px;color:#7a5a98}
+.taAsk{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(40,25,60,.45);font-family:"Trebuchet MS",system-ui,sans-serif}
+.taAskC{width:min(320px,86vw);background:#fff8ec;border:3px solid #c9a6e0;border-radius:20px;padding:16px;text-align:center;color:#4b2a7a}
+.taAskT{font-weight:800;font-size:17px;margin-bottom:12px}.taAskT input{margin-top:10px;width:80%;font:inherit;font-size:16px;padding:7px 10px;border:2px solid #c9a6e0;border-radius:12px;text-align:center}
+.taAskB{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.taAskB button{font:inherit;font-weight:800;font-size:15px;border:2.5px solid #8a5fc0;background:#efe3fb;color:#4b2a7a;border-radius:99px;padding:8px 16px;cursor:pointer}.taAskB button.no{border-color:#d8c2ea;background:#fff}
+`; document.head.appendChild(st); }
+
 function jrnOpen() {
   let ov = $('#jrnOv'); if (!ov) { ov = document.createElement('div'); ov.id = 'jrnOv'; document.body.appendChild(ov); ov.addEventListener('pointerdown', e => { const b = e.target.closest('[data-j]'); if (!b && e.target !== ov) return; e.preventDefault(); e.stopPropagation(); const a = b ? b.dataset.j : 'x'; if (a === 'x') { ov.remove(); return; } jrnPg += a === 'n' ? 2 : -2; jrnOpen(); }); }
   const E = jrnEntries(), n = E.length; jrnPg = Math.max(0, Math.min(jrnPg, Math.max(0, n - 1) & ~1));
@@ -1756,7 +1846,7 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     QUESTS.forEach(q => { h += `<img src="${FICON[q.fe]}" class="${opened[q.id] ? '' : 'off'}" alt="">`; });
     h += `<span>${no}/5</span></div>`;
   } else h += `<div class="row pl"><span>Collection du musée : ${collected}/${COLL.length}</span></div>`;
-  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button><button class="mapOpen" id="jrnOpen"><img src="assets/journal/diary.png" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon journal</button>';
+  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button><button class="mapOpen" id="jrnOpen"><img src="assets/journal/diary.png" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon journal</button>' + (typeof taAll === 'function' && (taAll().swan || taAll().koala) ? '<button class="mapOpen" id="tamOpen"><img src="assets/tamak/frame.png?v=1" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon tama</button>' : '');
   $('#inv').innerHTML = emoFix(h);
   { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
@@ -2463,12 +2553,12 @@ function tamaUpdate() {   // les besoins baissent doucement avec le temps du jeu
 const nearNest = () => postOn() && !IN.on && !player.mount && nestBaby() && dist(player.x, player.y, NEST()[0], NEST()[1]) < 30;
 const nearTeen = () => postOn() && !IN.on && !player.mount && (folBaby() && dist(player.x, player.y, FOL.x, FOL.y) < 26 ? folBaby() : babies().find((b, i) => b.st === 'teen' && b !== folBaby() && dist(player.x, player.y, teenPos(i)[0], teenPos(i)[1]) < 26));
 const FOL = { x: 0, y: 0, fl: false, mv: 0, on: false };   // le jeune cygne qui suit Myah
-const folBaby = () => { const i = post.follow; return i != null && i >= 0 && babies()[i] && babies()[i].st === 'teen' ? babies()[i] : null; };
+const folBaby = () => null, folBaby0 = () => { const i = post.follow; return i != null && i >= 0 && babies()[i] && babies()[i].st === 'teen' ? babies()[i] : null; };
 function folUpdate(dt) { const b = folBaby(); if (!b || IN.on) { FOL.on = false; return; } const p = player;
   if (!FOL.on || dist(FOL.x, FOL.y, p.x, p.y) > 160) { FOL.x = p.x - 18; FOL.y = p.y + 4; FOL.on = true; }
   const dx = p.x - FOL.x, dy = p.y - FOL.y, dd = Math.hypot(dx, dy); if (dd > 22) { const k = Math.min(1, dt * 3.2) * (dd - 22) / dd; FOL.x += dx * k; FOL.y += dy * k; FOL.mv = Math.min(1, FOL.mv + dt * 4); if (Math.abs(dx) > 2) FOL.fl = dx < 0; } else FOL.mv = Math.max(0, FOL.mv - dt * 3); }
 function teenPos(i) { const s = TEEN_SPOTS[i % 3], u = (Math.sin(time * .12 + i * 2) + 1) / 2, a = s[0], c = s[1]; return [a[0] + (c[0] - a[0]) * u, a[1] + (c[1] - a[1]) * u, s[2] === 'swim', Math.cos(time * .12 + i * 2) > 0]; }
-function tamaDraw(items) {   // le nid (avec l'œuf ou le bébé) et les ados sur la plage
+function tamaDraw(items) { return;   // le nid (avec l'œuf ou le bébé) et les ados sur la plage
   if (!postOn() || IN.on || !TAMA_IMG.complete || !TAMA_IMG.naturalWidth) return;
   const d = (k, x, y, h, hue, flip) => { const m = TM[k], w = h * m[2] / m[3]; ctx.save(); if (hue) ctx.filter = 'hue-rotate(' + hue + 'deg)'; ctx.translate(x, y); if (flip) ctx.scale(-1, 1); ctx.drawImage(TAMA_IMG, m[0], m[1], m[2], m[3], -w / 2, -h, w, h); ctx.restore(); };
   const b = nestBaby();
@@ -2510,8 +2600,8 @@ function tamaOpen(b) {   // l'écran façon Tamagotchi
   draw();
 }
 const tamaOpenNow = () => { const o = document.getElementById('tamaOv'); return !!o && o.style.display === 'flex'; };
-function tamaAct() { if (!postOn() || player.mount) return false; if (nearNest()) { tamaOpen(nestBaby()); return true; } const t = nearTeen(); if (t) { tamaOpen(t); return true; } return false; }
-function tamaGaikin() {   // Gaïkin confie un nouvel œuf quand le dernier bébé est devenu ado
+function tamaAct() { return false; if (!postOn() || player.mount) return false; if (nearNest()) { tamaOpen(nestBaby()); return true; } const t = nearTeen(); if (t) { tamaOpen(t); return true; } return false; }
+function tamaGaikin() { return false;   // Gaïkin confie un nouvel œuf quand le dernier bébé est devenu ado
   const B = babies(); if (!postOn() || !B.length || B.length >= 3 || B.some(b => b.st !== 'teen')) return false;
   player.state = 'talk'; const n = B.length;
   openDialog('Gaïkin, le grand Cygne', ['Myah… ' + B[n - 1].name + ' est devenu un beau jeune cygne grâce à toi. 🦢', 'J\'ai un nouvel œuf à te confier. Je le pose dans le nid, sur la plage. Il s\'appellera ' + BABY_NAMES[n] + '. Prends-en soin !'], () => { B.push(babyNew(n)); save(); player.state = 'free'; say('Un nouvel œuf t\'attend dans le nid, sur la plage ! 🥚', 5); }, LP());
@@ -8055,7 +8145,7 @@ function kykahShop(e, free, epOnly, list, title) {
     else if (ksTab === 'ep') h += '<div class="kg">' + EPL.map(x => { const ok = (inv[x.pay] || 0) >= x.n; return '<div class="kk' + (ok ? '' : ' z') + '">' + (x.emo ? '<div class="ki" style="font-size:48px;line-height:1.2;text-align:center;filter:hue-rotate(45deg) saturate(1.3)">' + x.emo + '</div>' : '<img class="ki" src="assets/spr/ing_' + x.img + '.png?v=2" alt="">') + '<div class="kn">' + x.nm + '</div><div class="kp">' + x.n + ' ' + x.payN + '</div><div class="kp">Tu as ' + (inv[x.pay] || 0) + ' ' + x.payN + ' · en stock : ' + (inv[x.k] || 0) + '</div><button class="kb" data-ep="' + x.k + '" ' + (ok ? '' : 'disabled') + '>Échanger</button></div>'; }).join('') + '</div><div class="kNote">' + (list ? 'De quoi cuisiner chez Nuna : le lait de coco, le citron vert et la citronnelle parfument ses plats de poisson.' : 'Tout ce qu\'il faut pour le gâteau de maïs : un sac de farine et un sachet de sucre par gâteau. Le pot d\'épices et la boîte d\'œufs (3 par gâteau) servent pour deux gâteaux.') + '</div>';
     else if (ksTab === 'bij') { const isl = list ? 'kob' : 'swan';
       h += '<div class="kg">' + BIJOUX.filter(b => b.isl === isl).map(b => { const own = bijOwned(b.id), have = inv.shell | 0, ok = !own && have >= b.shell && (inv.perle | 0) >= (b.perle | 0), pc = Math.min(100, Math.round(have * 100 / b.shell));
-        return '<div class="kk' + (own || ok ? '' : ' z') + '"' + (b.leg ? ' style="border-color:#e8b630;background:#fff4cf"' : '') + '><img class="ki" src="assets/neck/' + b.id + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;aspect-ratio:1"><div class="kn">' + (b.leg ? '✨ ' : '') + b.nm + '</div><div class="kp">' + b.shell + ' coquillages' + (b.perle ? ' + ' + b.perle + ' perles (tu en as ' + (inv.perle | 0) + ')' : '') + '</div>' + (b.leg && !own ? '<div style="height:10px;border-radius:6px;background:#f0e0b8;overflow:hidden;margin:4px 6px"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,#f5cf55,#e8a530)"></div></div><div class="kp">' + Math.min(have, b.shell) + ' / ' + b.shell + ' 🐚</div>' : '') + '<button class="kb" data-bj="' + b.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') + BR_LIST.filter(b => b[4] === isl).map(bd => { const [id, nm, sh, pe] = bd, own = !!(mini.br && mini.br[id]), ok = !own && brCan(bd); return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/wdico/br_' + id + '.png" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + nm + '</div><div class="kp">' + brCost(bd) + '</div><button class="kb" data-bra="' + id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Acheté' : 'Acheter') + '</button></div>'; }).join('') + (isl === 'swan' ? LUNETTES.map(l => { const own = !!(mini.glasses && mini.glasses[l.id]), ok = !own && (inv.shell | 0) >= l.shell; return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/myah/gl_icon_' + l.id + '.png?v=1" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + l.nm + '</div><div class="kp">' + l.shell + ' coquillages</div><button class="kb" data-gla="' + l.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') : '') + '</div><div class="kNote">' + (isl === 'kob' ? 'Des bijoux de l\'île Koala.' : 'Des bijoux de l\'île du Cygne.') + ' Les colliers dorés sont précieux : mets tes coquillages de côté ! Change de collier au vestiaire, dans le coffre à tenues.</div>'; }
+        return '<div class="kk' + (own || ok ? '' : ' z') + '"' + (b.leg ? ' style="border-color:#e8b630;background:#fff4cf"' : '') + '><img class="ki" src="assets/neck/' + b.id + '.png?v=1" alt="" style="object-fit:cover;object-position:0 0;aspect-ratio:1"><div class="kn">' + (b.leg ? '✨ ' : '') + b.nm + '</div><div class="kp">' + b.shell + ' coquillages' + (b.perle ? ' + ' + b.perle + ' perles (tu en as ' + (inv.perle | 0) + ')' : '') + '</div>' + (b.leg && !own ? '<div style="height:10px;border-radius:6px;background:#f0e0b8;overflow:hidden;margin:4px 6px"><div style="height:100%;width:' + pc + '%;background:linear-gradient(90deg,#f5cf55,#e8a530)"></div></div><div class="kp">' + Math.min(have, b.shell) + ' / ' + b.shell + ' 🐚</div>' : '') + '<button class="kb" data-bj="' + b.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') + BR_LIST.filter(b => b[4] === isl).map(bd => { const [id, nm, sh, pe] = bd, own = !!(mini.br && mini.br[id]), ok = !own && brCan(bd); return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/wdico/br_' + id + '.png" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + nm + '</div><div class="kp">' + brCost(bd) + '</div><button class="kb" data-bra="' + id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Acheté' : 'Acheter') + '</button></div>'; }).join('') + tamaCard(isl) + (isl === 'swan' ? LUNETTES.map(l => { const own = !!(mini.glasses && mini.glasses[l.id]), ok = !own && (inv.shell | 0) >= l.shell; return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/myah/gl_icon_' + l.id + '.png?v=1" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + l.nm + '</div><div class="kp">' + l.shell + ' coquillages</div><button class="kb" data-gla="' + l.id + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Porter' : 'Acheter') + '</button></div>'; }).join('') : '') + '</div><div class="kNote">' + (isl === 'kob' ? 'Des bijoux de l\'île Koala.' : 'Des bijoux de l\'île du Cygne.') + ' Les colliers dorés sont précieux : mets tes coquillages de côté ! Change de collier au vestiaire, dans le coffre à tenues.</div>'; }
     else if (ksTab === 'aq') h += '<div class="kg">' + items.filter(i => i.id.startsWith('aq')).map(card).join('') + '</div><div class="kNote">Les poissons du jour changent chaque jour.</div>';
     else {
       const vg = dayVeg();
@@ -8074,6 +8164,7 @@ function kykahShop(e, free, epOnly, list, title) {
     const bjb = t.closest('button[data-bj]'); if (bjb) { stop(ev); if (bjb.disabled) return; const b = BIJOUX.find(x => x.id === bjb.dataset.bj); if (!b) return;
       if (!bijOwned(b.id)) { if ((inv.shell | 0) < b.shell || (inv.perle | 0) < (b.perle | 0)) return; inv.shell -= b.shell; inv.perle = (inv.perle | 0) - (b.perle | 0); mini.necks = mini.necks || {}; mini.necks[b.id] = 1; }
       outfit.neck = true; outfit.neckId = b.id; outfitDirty = true; bakeOutfit(); save(); renderHud(); try { sfx.chest(); if (b.leg) sfx.star(); } catch (e) {} say((b.leg ? '✨ ' : '') + b.nm + ' : Myah le porte ! Tu peux en changer au vestiaire.', 4); draw(); return; }
+    const tmb = t.closest('button[data-tam]'); if (tmb) { stop(ev); if (tmb.disabled) return; if (taAll()[tmb.dataset.tam]) { o.remove(); clearInput(); free(); taOpen(tmb.dataset.tam); return; } tamaBuy(tmb.dataset.tam); draw(); return; }
     const brb = t.closest('button[data-bra]'); if (brb) { stop(ev); if (brb.disabled) return; const id = brb.dataset.bra, bd = BR_LIST.find(b => b[0] === id), sh = bd[2], pe = bd[3]; mini.br = mini.br || {};
       if (!mini.br[id]) { if (!brCan(bd)) return; inv.shell -= sh; inv.perle = (inv.perle | 0) - pe; Object.entries(bd[5] || {}).forEach(([k, n]) => BR_X[k][2](n)); mini.br[id] = 1; if (!outfit.brR) outfit.brR = id; else if (!outfit.brL) outfit.brL = id; outfitDirty = true; }
       save(); renderHud(); try { sfx.chest(); } catch (e) {} say(bd[1] + ' : Myah le porte ! Change ses couleurs au vestiaire, onglet Bracelets.', 4); draw(); return; }
