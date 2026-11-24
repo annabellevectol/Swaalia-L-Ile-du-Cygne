@@ -6248,7 +6248,7 @@ function renderInterior(vw, vh) {
   const sT = (IN.lie && isHome ? Math.min(vw / 700, vh / 340) : Math.min(Math.max(s0, vh / 520), Math.max(s0, vw / 650))) * (isHome && !IN.lie ? 1.4 : 1 + .4 * dkz);   // chez Myah : même plan rapproché en haut et en bas (la caméra ne recule plus) ; plan rapproché dans tous les lieux : la caméra suit Myah
   IN.fz = (IN.fz || 1) + ((SC === SC_KOBHAK && IN.wf ? .62 : 1) - (IN.fz || 1)) * Math.min(1, (IN.dtc || .016) * 1.6);
   const sT2 = SC === SC_KOBHAK ? Math.max(sT * IN.fz, vh / IN_H * 1.95 * IN.fz) * 1.3 :   // île Koala : Myah à la même taille que sur l'île du Cygne
-     SC !== SC_KOBHAK && (kobScene() || !IN.lie) ? Math.max(fit, vh * (kobScene() ? .262 : .21) / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
+     SC !== SC_KOBHAK && (kobScene() || !IN.lie) ? Math.max(fit, vh * .262 / (46 * IN_K)) :   // maisons de l'île du Koala : Myah toujours à la même taille, en plan rapproché
      SC === SC_DISP || SC === SC_MK2 || SC === SC_MK5 ? Math.max(fit, vh / IN_H * .78) : Math.max(fit, sT * (SC === SC_CABIN ? .62 : SC === SC_MK1 || SC === SC_MK3 || SC === SC_MK4 ? .85 : 1));   // la cale : on recule un peu la caméra
   if (IN.zsSC !== SC || IN.zs == null) { IN.zs = sT2; IN.zsSC = SC; } else IN.zs += (sT2 - IN.zs) * .1;
   const s = IN.zs;
