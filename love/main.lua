@@ -9,6 +9,7 @@
 -- Au clavier (PC) : flèches, Entrée=A, Maj=B, Y, X, Échap=START, Tab=SELECT, Q/E=L1/R1
 
 local DATA = require("data")
+local D2 = require("data2")
 local W, H = 640, 480
 local WORLD_W, WORLD_H, CELL, GW, GH = 917, 512, 4, 229, 128
 local MS = 0.26                      -- taille de Myah : pixels de carte par pixel de case
@@ -35,7 +36,7 @@ local place = nil                    -- la maison où l'on est (nil = dehors)
 local player = { x = 0, y = 0, dir = "down", moving = false, t = 0 }
 local cam = { x = 0, y = 0, zoom = 2.0, lookX = 0, lookY = 0 }
 local toast, toastT = nil, 0
-local TOOLS = { { k = "basket", n = "Panier" }, { k = "net", n = "Filet" }, { k = "rod", n = "Canne" }, { k = "fly", n = "Voler" } }
+local TOOLS = { { k = "basket", n = "Panier" }, { k = "net", n = "Filet" }, { k = "rod", n = "Canne" }, { k = "hand", n = "Main libre" } }
 local tool = 1
 local pad
 local dlg = nil                      -- { who, lines, i, after }
@@ -62,18 +63,24 @@ local function ser(v)
   end
   return "nil"
 end
+local slot = 1                       -- 4 emplacements de sauvegarde : partie1.lua … partie4.lua
 local function saveGame()
   S.x, S.y = player.x, player.y
-  love.filesystem.write("partie.lua", "return " .. ser(S))
+  love.filesystem.write("partie" .. slot .. ".lua", "return " .. ser(S))
 end
-local function loadGame()
-  if not love.filesystem.getInfo("partie.lua") then return false end
-  local ok, f = pcall(love.filesystem.load, "partie.lua")
-  if not ok or not f then return false end
-  local ok2, t = pcall(f)
-  if ok2 and type(t) == "table" then S = t; return true end
-  return false
+local function readSlot(i)
+  local f = "partie" .. i .. ".lua"
+  if not love.filesystem.getInfo(f) then return nil end
+  local ok, fn = pcall(love.filesystem.load, f)
+  if not ok or not fn then return nil end
+  local ok2, t = pcall(fn)
+  if ok2 and type(t) == "table" then return t end
+  return nil
 end
+local slots = {}
+local function refreshSlots() for i = 1, 4 do slots[i] = readSlot(i) end end
+local nameG                          -- saisie du nom (clavier à l'écran)
+local KB = { "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZ-'  ", "éèêàçëïô  " }
 
 -- ======================= le monde =======================
 local function cellOf(mask, x, y)
@@ -87,31 +94,31 @@ local function nearSea(x, y)
   return false
 end
 
-local trees, flowers, butterflies, crabs = {}, {}, {}, {}
+local trees, flowers, butterflies, crabs, shells, animals, fishes = {}, {}, {}, {}, {}, {}, {}
 local function setupWorld()
   trees = {}
   for _, t in ipairs(DATA.trees) do trees[#trees + 1] = { x = t.x, y = t.y, kind = t.kind, fruits = 5, regrow = 0 } end
-  -- des fleurs sur l'herbe (toujours aux mêmes endroits)
-  flowers = {}
-  local seed = 7
-  local function rnd() seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648 end
-  local tries = 0
-  while #flowers < 14 and tries < 4000 do
-    tries = tries + 1
-    local x, y = 60 + rnd() * 800, 120 + rnd() * 270
-    if walkable(x, y) and not nearSea(x, y) then
-      local ok = true
-      for _, f in ipairs(flowers) do if dist(f.x, f.y, x, y) < 40 then ok = false end end
-      if ok then flowers[#flowers + 1] = { x = x, y = y, c = math.floor(rnd() * 10), regrow = 0, on = true } end
-    end
-  end
+  flowers = {}   -- les fleurs : aux mêmes endroits que dans le jeu web
+  for i, f in ipairs(D2.flowers) do flowers[#flowers + 1] = { x = f[1], y = f[2], c = (i * 3) % 10, regrow = 0, on = true } end
   butterflies = {}
   for i = 1, 5 do
-    local f = flowers[(i * 3) % #flowers + 1] or { x = 400, y = 250 }
-    butterflies[i] = { x = f.x, y = f.y - 10, hx = f.x, hy = f.y, t = i, on = true, regrow = 0, c = i }
+    local f = D2.flowers[(i * 2) % #D2.flowers + 1]
+    butterflies[i] = { x = f[1], y = f[2] - 12, hx = f[1], hy = f[2], t = i * 1.3, on = true, regrow = 0, sp = (i - 1) % 5 }
   end
-  crabs = {}
-  for i = 1, 4 do crabs[i] = { x = 250 + i * 110, y = 430, t = i * 1.7, on = true, regrow = 0 } end
+  animals = {}
+  for _, a in ipairs(D2.animals) do animals[#animals + 1] = { id = a[1], x = a[2], y = a[3], hx = a[2], hy = a[3], h = a[4], t = math.random() * 5, face = 1, on = true, regrow = 0 } end
+  crabs = {}   -- des crabes en plus sur le sable
+  for i, p in ipairs({ { 330, 440 }, { 520, 452 }, { 610, 448 } }) do if walkable(p[1], p[2]) then crabs[#crabs + 1] = { x = p[1], y = p[2], t = i * 1.7, on = true, regrow = 0 } end end
+  shells = {}   -- des coquillages le long de la plage
+  for i = 0, 8 do
+    local x, y = 140 + i * 80, 432 + (i % 3) * 8
+    for k = 0, 30, 2 do if walkable(x, y - k) then y = y - k; break end end
+    if walkable(x, y) then shells[#shells + 1] = { x = x, y = y, k = i % 5, on = true, regrow = 0 } end
+  end
+  fishes = {}   -- les poissons qui nagent dans la mer et la mare
+  local kinds = { "fishA0", "fishB1", "fishA2", "fishB3", "fish4", "fishA1", "fish5", "fishB0" }
+  for i, p in ipairs(D2.seaFish) do fishes[#fishes + 1] = { x = p[1], y = p[2], hx = p[1], hy = p[2], k = kinds[(i - 1) % #kinds + 1], t = i * 2.1 } end
+  for i, p in ipairs(D2.pondFish) do fishes[#fishes + 1] = { x = p[1], y = p[2], hx = p[1], hy = p[2], k = kinds[(i + 2) % #kinds + 1], t = i * 1.4, pond = true } end
 end
 
 -- ======================= habitants =======================
@@ -209,7 +216,7 @@ end
 -- ======================= mini-jeu : pêche =======================
 local fishG
 local function startFish()
-  fishG = { pos = 0, dir = 1, zone = 0.35 + math.random() * 0.3, w = 0.16, t = 0, tries = 3, back = scene }
+  fishG = { pos = 0, dir = 1, zone = 0.3 + math.random() * 0.35, w = 0.26, t = 0, tries = 5, back = scene, k = ({ "fishA0", "fishB1", "fishA2", "fishB3", "fishA1" })[math.random(5)] }
   scene = "fish"
 end
 
@@ -316,7 +323,7 @@ local function actionA()
     end
   end
   if dist(player.x, player.y, DATA.perch[1], DATA.perch[2]) < 30 then
-    if S.plumes >= 1 then startFly() else openDialog("Gaïkin, le grand Cygne", { "Rapporte-moi une plume, Myah, et je t'emmènerai voler au-dessus de l'île." }) end
+    openDialog("Gaïkin, le grand Cygne", { S.plumes >= 5 and "Merci, Myah. Grâce à toi, l'île est de nouveau en paix." or ("Retrouve mes plumes, Myah. Tu en as " .. S.plumes .. " sur 5.") })
     return
   end
   local tk = TOOLS[tool].k
@@ -333,7 +340,12 @@ local function actionA()
     for _, c in ipairs(crabs) do
       if c.on and dist(c.x, c.y, player.x, player.y) < 16 then c.on = false; c.regrow = 30; give("crab"); say("+1 crabe (" .. inv("crab") .. ")"); return end
     end
-    if player.y > 395 and math.random() < 0.25 then give("shell"); say("Un joli coquillage ! (" .. inv("shell") .. ")"); return end
+    for _, a in ipairs(animals) do
+      if a.id == "crabe" and a.on and dist(a.x, a.y, player.x, player.y) < 16 then a.on = false; a.regrow = 40; give("crab"); say("+1 crabe (" .. inv("crab") .. ")"); return end
+    end
+    for _, c in ipairs(shells) do
+      if c.on and dist(c.x, c.y, player.x, player.y) < 14 then c.on = false; c.regrow = 60; give("shell"); say("Un joli coquillage ! (" .. inv("shell") .. ")"); return end
+    end
     say("Rien à cueillir ici. Essaie près des arbres ou des fleurs.")
   elseif tk == "net" then
     for _, b in ipairs(butterflies) do
@@ -342,20 +354,44 @@ local function actionA()
     say("Approche-toi d'un papillon.")
   elseif tk == "rod" then
     if nearSea(player.x, player.y) then startFish() else say("Va au bord de l'eau pour pêcher.") end
-  elseif tk == "fly" then
-    if S.plumes >= 1 then startFly() else say("Il te faut une plume de Gaïkin pour voler.") end
+  elseif tk == "hand" then
+    say("Choisis un outil avec L1 ou R1 pour ramasser.")
   end
 end
 
 -- ======================= boutons =======================
 local function press(b)
   if scene == "title" then
-    if b == "dpup" or b == "dpdown" then titleSel = hasSave and (3 - titleSel) or 1 end
+    if b == "dpup" then titleSel = (titleSel - 2) % 4 + 1 elseif b == "dpdown" then titleSel = titleSel % 4 + 1 end
     if b == "a" or b == "start" then
-      if hasSave and titleSel == 1 then loadGame() else S = newSave() end
-      player.x, player.y = S.x, S.y; setupNpcs(); scene = "world"; say("Bienvenue sur l'île du Cygne !")
-      if not S.quest.rose and not hasSave then openDialog("Miraaï, ta maman", { "Myah ! Viens me voir à la maison, j'ai besoin de toi pour la fête du Cygne." }) end
+      slot = titleSel
+      if slots[slot] then
+        S = slots[slot]; player.x, player.y = S.x, S.y; setupNpcs(); scene = "world"; say("Bon retour, " .. (S.name or "Myah") .. " !")
+      else nameG = { txt = "", r = 1, c = 1 }; scene = "name" end
     end
+    return
+  end
+  if scene == "name" then
+    local g = nameG
+    if b == "dpup" then g.r = (g.r - 2) % 5 + 1 elseif b == "dpdown" then g.r = g.r % 5 + 1
+    elseif b == "dpleft" then g.c = (g.c - 2) % 10 + 1 elseif b == "dpright" then g.c = g.c % 10 + 1 end
+    local function finish()
+      S = newSave(); S.name = (g.txt:gsub("^%s+", ""):gsub("%s+$", "")); if S.name == "" then S.name = "Myah" end
+      player.x, player.y = S.x, S.y; setupNpcs(); saveGame(); refreshSlots(); scene = "world"
+      say("L1 et R1 : changer d'outil (panier, filet, canne)", 6)
+      openDialog("Miraaï, ta maman", { "Myah ! Viens me voir à la maison, j'ai besoin de toi pour la fête du Cygne." })
+    end
+    if b == "a" then
+      if g.r == 5 then if g.c <= 5 then g.txt = g.txt:sub(1, -2) else finish() end
+      else
+        local row = KB[g.r]; local chars = {}
+        for ch in row:gmatch("[^\128-\191][\128-\191]*") do chars[#chars + 1] = ch end
+        local ch = chars[g.c] or " "
+        if #g.txt < 24 then g.txt = g.txt .. ch end
+      end
+    elseif b == "b" then g.txt = g.txt:gsub("[^\128-\191][\128-\191]*$", "")
+    elseif b == "start" then finish()
+    elseif b == "back" then scene = "title" end
     return
   end
   if scene == "dialog" then
@@ -443,10 +479,12 @@ end
 local function release(b)
   if scene == "piano" and pianoG and LANE_KEY[b] then pianoG.held[LANE_KEY[b]] = nil end
 end
-function love.gamepadpressed(j, b) press(b) end
+local lastIn = ""
+function love.gamepadpressed(j, b) lastIn = "manette " .. b; press(b) end
 function love.gamepadreleased(j, b) release(b) end
-local KEYS = { ["return"] = "a", lshift = "b", y = "y", x = "x", escape = "start", tab = "back", q = "leftshoulder", e = "rightshoulder", up = "dpup", down = "dpdown", left = "dpleft", right = "dpright" }
-function love.keypressed(k) if KEYS[k] then press(KEYS[k]) end end
+local KEYS = { ["return"] = "start", space = "a", z = "a", lshift = "b", lctrl = "b", y = "y", x = "x", escape = "back", tab = "back", backspace = "b", q = "leftshoulder", e = "rightshoulder", up = "dpup", down = "dpdown", left = "dpleft", right = "dpright" }
+function love.keypressed(k) lastIn = "touche " .. k; if KEYS[k] then press(KEYS[k]) end end
+function love.joystickpressed(j, n) if not j:isGamepad() then lastIn = "bouton " .. n end end
 function love.keyreleased(k) if KEYS[k] then release(KEYS[k]) end end
 function love.joystickadded(j) pad = j end
 
@@ -459,7 +497,7 @@ function love.load()
   for sh, d in pairs(names) do frameIndex[sh] = {}; for i, n in ipairs(d.names) do frameIndex[sh][n] = i - 1 end end
   fonts.s = love.graphics.newFont(13); fonts.m = love.graphics.newFont(16); fonts.l = love.graphics.newFont(30)
   local js = love.joystick.getJoysticks(); pad = js[1]
-  S = newSave(); hasSave = love.filesystem.getInfo("partie.lua") ~= nil
+  S = newSave(); refreshSlots()
   setupWorld(); setupNpcs()
   img("assets/map.jpg"); img("assets/myah/walk.png")
 end
@@ -504,7 +542,19 @@ function love.update(dt)
   for _, b in ipairs(butterflies) do
     b.t = b.t + dt
     if not b.on then b.regrow = b.regrow - dt; if b.regrow <= 0 then b.on = true end end
-    b.x = b.hx + math.sin(b.t * 0.9) * 26 + math.sin(b.t * 2.3) * 6; b.y = b.hy - 14 + math.cos(b.t * 1.3) * 12
+    b.x = b.hx + math.sin(b.t * 0.45) * 30 + math.sin(b.t * 1.7) * 6; b.y = b.hy - 14 + math.cos(b.t * 0.8) * 12
+  end
+  for _, a in ipairs(animals) do
+    a.t = a.t + dt
+    if not a.on then a.regrow = a.regrow - dt; if a.regrow <= 0 then a.on = true end end
+    local nx = a.hx + math.sin(a.t * 0.25) * 14
+    if walkable(nx, a.y) then a.face = nx > a.x and 1 or -1; a.x = nx end
+  end
+  for _, c in ipairs(shells) do if not c.on then c.regrow = c.regrow - dt; if c.regrow <= 0 then c.on = true end end end
+  for _, f in ipairs(fishes) do
+    f.t = f.t + dt
+    local nx, ny = f.hx + math.sin(f.t * 0.3) * (f.pond and 12 or 28), f.hy + math.sin(f.t * 0.21) * 6
+    f.face = nx > f.x and 1 or -1; f.x, f.y = nx, ny
   end
   for _, c in ipairs(crabs) do
     c.t = c.t + dt
@@ -519,17 +569,27 @@ function love.update(dt)
     moveMyah(dt, walkable, 55)
     follow(dt, player.x, player.y, WORLD_W, WORLD_H, cam.zoom)
   elseif scene == "inside" then
-    local P = place.floor
-    moveMyah(dt, function(x, y) return insidePoly(P, x, y) end, 55 * place.K)
+    local I = D2.inside[place.id] or {}
+    local P = (place.up and I.f1) or place.floor
+    moveMyah(dt, function(x, y)
+      if not insidePoly(P, x, y) then return false end
+      if not place.up then for _, b in ipairs(I.blocks or {}) do if insidePoly(b, x, y) then return false end end end
+      return true
+    end, 55 * place.K)
+    if I.ladder and I.f1 then   -- l'échelle : on monte ou on descend en marchant dessus vers le haut / le bas
+      local dx, dy = moveInput()
+      if not place.up and dist(player.x, player.y, I.ladder[1][1], I.ladder[1][2]) < 40 and dy < -0.5 then place.up = true; player.x, player.y = I.ladder[2][1], I.ladder[2][2] - 10; say("À l'étage", 1.2) end
+      if place.up and dist(player.x, player.y, I.ladder[2][1], I.ladder[2][2]) < 40 and dy > 0.5 then place.up = false; player.x, player.y = I.ladder[1][1], I.ladder[1][2] + 12 end
+    end
     local z = math.max(H / place.H, 0.62)
     cam.zoom = z
     follow(dt, player.x, player.y, place.W, place.H, z)
-    if dist(player.x, player.y, place.sexit[1], place.sexit[2]) < 25 then
-      player.x, player.y = place.exit[1], place.exit[2] + 4; place = nil; scene = "world"; cam.zoom = 2.0
+    if not place.up and dist(player.x, player.y, place.sexit[1], place.sexit[2]) < 25 then
+      player.x, player.y = place.exit[1], place.exit[2] + 4; place.up = nil; place = nil; scene = "world"; cam.zoom = 2.0
     end
   elseif scene == "fish" then
     local g = fishG
-    g.pos = g.pos + g.dir * dt * 0.9
+    g.pos = g.pos + g.dir * dt * 0.32   -- lent : facile pour une enfant
     if g.pos > 1 then g.pos, g.dir = 1, -1 elseif g.pos < 0 then g.pos, g.dir = 0, 1 end
   elseif scene == "memory" then
     if memG.wait > 0 then memG.wait = memG.wait - dt; if memG.wait <= 0 then memG.open = {} end end
@@ -566,7 +626,7 @@ function love.update(dt)
 end
 
 -- ======================= dessin =======================
-local SHEET = { basket = "walkbask", net = "walknet", rod = "walkrod", fly = "walk" }   -- Myah tient son outil en main
+local SHEET = { basket = "walkbask", net = "walknet", rod = "walkrod", hand = "walk" }   -- Myah tient son outil en main
 local quads = {}
 local function drawMyahAt(x, y, s)
   local sh = SHEET[TOOLS[tool].k] or "walk"
@@ -592,23 +652,24 @@ local function drawNpc(o, k)
     love.graphics.setFont(fonts.s); love.graphics.print(S.quest[n.id] and (hasNeed(n.need or {}) and "v" or "...") or "!", o.x - 3 * (k or 1), hy - 7 * (k or 1), 0, (k or 1) * 0.7)
   end
 end
-local function drawFlower(f)
-  love.graphics.setColor(0.3, 0.6, 0.3); love.graphics.line(f.x, f.y, f.x, f.y - 5)
-  local c = { { 1, .6, .75 }, { 1, .85, .3 }, { .75, .6, 1 }, { 1, 1, 1 } }
-  love.graphics.setColor(c[f.c % 4 + 1]); for a = 0, 4 do love.graphics.circle("fill", f.x + math.cos(a * 1.26) * 2.2, f.y - 6 + math.sin(a * 1.26) * 2.2, 1.8) end
-  love.graphics.setColor(1, .9, .3); love.graphics.circle("fill", f.x, f.y - 6, 1.2)
+local function sprite(name, x, y)   -- un dessin du jeu web, à sa taille dans le monde (w, h, ancre ax, ay)
+  local d = D2.sprites[name]; local im = img("assets/spr/" .. name .. ".png"); if not d or not im then return end
+  local kx, ky = d[1] / im:getWidth(), d[2] / im:getHeight()
+  love.graphics.setColor(1, 1, 1); love.graphics.draw(im, x, y, 0, kx, ky, d[3] / kx, d[4] / ky)
 end
+local function drawFlower(f) sprite("flower" .. f.c, f.x, f.y) end
 local function drawButterfly(b)
-  local w = math.abs(math.sin(b.t * 12)) * 3 + 1
-  love.graphics.setColor(b.c % 2 == 0 and { .5, .7, 1 } or { 1, .6, .4 })
-  love.graphics.ellipse("fill", b.x - 2, b.y, w, 2.5); love.graphics.ellipse("fill", b.x + 2, b.y, w, 2.5)
-  love.graphics.setColor(.2, .15, .2); love.graphics.rectangle("fill", b.x - .5, b.y - 2, 1, 4)
+  local flap = 0.55 + 0.45 * math.abs(math.sin(b.t * 9))
+  local d = D2.sprites["bfly" .. b.sp]; local im = img("assets/spr/bfly" .. b.sp .. ".png"); if not im or not d then return end
+  love.graphics.setColor(1, 1, 1); love.graphics.draw(im, b.x, b.y, 0, d[1] / im:getWidth() * flap, d[2] / im:getHeight(), im:getWidth() / 2, im:getHeight() / 2)
 end
-local function drawCrab(c)
-  love.graphics.setColor(.9, .3, .2); love.graphics.ellipse("fill", c.x, c.y, 5, 3.4)
-  love.graphics.circle("fill", c.x - 6, c.y - 2, 2); love.graphics.circle("fill", c.x + 6, c.y - 2, 2)
-  love.graphics.setColor(0, 0, 0); love.graphics.circle("fill", c.x - 1.5, c.y - 2.5, .7); love.graphics.circle("fill", c.x + 1.5, c.y - 2.5, .7)
+local function drawImgH(path, x, y, h, flip)   -- une image posée au sol, de hauteur h
+  local im = img(path); if not im then return end
+  local k = h / im:getHeight()
+  love.graphics.setColor(0, 0, 0, 0.18); love.graphics.ellipse("fill", x, y, im:getWidth() * k * 0.35, 2.5)
+  love.graphics.setColor(1, 1, 1); love.graphics.draw(im, x, y, 0, k * (flip and -1 or 1), k, im:getWidth() / 2, im:getHeight())
 end
+local function drawCrab(c) drawImgH("assets/spr/an_crabe.png", c.x, c.y, 11, math.sin(c.t) > 0) end
 
 local function panel(x, y, w, h)
   love.graphics.setColor(1, 0.97, 0.9, 0.96); love.graphics.rectangle("fill", x, y, w, h, 14)
@@ -620,6 +681,11 @@ local function drawWorld()
   love.graphics.push(); love.graphics.scale(cam.zoom); love.graphics.translate(-cam.x, -cam.y)
   local map = img("assets/map.jpg")
   love.graphics.setColor(1, 1, 1); if map then love.graphics.draw(map, 0, 0, 0, WORLD_W / map:getWidth(), WORLD_H / map:getHeight()) end
+  for _, f in ipairs(fishes) do   -- les poissons, sous la surface
+    local d = D2.sprites[f.k]; local im = img("assets/spr/" .. f.k .. ".png")
+    if d and im then love.graphics.setColor(1, 1, 1, 0.75); love.graphics.draw(im, f.x, f.y, 0, d[1] / im:getWidth() * (f.face or 1), d[2] / im:getHeight(), im:getWidth() / 2, im:getHeight() / 2) end
+  end
+  for _, c in ipairs(shells) do if c.on then drawImgH("assets/spr/shell" .. c.k .. ".png", c.x, c.y, 7) end end
   for _, f in ipairs(flowers) do if f.on then drawFlower(f) end end
   for _, c in ipairs(crabs) do if c.on then drawCrab(c) end end
   for _, t in ipairs(trees) do   -- les fruits qui restent sur l'arbre
@@ -631,6 +697,7 @@ local function drawWorld()
   -- habitants et Myah, du fond vers l'avant
   local list = {}
   for _, o in ipairs(npcs) do if not o.house then list[#list + 1] = { y = o.y, f = function() drawNpc(o) end } end end
+  for _, a in ipairs(animals) do if a.on then list[#list + 1] = { y = a.y, f = function() drawImgH("assets/spr/an_" .. a.id .. ".png", a.x, a.y, a.h, a.face < 0) end } end end
   if scene ~= "fly" then list[#list + 1] = { y = player.y, f = function() drawMyahAt(player.x, player.y, MS) end } end
   table.sort(list, function(a, b) return a.y < b.y end)
   for _, it in ipairs(list) do it.f() end
@@ -663,7 +730,7 @@ end
 
 local function drawHud()
   love.graphics.setFont(fonts.s)
-  panel(W - 140, H - 36, 132, 28); love.graphics.setColor(PURPLE); love.graphics.printf("L1 < " .. TOOLS[tool].n .. " > R1", W - 140, H - 29, 132, "center")
+  panel(W - 140, H - 36, 132, 28); love.graphics.setColor(PURPLE); love.graphics.printf(TOOLS[tool].n, W - 140, H - 29, 132, "center")
   panel(8, 8, 96, 26); love.graphics.setColor(PURPLE); love.graphics.print("Plumes " .. S.plumes .. "/5", 18, 14)
   if toastT > 0 and toast then
     love.graphics.setFont(fonts.m); panel(70, 44, W - 140, 34); love.graphics.setColor(PURPLE); love.graphics.printf(toast, 76, 52, W - 152, "center")
@@ -722,7 +789,8 @@ local function drawHelp()
   love.graphics.print("START : menu (mini-jeux, sauvegarde)    SELECT : cette aide", 140, 270)
   love.graphics.print("L1 / R1 : changer d'outil      Joystick droit : regarder", 140, 292)
   love.graphics.print("Panier : fruits, fleurs, crabes   Filet : papillons", 140, 320)
-  love.graphics.print("Canne : au bord de l'eau   Voler : avec une plume de Gaïkin", 140, 342)
+  love.graphics.print("Canne : au bord de l'eau", 140, 342)
+  love.graphics.setColor(0.5, 0.4, 0.6); love.graphics.print("Dernière touche reçue : " .. (lastIn or ""), 140, 370)
 end
 
 local function drawFish()
@@ -731,7 +799,9 @@ local function drawFish()
   local g, bx, bw = fishG, 130, 380
   love.graphics.setColor(0.75, 0.88, 0.97); love.graphics.rectangle("fill", bx, 240, bw, 30, 15)
   love.graphics.setColor(0.45, 0.8, 0.5); love.graphics.rectangle("fill", bx + g.zone * bw, 240, g.w * bw, 30, 8)
-  love.graphics.setColor(0.2, 0.4, 0.7); love.graphics.ellipse("fill", bx + g.pos * bw, 255, 12, 7)
+  local fi = img("assets/spr/" .. g.k .. ".png")
+  if fi then love.graphics.setColor(1, 1, 1); love.graphics.draw(fi, bx + g.pos * bw, 255, 0, 44 / fi:getWidth() * g.dir, 44 / fi:getWidth(), fi:getWidth() / 2, fi:getHeight() / 2)
+  else love.graphics.setColor(0.2, 0.4, 0.7); love.graphics.ellipse("fill", bx + g.pos * bw, 255, 12, 7) end
   love.graphics.setFont(fonts.s); love.graphics.setColor(PURPLE); love.graphics.printf("Essais : " .. g.tries .. "    B : arrêter", 100, 290, 440, "center")
 end
 
@@ -808,11 +878,36 @@ function love.draw()
     if sw then love.graphics.draw(sw, W / 2 - 80, 70 + math.sin(love.timer.getTime()) * 8, 0, 160 / sw:getWidth(), 160 / sw:getWidth()) end
     love.graphics.setFont(fonts.l); love.graphics.setColor(PURPLE); love.graphics.printf("Swaalia", 0, 210, W, "center")
     love.graphics.setFont(fonts.m); love.graphics.printf("L'Île du Cygne", 0, 248, W, "center")
-    local items = hasSave and { "Continuer la partie", "Nouvelle partie" } or { "Nouvelle partie" }
-    for i, t in ipairs(items) do
-      if i == titleSel then love.graphics.setColor(1, 0.97, 0.9, 0.9); love.graphics.rectangle("fill", W / 2 - 120, 296 + (i - 1) * 40, 240, 32, 16) end
-      love.graphics.setColor(PURPLE); love.graphics.printf(t, 0, 302 + (i - 1) * 40, W, "center")
+    for i = 1, 4 do
+      local s0 = slots[i]
+      local t = s0 and (i .. ".  " .. (s0.name or "Myah") .. "   -   " .. (s0.plumes or 0) .. "/5 plumes") or (i .. ".  Nouvelle partie")
+      love.graphics.setColor(1, 0.97, 0.9, i == titleSel and 0.95 or 0.6); love.graphics.rectangle("fill", W / 2 - 160, 282 + (i - 1) * 42, 320, 34, 17)
+      if i == titleSel then love.graphics.setColor(0.6, 0.45, 0.75); love.graphics.setLineWidth(3); love.graphics.rectangle("line", W / 2 - 160, 282 + (i - 1) * 42, 320, 34, 17); love.graphics.setLineWidth(1) end
+      love.graphics.setColor(PURPLE); love.graphics.printf(t, W / 2 - 150, 290 + (i - 1) * 42, 300, "left")
     end
+    return
+  end
+  if scene == "name" then
+    love.graphics.clear(0.86, 0.82, 0.95); local g = nameG
+    love.graphics.setFont(fonts.m); love.graphics.setColor(PURPLE); love.graphics.printf("Comment t'appelles-tu ?", 0, 30, W, "center")
+    panel(140, 66, 360, 44); love.graphics.setFont(fonts.l); love.graphics.setColor(PURPLE); love.graphics.printf(g.txt .. (math.floor(love.timer.getTime() * 2) % 2 == 0 and "_" or " "), 140, 70, 360, "center")
+    love.graphics.setFont(fonts.m)
+    for r = 1, 4 do
+      local chars = {}; for ch in KB[r]:gmatch("[^\128-\191][\128-\191]*") do chars[#chars + 1] = ch end
+      for c = 1, 10 do
+        local x, y = 95 + (c - 1) * 46, 140 + (r - 1) * 50
+        local sel = g.r == r and g.c == c
+        love.graphics.setColor(sel and { 0.62, 0.48, 0.78 } or { 1, 0.97, 0.9 }); love.graphics.rectangle("fill", x, y, 40, 40, 10)
+        love.graphics.setColor(sel and { 1, 1, 1 } or PURPLE); love.graphics.printf(chars[c] or "", x, y + 10, 40, "center")
+      end
+    end
+    for c = 1, 2 do
+      local sel = g.r == 5 and ((c == 1 and g.c <= 5) or (c == 2 and g.c > 5))
+      local x = c == 1 and 95 or 325
+      love.graphics.setColor(sel and { 0.62, 0.48, 0.78 } or { 1, 0.97, 0.9 }); love.graphics.rectangle("fill", x, 345, 220, 42, 12)
+      love.graphics.setColor(sel and { 1, 1, 1 } or PURPLE); love.graphics.printf(c == 1 and "Effacer" or "C'est parti !", x, 357, 220, "center")
+    end
+    love.graphics.setFont(fonts.s); love.graphics.setColor(PURPLE); love.graphics.printf("Flèches : choisir    A : écrire    B : effacer    START : valider", 0, H - 30, W, "center")
     return
   end
   if scene == "memory" then drawMemory(); return end
