@@ -1,10 +1,10 @@
 -- Swaalia - L'Île du Cygne : version LÖVE2D pour la console R36S (écran 640x480)
 --
--- Touches de la R36S :
+-- Touches de la R36S (L1/R1 = outils) :
 --   A (rouge) = parler / prendre / valider     B (jaune) = courir (garder appuyé) / retour
---   Y (vert)  = sac à dos                       X (bleu)  = changer d'outil
+--   Y (vert)  = sac à dos                       X (bleu)  = libre
 --   START     = menu (reprendre, mini-jeux, sauvegarder)   SELECT = aide des touches
---   L1 / R1   = zoom                            flèches et joystick gauche = marcher
+--   L1 / R1   = outil précédent / suivant                            flèches et joystick gauche = marcher
 --   joystick droit = regarder autour
 -- Au clavier (PC) : flèches, Entrée=A, Maj=B, Y, X, Échap=START, Tab=SELECT, Q/E=L1/R1
 
@@ -354,7 +354,7 @@ local function press(b)
     if b == "a" or b == "start" then
       if hasSave and titleSel == 1 then loadGame() else S = newSave() end
       player.x, player.y = S.x, S.y; setupNpcs(); scene = "world"; say("Bienvenue sur l'île du Cygne !")
-      if not S.quest.rose and not hasSave then openDialog("Miraaï, ta maman", { "Myah ! Viens me voir à la maison rose, j'ai besoin de toi pour la fête du Cygne." }) end
+      if not S.quest.rose and not hasSave then openDialog("Miraaï, ta maman", { "Myah ! Viens me voir à la maison, j'ai besoin de toi pour la fête du Cygne." }) end
     end
     return
   end
@@ -437,9 +437,8 @@ local function press(b)
   elseif b == "back" then scene = "help"
   elseif b == "y" then scene = "bag"
   elseif b == "a" then actionA()
-  elseif b == "x" then tool = tool % #TOOLS + 1; say("Outil : " .. TOOLS[tool].n, 1.4)
-  elseif b == "leftshoulder" then cam.zoom = math.max(1.2, cam.zoom - 0.25)
-  elseif b == "rightshoulder" then cam.zoom = math.min(3.2, cam.zoom + 0.25) end
+  elseif b == "rightshoulder" then tool = tool % #TOOLS + 1; say("Outil : " .. TOOLS[tool].n, 1.4)
+  elseif b == "leftshoulder" then tool = (tool - 2) % #TOOLS + 1; say("Outil : " .. TOOLS[tool].n, 1.4) end
 end
 local function release(b)
   if scene == "piano" and pianoG and LANE_KEY[b] then pianoG.held[LANE_KEY[b]] = nil end
@@ -457,12 +456,12 @@ function love.load()
   walkMask = love.filesystem.read("assets/walk.bin")
   seaMask = love.filesystem.read("assets/sea.bin") or string.rep("\0", GW * GH)
   names = love.filesystem.load("assets/walk_names.lua")()
-  for i, n in ipairs(names) do frameIndex[n] = i - 1 end
+  for sh, d in pairs(names) do frameIndex[sh] = {}; for i, n in ipairs(d.names) do frameIndex[sh][n] = i - 1 end end
   fonts.s = love.graphics.newFont(13); fonts.m = love.graphics.newFont(16); fonts.l = love.graphics.newFont(30)
   local js = love.joystick.getJoysticks(); pad = js[1]
   S = newSave(); hasSave = love.filesystem.getInfo("partie.lua") ~= nil
   setupWorld(); setupNpcs()
-  img("assets/map.jpg"); img("assets/walk8.png")
+  img("assets/map.jpg"); img("assets/myah/walk.png")
 end
 
 -- ======================= mise à jour =======================
@@ -567,13 +566,19 @@ function love.update(dt)
 end
 
 -- ======================= dessin =======================
+local SHEET = { basket = "walkbask", net = "walknet", rod = "walkrod", fly = "walk" }   -- Myah tient son outil en main
+local quads = {}
 local function drawMyahAt(x, y, s)
-  local im = img("assets/walk8.png"); if not im then return end
+  local sh = SHEET[TOOLS[tool].k] or "walk"
+  local im = img("assets/myah/" .. sh .. ".png"); if not im then sh = "walk"; im = img("assets/myah/walk.png") end
+  if not im then return end
   local n = player.dir .. (player.moving and (math.floor(player.t * 10) % 8 + 1) or 1)
-  local i = frameIndex[n] or frameIndex["down1"]
-  local q = love.graphics.newQuad((i % 8) * 256, math.floor(i / 8) * 256, 256, 256, im:getDimensions())
+  local fi = frameIndex[sh] or frameIndex.walk
+  local i = fi[n] or fi["down1"] or 0
+  local key = sh .. i
+  if not quads[key] then quads[key] = love.graphics.newQuad((i % 8) * 128, math.floor(i / 8) * 128, 128, 128, im:getDimensions()) end   -- planches réduites de moitié (cases de 128)
   love.graphics.setColor(0, 0, 0, 0.2); love.graphics.ellipse("fill", x, y, 44 * s, 12 * s)
-  love.graphics.setColor(1, 1, 1); love.graphics.draw(im, q, x - 128 * s, y - 212 * s, 0, s, s)
+  love.graphics.setColor(1, 1, 1); love.graphics.draw(im, quads[key], x - 128 * s, y - 212 * s, 0, s * 2, s * 2)
 end
 local function drawNpc(o, k)
   local n = o.d; local im = img(n.src); if not im then return end
@@ -658,7 +663,7 @@ end
 
 local function drawHud()
   love.graphics.setFont(fonts.s)
-  panel(W - 120, H - 36, 112, 28); love.graphics.setColor(PURPLE); love.graphics.printf(TOOLS[tool].n .. "  (X)", W - 120, H - 29, 112, "center")
+  panel(W - 140, H - 36, 132, 28); love.graphics.setColor(PURPLE); love.graphics.printf("L1 < " .. TOOLS[tool].n .. " > R1", W - 140, H - 29, 132, "center")
   panel(8, 8, 96, 26); love.graphics.setColor(PURPLE); love.graphics.print("Plumes " .. S.plumes .. "/5", 18, 14)
   if toastT > 0 and toast then
     love.graphics.setFont(fonts.m); panel(70, 44, W - 140, 34); love.graphics.setColor(PURPLE); love.graphics.printf(toast, 76, 52, W - 152, "center")
@@ -706,7 +711,7 @@ end
 local function drawHelp()
   panel(110, 70, 420, 340)
   love.graphics.setFont(fonts.m); love.graphics.setColor(PURPLE); love.graphics.printf("Les touches", 110, 84, 420, "center")
-  local rows = { { { .88, .3, .3 }, "A", "Parler, prendre, entrer" }, { { .95, .8, .25 }, "B", "Courir (garder appuyé), retour" }, { { .35, .75, .4 }, "Y", "Sac à dos" }, { { .35, .55, .9 }, "X", "Changer d'outil" } }
+  local rows = { { { .88, .3, .3 }, "A", "Parler, prendre, entrer" }, { { .95, .8, .25 }, "B", "Courir (garder appuyé), retour" }, { { .35, .75, .4 }, "Y", "Sac à dos" }, { { .35, .55, .9 }, "X", "(libre pour l'instant)" } }
   for i, r in ipairs(rows) do
     local y = 124 + (i - 1) * 34
     love.graphics.setColor(r[1]); love.graphics.circle("fill", 150, y + 9, 12)
@@ -715,7 +720,7 @@ local function drawHelp()
   end
   love.graphics.setFont(fonts.s)
   love.graphics.print("START : menu (mini-jeux, sauvegarde)    SELECT : cette aide", 140, 270)
-  love.graphics.print("L1 / R1 : zoom      Joystick droit : regarder autour", 140, 292)
+  love.graphics.print("L1 / R1 : changer d'outil      Joystick droit : regarder", 140, 292)
   love.graphics.print("Panier : fruits, fleurs, crabes   Filet : papillons", 140, 320)
   love.graphics.print("Canne : au bord de l'eau   Voler : avec une plume de Gaïkin", 140, 342)
 end
@@ -826,4 +831,8 @@ function love.draw()
     love.graphics.setFont(fonts.s); love.graphics.printf("A pour continuer à te promener", 80, 310, W - 160, "center")
   end
 end
+local errMsg
+local up0, dr0 = love.update, love.draw
+love.update = function(dt) if errMsg then return end local ok, e = xpcall(up0, debug.traceback, dt); if not ok then errMsg = e; pcall(love.filesystem.write, "erreur.txt", e) end end
+love.draw = function() if errMsg then love.graphics.clear(.2, .1, .3); love.graphics.setColor(1, 1, 1); love.graphics.printf("Oups ! Prends cet écran en photo :\n\n" .. errMsg, 10, 10, W - 20); return end local ok, e = xpcall(dr0, debug.traceback); if not ok then errMsg = e; pcall(love.filesystem.write, "erreur.txt", e) end end
 _G.__T = function() return { scene = scene, place = place, player = player, S = S } end   -- pour les tests

@@ -3,8 +3,15 @@
 cd "$(dirname "$0")"
 A=assets; R=../assets
 mkdir -p $A/npc3 $A/spr $A/music $A/piano $A/load
-cp $R/map.jpg $R/myah/walk8.png $R/gaikin_fly.png $R/gaikin_perch.png $R/interieur2.jpg $R/soin2.jpg $R/mairie3.jpg $R/musee.jpg $R/bateau.jpg $R/observatoire.jpg $R/ukai.jpg $A/
+cp $R/gaikin_fly.png $R/gaikin_perch.png $R/interieur2.jpg $R/soin2.jpg $R/mairie3.jpg $R/musee.jpg $R/bateau.jpg $R/observatoire.jpg $R/ukai.jpg $A/
 cp $R/npc3/*.png $A/npc3/
+mkdir -p $A/myah
+python3 - <<'P'
+from PIL import Image
+Image.open('../assets/map.jpg').resize((2048,1144),Image.LANCZOS).save('assets/map.jpg',quality=88)   # pas d'image de plus de 2048 px (limite de la console)
+for a,b in [('walk8','walk'),('walkbask','walkbask'),('walknet','walknet'),('walkrod','walkrod')]:
+  im=Image.open('../assets/myah/%s.png'%a); im.resize((im.width//2,im.height//2),Image.LANCZOS).save('assets/myah/%s.png'%b,optimize=True)
+P
 cp $R/spr/shell0.png $R/spr/flower2.png $R/spr/fishA0.png $R/spr/crab0.png $R/spr/plume.png $R/spr/perle.png $R/spr/perroquet.png $R/spr/swan0.png $A/spr/
 cp $R/music/berceuse.* $R/music/danse.* $R/music/lucioles.* $A/music/
 cp $R/piano/*.png $R/piano/bg.jpg $A/piano/
