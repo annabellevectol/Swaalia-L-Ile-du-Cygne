@@ -3069,6 +3069,7 @@ const imgUkai = new Image(); imgUkai.src = 'assets/ukai.jpg';
 const imgObs = new Image(); imgObs.src = 'assets/observatoire.jpg';
 const imgBoat = new Image(); imgBoat.src = 'assets/bateau.jpg';
 const fadeEl = $('#fade');
+{ let f = 0; const seq = [0, 1, 2, 1], sw = document.getElementById('ldSw'); setInterval(() => { if (fadeEl.classList.contains('on')) { f = (f + 1) % 4; sw.src = 'assets/load/sw' + seq[f] + '.png'; } }, 170); }   // le cygne bat des ailes pendant le chargement
 const IN = { on: false, busy: false, cool: 0, near: 0, x: 440, y: 1000, floor: 0, prevTool: 'none', t: 0, lie: null };
    // Myah allongée sous son drap (tête et bras dehors)
 // lit superposé de la maison (coordonnées de l'image de l'étage) : tête sur l'oreiller, corps le long du lit
