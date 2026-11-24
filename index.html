@@ -15,7 +15,7 @@
   #pBubR{right:-6px}#pBubL{left:-6px}
   .pBub,.pBubs .pPipeF{position:static !important;width:clamp(30px,9vw,46px) !important;height:clamp(30px,9vw,46px) !important;border-radius:50% !important;border:2.5px solid #c9a35a !important;background:#fffaf0 !important;display:grid !important;place-items:center;padding:0 !important;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.25);font-size:clamp(15px,4.4vw,22px);line-height:1;color:#4b2a7a}
   .pBub img,.pBubs .pPipeF img{width:80%;height:80%;object-fit:contain}.pBubs .pPipeF svg{width:62% !important;height:62% !important}
-  .pBub.on,.pBubs .pPipeF.on{background:#e9dcfb !important;border-color:#6b3fa0 !important;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.3)}
+  .pBub.on,.pBubs .pPipeF.on{background:#fffaf0 !important;border:3.5px solid #3fae4f !important;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.3)}
   .pBub.pSz i{display:block;border-radius:50%;border:1.5px solid rgba(0,0,0,.35)}
   #paint.pCol #pBubL,#paint.pPick .pBubs{}
   #pPaper{display:flex;gap:6px;justify-content:center;align-items:center;font-weight:800;color:#6b4318;font-size:13px;margin:2px 0}
@@ -1107,7 +1107,7 @@
           <div class="tiles"><button id="setSound" class="go alt wide tile"><span class="ti">🔊</span><span class="tl">Son</span></button></div>
         </div>
       </details>
-      <button id="setTips" class="go alt wide" style="margin:4px 0">💡 Astuces du jeu</button><button id="setOff" class="go alt wide" style="margin:4px 0">📥 Jouer hors ligne</button><div id="setVer" style="text-align:center;font-size:11px;opacity:.6;margin:2px 0">version 384</div>
+      <button id="setTips" class="go alt wide" style="margin:4px 0">💡 Astuces du jeu</button><button id="setOff" class="go alt wide" style="margin:4px 0">📥 Jouer hors ligne</button><div id="setVer" style="text-align:center;font-size:11px;opacity:.6;margin:2px 0">version 385</div>
       <details class="setGroup">
         <summary>✨ Affichage et confort</summary>
         <div class="setKid">
@@ -1183,7 +1183,7 @@
 <script src="mymask.js?v=4"></script>
 <script src="sprites.js?v=200"></script>
 <script src="art.js"></script>
-<script src="game.js?v=384"></script>
+<script src="game.js?v=385"></script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { if (navigator.onLine) r.update(); }).catch(() => {});</script>
 </body>
 </html>
