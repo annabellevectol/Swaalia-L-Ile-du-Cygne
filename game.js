@@ -1758,11 +1758,10 @@ function taAsk(html, btns, cb) {   // petite bulle de question (Oui / Non…)
   d.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); e.stopPropagation(); d.remove(); cb(+b.dataset.i); });
   document.body.appendChild(d); return d;
 }
-function taStart() {   // on touche le tama dans le sac
-  const T = taAll(), own = ['swan', 'koala'].filter(k => T[k]); if (!own.length) return;
-  const lab = k => T[k].name || TAP[k].egg;
-  if (own.length === 1) taAsk('Veux-tu jouer avec ' + lab(own[0]) + ' ?', [['Oui'], ['Non', 1]], i => { if (i === 0) taOpen(own[0]); });
-  else taAsk('Veux-tu jouer ?<br>Avec qui ?', [[(T.swan.name || 'Œuf de cygne') + ' 🦢'], [(T.koala.name || 'Œuf koala') + ' 🐨'], ['Non', 1]], i => { if (i < 2) taOpen(own[i]); });
+const taFr = k => 'assets/tamak/' + (k === 'koala' ? 'frame_k' : 'frame') + '.png?v=1', taBt = (k, b) => 'assets/tamak/' + (k === 'koala' ? 'k' : '') + b + '.png?v=1';
+function taStart(k) {   // on touche un tama dans le sac
+  const s = taAll()[k]; if (!s) return;
+  taAsk('Veux-tu jouer avec ' + (s.name || TAP[k].egg) + ' ?', [['Oui'], ['Non', 1]], i => { if (i === 0) taOpen(k); });
 }
 function taOpen(kind) {
   const s = taAll()[kind]; if (!s) return; taTick(s); let act = null, actT = 0;
@@ -1774,8 +1773,8 @@ function taOpen(kind) {
     o.innerHTML = '<div class="taBox"><button class="taX" data-a="close" aria-label="Fermer">✕</button><div class="taName">' + (s.name || TAP[kind].nm) + (egg ? '' : ' <small>· ' + TA_STN[s.st] + '</small>') + '</div>'
       + '<div class="taDev"><div class="taScr"><img class="taBg" src="assets/tamak/bg_' + TA_BG[s.bg | 0] + '.jpg?v=1" alt="">'
       + (egg ? '' : '<div class="taBars">' + bar(s.faim, '#7cc46a', TAP[kind].food) + bar(s.prop, '#6ab8e8', '🫧') + bar(s.joie, '#e889b6', '💜') + '</div>')
-      + taSpr(kind, s, mood) + '</div><img class="taFr" src="assets/tamak/frame.png?v=1" alt=""></div>'
-      + '<div class="taBtns">' + (egg ? '<button data-a="warm"><img src="assets/tamak/ba.png?v=1" alt=""><span>Réchauffer</span></button>' : '<button data-a="play"><img src="assets/tamak/bx.png?v=1" alt=""><span>Jouer</span></button><button data-a="wash"><img src="assets/tamak/bb.png?v=1" alt=""><span>Laver</span></button><button data-a="feed"><img src="assets/tamak/ba.png?v=1" alt=""><span>Nourrir</span></button>') + '</div>'
+      + taSpr(kind, s, mood) + '</div><img class="taFr" src="' + taFr(kind) + '" alt=""></div>'
+      + '<div class="taBtns">' + (egg ? '<button data-a="warm"><img src="' + taBt(kind, 'ba') + '" alt=""><span>Réchauffer</span></button>' : '<button data-a="play"><img src="' + taBt(kind, 'bx') + '" alt=""><span>Jouer</span></button><button data-a="wash"><img src="' + taBt(kind, 'bb') + '" alt=""><span>Laver</span></button><button data-a="feed"><img src="' + taBt(kind, 'ba') + '" alt=""><span>Nourrir</span></button>') + '</div>'
       + '<div class="taLow"><button data-a="bg">🖼️ Changer de fond</button><button data-a="reset">↺ Recommencer</button></div>'
       + '<div class="taMsg">' + (egg ? 'Touche A pour réchauffer l\'œuf (' + (s.warm | 0) + '/3)' : s.st === 'adulte' ? s.name + ' est tout grand ! Continue de bien t\'en occuper.' : 'Prends soin de ' + s.name + ' pour le faire grandir') + '</div></div>';
   };
@@ -1796,9 +1795,9 @@ function taOpen(kind) {
 }
 const TAMA_SHOP = { swan: { cost: 'Les mangues, fleurs, coquillages, perles', can: () => (inv.mango | 0) >= 2 && (inv.flower | 0) >= 2 && (inv.shell | 0) >= 6 && (inv.perle | 0) >= 2, pay: () => { inv.mango -= 2; inv.flower -= 2; inv.shell -= 6; inv.perle -= 2; }, txt: '2 mangues + 2 fleurs + 6 coquillages + 2 perles' },
   koala: { can: () => BR_X.miel[1]() >= 6 && (inv.shell | 0) >= 6, pay: () => { BR_X.miel[2](6); inv.shell -= 6; }, txt: '6 fleurs sauvages + 6 coquillages' } };
-const tamaCard = isl => { const k = isl === 'kob' ? 'koala' : 'swan', own = !!taAll()[k], ok = !own && TAMA_SHOP[k].can(); return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="assets/tamak/frame.png?v=1" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + TAP[k].nm + '</div><div class="kp">' + TAMA_SHOP[k].txt + '</div><button class="kb" data-tam="' + k + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Dans ton sac' : 'Acheter') + '</button></div>'; };
+const tamaCard = isl => { const k = isl === 'kob' ? 'koala' : 'swan', own = !!taAll()[k], ok = !own && TAMA_SHOP[k].can(); return '<div class="kk' + (own || ok ? '' : ' z') + '"><img class="ki" src="' + taFr(k) + '" alt="" style="object-fit:contain;aspect-ratio:1"><div class="kn">' + TAP[k].nm + '</div><div class="kp">' + TAMA_SHOP[k].txt + '</div><button class="kb" data-tam="' + k + '" ' + (own || ok ? '' : 'disabled') + '>' + (own ? 'Dans ton sac' : 'Acheter') + '</button></div>'; };
 const tamaBuy = k => { if (taAll()[k] || !TAMA_SHOP[k].can()) return false; TAMA_SHOP[k].pay(); taAll()[k] = taNew(); save(); renderHud(); try { sfx.chest(); } catch (e) {} say(TAP[k].nm + ' : rangé dans ton sac ! Ouvre-le pour réchauffer l\'œuf.', 4); return true; };
-$('#inv').addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('#tamOpen'); if (b) { e.preventDefault(); e.stopPropagation(); taStart(); } }, true);
+$('#inv').addEventListener('pointerdown', e => { const b = e.target.closest && e.target.closest('.tamOpen'); if (b) { e.preventDefault(); e.stopPropagation(); taStart(b.dataset.tk); } }, true);
 { const st = document.createElement('style'); st.textContent = `
 #taOv{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(40,25,60,.55);font-family:"Trebuchet MS",system-ui,sans-serif}
 .taBox{position:relative;width:min(92vw,380px);background:#fff8ec;border:3px solid #c9a6e0;border-radius:24px;padding:12px 10px 10px;text-align:center;color:#4b2a7a;box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -1846,7 +1845,7 @@ function renderHud() { try { shopBtn(); } catch (e) {}
     QUESTS.forEach(q => { h += `<img src="${FICON[q.fe]}" class="${opened[q.id] ? '' : 'off'}" alt="">`; });
     h += `<span>${no}/5</span></div>`;
   } else h += `<div class="row pl"><span>Collection du musée : ${collected}/${COLL.length}</span></div>`;
-  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button><button class="mapOpen" id="jrnOpen"><img src="assets/journal/diary.png" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon journal</button>' + (typeof taAll === 'function' && (taAll().swan || taAll().koala) ? '<button class="mapOpen" id="tamOpen"><img src="assets/tamak/frame.png?v=1" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon tama</button>' : '');
+  h += '<button class="mapOpen" id="mapOpen">🗺️ Carte de l\'île</button><button class="mapOpen" id="jrnOpen"><img src="assets/journal/diary.png" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">Mon journal</button>' + (typeof taAll === 'function' ? ['swan', 'koala'].filter(k => taAll()[k]).map(k => '<button class="mapOpen tamOpen" data-tk="' + k + '"><img src="' + taFr(k) + '" alt="" style="height:1.6em;vertical-align:-7px;margin-right:4px">' + TAP[k].nm + '</button>').join('') : '');
   $('#inv').innerHTML = emoFix(h);
   { const bn = $('#bagN'), count = storyOn() ? no + '/5' : collected + '/' + COLL.length; bn.textContent = count; bn.classList.toggle('show', storyOn() ? no > 0 : collected > 0); }
   let t = '<h3>📜 Mes quêtes</h3>';
