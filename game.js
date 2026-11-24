@@ -4675,7 +4675,8 @@ const PAINT_SPOT = [945, 292], PAINT_KEY = SAVE_KEY + '-paintings';
 const nearPaint = () => SC === SC_HOME && IN.floor === 1 && !IN.lie && !IN.bunk && dist(IN.x, IN.y, PAINT_SPOT[0], PAINT_SPOT[1]) < 34 / (IN.zs || 1);
 const paintOpen = () => $('#paint').style.display === 'block';
 const PAINT_COLS = ['#f9a8c9', '#ffb5a7', '#ffd6a5', '#fdf0a6', '#c8f0b0', '#a8e6cf', '#a8dcf0', '#b8c8f8', '#d4b8f4', '#f4b8e4', '#e8d8c0', '#d9d9e3'];   // pastels
-const PNT = { paper: '#ffffff', col: '#e8332b', mode: 'brush', model: null, jit: 0, size: 10, erase: false, down: false, lx: 0, ly: 0, gal: [], hangImg: null };
+const PAPERS = { blanc: '#ffffff', parchemin: '#f4e6c8' }, paperFree = () => PAPERS[(() => { try { return localStorage.getItem('swaaliaPaper'); } catch (e) { return null; } })()] || '#ffffff';
+const PNT = { kind: 'pinceau', paper: paperFree(), col: '#e8332b', mode: 'brush', model: null, jit: 0, size: 10, erase: false, down: false, lx: 0, ly: 0, gal: [], hangImg: null };
 try { PNT.gal = JSON.parse(localStorage.getItem(PAINT_KEY) || '[]') || []; } catch (e) { PNT.gal = []; }
 function paintSaveGal() { try { localStorage.setItem(PAINT_KEY, JSON.stringify(PNT.gal)); } catch (e) {} treSave(); paintLoadHung(); }
 // ===== cadres aux murs de la maison : un cadre de chaque forme, on y accroche les dessins =====
@@ -4863,7 +4864,15 @@ function paintInit() {
   const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
   PNT.sk = document.createElement('canvas'); PNT.sk.width = 720; PNT.sk.height = 540; const skc = PNT.sk.getContext('2d', { willReadFrequently: true });   // calque des traits (dessin libre) : sert de contour au remplissage
   const stamps = new Map();
-  const wash = (x, y) => {   // un « jus » d'aquarelle : tache douce (tampon préparé une fois, puis simplement posé : aucun temps de latence)
+  const wash = (x, y) => { if (PNT.kind === 'feutre' || PNT.kind === 'crayon') return pen(x, y); wash0(x, y); };
+  const pen = (x, y) => {   // feutre : trait net et couvrant ; crayon : grain fin, comme une mine sur le papier
+    const zs = zs0(), [R, G, B] = hexRgb(PNT.col); c.globalCompositeOperation = 'multiply';
+    if (PNT.kind === 'feutre') { c.fillStyle = 'rgba(' + R + ',' + G + ',' + B + ',.55)'; c.beginPath(); c.arc(x, y, Math.max(1.2, PNT.size * .5 * zs), 0, TAU); c.fill(); }
+    else { const r = Math.max(1, PNT.size * .32 * zs); c.fillStyle = 'rgba(' + R + ',' + G + ',' + B + ',.35)'; for (let k = 0; k < 4; k++) { const a = Math.random() * TAU, d = Math.random() * r; c.fillRect(x + Math.cos(a) * d - .7, y + Math.sin(a) * d - .7, 1.4, 1.4); } }
+    c.globalCompositeOperation = 'source-over';
+    if (!PNT.model) { skc.fillStyle = '#000'; skc.beginPath(); skc.arc(x, y, Math.max(1, PNT.size * (PNT.kind === 'feutre' ? .5 : .32) * zs), 0, TAU); skc.fill(); }
+  };
+  const wash0 = (x, y) => {   // un « jus » d'aquarelle : tache douce (tampon préparé une fois, puis simplement posé : aucun temps de latence)
     const zs = PNT.zs || 1, r = Math.max(zs < 1 ? 1.2 : 3, PNT.size * .9 * zs), [R, G, B] = hexRgb(PNT.col), j = Math.round(PNT.jit || 0), key = PNT.col + '|' + j + '|' + Math.round(r * 2);
     let sp = stamps.get(key);
     if (!sp) {
@@ -4903,6 +4912,31 @@ function paintInit() {
   wrapZ.addEventListener('wheel', e => { if (!Z.on) return; e.preventDefault(); const r = wrapZ.getBoundingClientRect(), k = e.deltaY < 0 ? 1.15 : 1 / 1.15, mx = e.clientX - r.left, my = e.clientY - r.top, cx = (mx - Z.tx) / Z.sc, cy = (my - Z.ty) / Z.sc; Z.sc *= k; zApply(); Z.tx = mx - cx * Z.sc; Z.ty = my - cy * Z.sc; zApply(); }, { passive: false });
   const toolClick = m => () => { if (PNT.mode === m && $(m === 'brush' ? '#pBrush' : '#pFill').classList.contains('on')) zSet(!Z.on); else { zSet(false); setMode(m); } };
   $('#pBrush').addEventListener('click', toolClick('brush')); $('#pFill').addEventListener('click', toolClick('fill'));
+  {   // les outils sont des bulles posées sur la feuille : à droite les outils, à gauche les tailles
+    const W = $('#pWrap'), col = (id) => { const d = document.createElement('div'); d.id = id; d.className = 'pBubs'; W.appendChild(d); return d; }, BR = col('pBubR'), BL = col('pBubL');
+    const ico = k => ({ pinceau: '🖌️', feutre: '🖊️', crayon: '✏️', seau: '🪣', gomme: '🧽' })[k];   // en attendant les icônes dessinées (assets/paint/)
+    const T = [['pinceau', 'pinceau'], ['feutre', 'feutre'], ['crayon', 'crayon'], ['seau', 'remplir'], ['gomme', 'gomme']];
+    T.forEach(([k, n]) => { const b = document.createElement('button'); b.className = 'pBub'; b.dataset.k = k; b.title = n; b.setAttribute('aria-label', n); b.innerHTML = ico(k); BR.appendChild(b);
+      b.addEventListener('pointerdown', e => e.stopPropagation());
+      b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation();
+        if (k === 'seau') { if (PNT.erase) $('#pEr').click(); $('#pFill').click(); }
+        else if (k === 'gomme') { if (PNT.mode !== 'brush') $('#pBrush').click(); if (!PNT.erase) $('#pEr').click(); }
+        else { const same = PNT.mode === 'brush' && !PNT.erase && PNT.kind === k; PNT.kind = k; if (PNT.erase) $('#pEr').click(); if (PNT.mode !== 'brush' || same) $('#pBrush').click(); }
+        sync(); }); });
+    const pf = $('#pPipeF'); if (pf) BR.appendChild(pf);
+    [['#pS1', 'fin', 7], ['#pS2', 'moyen', 12], ['#pS3', 'gros', 19]].forEach(([q, n, d]) => { const b = document.createElement('button'); b.className = 'pBub pSz'; b.dataset.q = q; b.title = n; b.setAttribute('aria-label', 'taille ' + n); b.innerHTML = '<i style="width:' + d + 'px;height:' + d + 'px"></i>'; BL.appendChild(b); b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); $(q).click(); sync(); }); });
+    const sync = () => { BR.querySelectorAll('.pBub').forEach(b => { const k = b.dataset.k; b.classList.toggle('on', k === 'seau' ? PNT.mode === 'fill' : k === 'gomme' ? PNT.mode === 'brush' && PNT.erase : PNT.mode === 'brush' && !PNT.erase && PNT.kind === k); }); BL.querySelectorAll('.pBub').forEach(b => b.classList.toggle('on', $(b.dataset.q).classList.contains('on'))); BL.querySelectorAll('i').forEach(i => i.style.background = PNT.erase ? '#fff' : PNT.col); };
+    PNT.sync = sync; new MutationObserver(sync).observe($('#paint .pTools'), { subtree: true, attributes: true, attributeFilter: ['class', 'style'] }); sync();
+    // la feuille : blanche ou parchemin (dessin libre seulement ; le coloriage reste blanc)
+    const pp = document.createElement('div'); pp.id = 'pPaper'; pp.innerHTML = '<span>Feuille :</span><button data-p="blanc">Blanche</button><button data-p="parchemin">Parchemin</button>'; $('#pTabs').after(pp);
+    const ppSync = () => pp.querySelectorAll('button').forEach(b => b.classList.toggle('on', PAPERS[b.dataset.p] === PNT.paper));
+    pp.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || PNT.model) return; const nw = PAPERS[b.dataset.p], old = PNT.paper; if (nw === old) return;
+      try { localStorage.setItem('swaaliaPaper', b.dataset.p); } catch (er) {}
+      const im = c.getImageData(0, 0, 720, 540), d = im.data, [r0, g0, b0] = hexRgb(old), [r1, g1, b1] = hexRgb(nw);   // la couleur du papier change, les traits restent
+      for (let i = 0; i < d.length; i += 4) { const k0 = d[i] / r0, k1 = d[i + 1] / g0, k2 = d[i + 2] / b0; d[i] = Math.min(255, k0 * r1); d[i + 1] = Math.min(255, k1 * g1); d[i + 2] = Math.min(255, k2 * b1); }
+      c.putImageData(im, 0, 0); PNT.paper = nw; W.classList.toggle('pParch', nw !== '#ffffff'); ppSync(); });
+    ppSync(); PNT.ppSync = ppSync;
+  }
   document.querySelector('#paint .pTools').addEventListener('click', e => { const b = e.target.closest('button'); if (b && Z.on && b.id !== 'pBrush' && b.id !== 'pFill') zSet(false); });
   ['#pTabFree', '#pTabCol', '#pAgain', '#pBack', '#pX', '#pHome'].forEach(q => { const el = $(q); if (el) el.addEventListener('click', () => PNT.zoomReset()); });
   const barrier = () => { if (!PNT.model) { const d = skc.getImageData(0, 0, 720, 540).data, b = new Uint8Array(720 * 540); for (let i = 0; i < b.length; i++) b[i] = d[i * 4 + 3] > 40 ? 1 : 0; return b; } const ov = $('#pOv'); if (PNT.barSrc === ov.src && PNT.bar) return PNT.bar; if (!ov.complete || !ov.naturalWidth) return null; const t = document.createElement('canvas'); t.width = 720; t.height = 540; const tc = t.getContext('2d'); tc.drawImage(ov, 0, 0, 720, 540); const d = tc.getImageData(0, 0, 720, 540).data, b = new Uint8Array(720 * 540); for (let i = 0; i < b.length; i++) b[i] = d[i * 4 + 3] > 70 ? 1 : 0; PNT.bar = b; PNT.barSrc = ov.src; return b; };
@@ -4911,7 +4945,7 @@ function paintInit() {
     const seen = new Uint8Array(720 * 540), st = [Y * 720 + X], reg = []; seen[st[0]] = 1;
     while (st.length) { const p = st.pop(); reg.push(p); const px = p % 720, py = (p / 720) | 0; if (px > 0 && !seen[p - 1] && !b[p - 1]) { seen[p - 1] = 1; st.push(p - 1); } if (px < 719 && !seen[p + 1] && !b[p + 1]) { seen[p + 1] = 1; st.push(p + 1); } if (py > 0 && !seen[p - 720] && !b[p - 720]) { seen[p - 720] = 1; st.push(p - 720); } if (py < 539 && !seen[p + 720] && !b[p + 720]) { seen[p + 720] = 1; st.push(p + 720); } }
     const im = c.getImageData(0, 0, 720, 540), d = im.data, hx = PNT.erase ? PNT.paper : PNT.col, R = parseInt(hx.slice(1, 3), 16), G = parseInt(hx.slice(3, 5), 16), B = parseInt(hx.slice(5, 7), 16), a = PNT.erase ? 1 : .82;
-    for (const p of reg) { const i = p * 4, n = PNT.erase ? 0 : (Math.random() - .5) * 14, pr = 255, pg = PNT.model ? 250 : 255, pb = PNT.model ? 240 : 255; d[i] = pr * (1 - a) + pr * R / 255 * a + n; d[i + 1] = pg * (1 - a) + pg * G / 255 * a + n; d[i + 2] = pb * (1 - a) + pb * B / 255 * a + n; d[i + 3] = 255; }
+    for (const p of reg) { const i = p * 4, n = PNT.erase ? 0 : (Math.random() - .5) * 14, [pr, pg, pb] = hexRgb(PNT.paper); d[i] = pr * (1 - a) + pr * R / 255 * a + n; d[i + 1] = pg * (1 - a) + pg * G / 255 * a + n; d[i + 2] = pb * (1 - a) + pb * B / 255 * a + n; d[i + 3] = 255; }
     c.putImageData(im, 0, 0); blip(520, .06, 'sine', .06);
   };
   cv.addEventListener('pointerdown', e => { if (PNT.mode === 'pipe') { e.preventDefault(); e.stopImmediatePropagation(); const [x, y] = pos(e), X = Math.max(0, Math.min(719, Math.round(x))), Y = Math.max(0, Math.min(539, Math.round(y))), d = c.getImageData(X, Y, 1, 1).data; PNT.col = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join(''); PNT.erase = false; $('#pEr').classList.remove('on'); { const cu = $('#pCur'); if (cu) cu.style.background = PNT.col; } $('#pCols').querySelectorAll('button').forEach(b => b.classList.remove('on')); blip(880, .08, 'sine', .07); setMode(PNT.prevMode || 'brush'); return; }
@@ -4930,12 +4964,12 @@ function paintInit() {
   const up = () => { PNT.down = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   $('#pSave').addEventListener('click', () => { const t = document.createElement('canvas'); t.width = 540; t.height = 405; paintFlat(t); PNT.gal.unshift({ d: t.toDataURL('image/jpeg', .86), hung: false }); PNT.gal = PNT.gal.slice(0, 30); paintSaveGal(); paintGalRender(); blip(660, .1, 'sine', .08); blip(990, .14, 'sine', .07, .09); paintToast('Dessin sauvegardé'); });
   const MODELS = [['', '📄', 'feuille blanche'], ['papillon', 0, 'papillon'], ['hibiscus', 0, 'hibiscus'], ['poisson', 0, 'poisson-clown'], ['cygne', 0, 'cygne'], ['tortue', 0, 'tortue'], ['toucan', 0, 'toucan'], ['perroquet', 0, 'perroquet'], ['gecko', 0, 'gecko'], ['ananas', 0, 'ananas'], ['mangue', 0, 'mangues'], ['frangipanier', 0, 'frangipanier'], ['orchidee', 0, 'orchidée'], ['feuilles', 0, 'feuilles'], ['palmier', 0, 'palmier'], ['aquarium', 0, 'récif'], ['chat', 0, 'chat endormi'], ['marguerites', 0, 'marguerites'], ['tasse', 0, 'chocolat chaud'], ['ecureuil', 0, 'écureuil'], ['bonnet', 0, 'bonnet'], ['succulente', 0, 'succulente'], ['reveil', 0, 'réveil'], ['champignons', 0, 'champignons'], ['herisson', 0, 'hérisson'], ['tulipes', 0, 'tulipes'], ['theiere', 0, 'théière'], ['chaussettes', 0, 'chaussettes'], ['chalet', 0, 'chalet'], ['lavande', 0, 'lavande'], ['hibou', 0, 'hibou'], ['livres', 0, 'livres'], ['renard', 0, 'renard'], ['cerisier', 0, 'cerisier'], ['oiseau', 0, 'oiseau'], ['outils', 0, 'outils'], ['rose', 0, 'rose'], ['nichoir', 0, 'nichoir'], ['maisonchampi', 0, 'maison-champi'], ['bougie', 0, 'bougie']];
-  $('#pModels').innerHTML = MODELS.map((m, i) => '<button class="pb' + (i === 0 ? ' on' : '') + '" data-m="' + m[0] + '">' + (m[1] || '<img src="assets/color/' + m[0] + '_cadre.png" alt="" loading="lazy">') + '<small>' + m[2] + '</small></button>').join('');
-  $('#pModels').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { PNT.model = b.dataset.m || null; PNT.paper = PNT.model ? '#fffaf0' : '#ffffff'; $('#pCv').style.background = PNT.paper; const ov = $('#pOv'); if (PNT.model) { PNT.bar = null; PNT.barSrc = ''; const mdl = PNT.model, im0 = new Image(); im0.onload = () => { if (PNT.model !== mdl) return; const t = document.createElement('canvas'); t.width = 720; t.height = 540; const tc = t.getContext('2d'); tc.drawImage(im0, 0, 0, 720, 540); const id = tc.getImageData(0, 0, 720, 540), d = id.data, N = 720 * 540; let ln = new Uint8Array(N);
+  $('#pModels').innerHTML = MODELS.map((m, i) => '<button class="pb' + (i === 0 ? ' on' : '') + '" data-m="' + m[0] + '">' + (m[1] || '<img src="assets/color/' + m[0] + '_page.png?v=1" alt="" loading="lazy">') + '<small>' + m[2] + '</small></button>').join('');
+  $('#pModels').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { PNT.model = b.dataset.m || null; PNT.paper = PNT.model ? '#ffffff' : paperFree(); $('#pWrap').classList.toggle('pParch', !PNT.model && PNT.paper !== '#ffffff'); $('#pCv').style.background = PNT.paper; const ov = $('#pOv'); if (PNT.model) { PNT.bar = null; PNT.barSrc = ''; const mdl = PNT.model, im0 = new Image(); im0.onload = () => { if (PNT.model !== mdl) return; const t = document.createElement('canvas'); t.width = 720; t.height = 540; const tc = t.getContext('2d'); tc.drawImage(im0, 0, 0, 720, 540); const id = tc.getImageData(0, 0, 720, 540), d = id.data, N = 720 * 540; let ln = new Uint8Array(N);
       for (let i = 0; i < N; i++) { const j = i * 4; ln[i] = d[j + 3] > 70 && (d[j] + d[j + 1] + d[j + 2]) / 3 < 150 ? 1 : 0; }
       for (let pass = 0; pass < 1; pass++) { const nx = ln.slice(); for (let y = 1; y < 539; y++) for (let x = 1; x < 719; x++) { const i = y * 720 + x; if (!ln[i] && (ln[i - 1] || ln[i + 1] || ln[i - 720] || ln[i + 720])) nx[i] = 1; } ln = nx; }
       for (let i = 0; i < N; i++) if (ln[i]) { const j = i * 4; d[j] = 52; d[j + 1] = 38; d[j + 2] = 28; d[j + 3] = 255; }
-      tc.putImageData(id, 0, 0); PNT.bar = null; PNT.barSrc = ''; ov.src = t.toDataURL('image/png'); }; im0.src = 'assets/color/' + mdl + '_cadre.png'; ov.style.display = 'block'; } else ov.style.display = 'none'; paintClear(); PNT.undo = []; PNT.redo = []; $('#pModels').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); }));
+      tc.putImageData(id, 0, 0); PNT.bar = null; PNT.barSrc = ''; ov.src = t.toDataURL('image/png'); }; im0.src = 'assets/color/' + mdl + '_page.png?v=1'; ov.style.display = 'block'; } else ov.style.display = 'none'; paintClear(); PNT.undo = []; PNT.redo = []; $('#pModels').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); }));
   $('#pModels').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { if (b.dataset.m) { pTab('col'); setMode('fill'); } else setMode('brush'); }));
   $('#pX').addEventListener('click', closePaint);
 }
@@ -5605,7 +5639,7 @@ function wdDraw() {
   wd.last = cur; $('#wdUndo').disabled = !wd.hist.length; $('#wdRedo').disabled = !(wd.redo && wd.redo.length); renderFrameOutfit('walk', wdIdx(), o, wd.frame);
   const cv = $('#wdPrev'), x = cv.getContext('2d'), k = cv.width / 256; x.clearRect(0, 0, cv.width, cv.height);
   x.fillStyle = 'rgba(0,70,80,.18)'; x.beginPath(); x.ellipse(cv.width / 2, 213 * k, 52 * k, 9 * k, 0, 0, TAU); x.fill();
-  x.imageSmoothingEnabled = true; if (wd.part === 'brace') { x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); const T = WRIST && WRIST.walk && WRIST.walk[wdIdx()], q = T && (T[wd.brSide || 'r'] || T.r || T.l), zx = q ? q[0] - 26 : 60, zy = q ? q[1] - 24 : 110; x.drawImage(wd.frame, zx, zy, 52, 52, 0, 0, cv.width, cv.height); }   // gros plan sur le poignet choisi else if (wd.part === 'glasses' || wd.part === 'neck') { const zy = wd.part === 'neck' ? 62 : 22, zx = wd.part === 'neck' ? 78 : 68, zw = wd.part === 'neck' ? 100 : 120; x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, zx, zy, zw, zw, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
+  x.imageSmoothingEnabled = true; if (wd.part === 'brace') { x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); const T = WRIST && WRIST.walk && WRIST.walk[wdIdx()], q = T && (T[wd.brSide || 'r'] || T.r || T.l), zx = q ? q[0] - 26 : 60, zy = q ? q[1] - 24 : 110; x.drawImage(wd.frame, zx, zy, 52, 52, 0, 0, cv.width, cv.height); }   /* gros plan sur le poignet choisi */ else if (wd.part === 'glasses' || wd.part === 'neck') { const zy = wd.part === 'neck' ? 62 : 22, zx = wd.part === 'neck' ? 78 : 68, zw = wd.part === 'neck' ? 100 : 120; x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(wd.frame, zx, zy, zw, zw, 0, 0, cv.width, cv.height); } else x.drawImage(wd.frame, 0, 0, cv.width, cv.height);   // lunettes : gros plan sur le visage
   const box = wdBox(); if (box && wd.part === 'stickers' && wd.sel >= 0 && o.stickers[wd.sel]) {   // cadre de sélection du sticker, avec des poignées pour l'étirer
     const R = wdStkRect(o.stickers[wd.sel], box), M = 6;   // le cadre est un peu plus grand que le sticker, pour que les poignées ne le cachent pas
     x.save(); x.setLineDash([6, 5]); x.lineWidth = 3; x.strokeStyle = '#fff'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.lineWidth = 1.5; x.strokeStyle = '#c7447a'; x.strokeRect((R.cx - R.hw - M) * k, (R.cy - R.hh - M) * k, (R.hw + M) * 2 * k, (R.hh + M) * 2 * k); x.setLineDash([]);
