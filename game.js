@@ -1776,7 +1776,7 @@ function taOpen(kind) {
       + (egg ? '' : '<div class="taBars">' + bar(s.faim, '#7cc46a', TAP[kind].food) + bar(s.prop, '#6ab8e8', '🫧') + bar(s.joie, '#e889b6', '💜') + '</div>')
       + taSpr(kind, s, mood) + '</div><img class="taFr" src="' + taFr(kind) + '" alt=""></div>'
       + '<div class="taBtns">' + (egg ? '<button data-a="warm"><img src="' + taBt(kind, 'ba') + '" alt=""><span>Réchauffer</span></button>' : '<button data-a="play"><img src="' + taBt(kind, 'bx') + '" alt=""><span>Jouer</span></button><button data-a="wash"><img src="' + taBt(kind, 'bb') + '" alt=""><span>Laver</span></button><button data-a="feed"><img src="' + taBt(kind, 'ba') + '" alt=""><span>Nourrir</span></button>') + '</div>'
-      + '<div class="taLow"><button data-a="bg">🖼️ Changer de fond</button><button data-a="reset">↺ Recommencer</button></div>'
+      + '<div class="taLow"><button data-a="bg">🖼️ Changer de fond</button><button data-a="reset">🥚 Nouvel œuf</button></div>'
       + '<div class="taMsg">' + (egg ? 'Touche A pour réchauffer l\'œuf (' + (s.warm | 0) + '/3)' : s.st === 'adulte' ? s.name + ' est tout grand ! Continue de bien t\'en occuper.' : 'Prends soin de ' + s.name + ' pour le faire grandir') + '</div></div>';
   };
   const grow = () => { if (TA_XP[s.st] && s.xp >= TA_XP[s.st]) { s.st = TA_ST[TA_ST.indexOf(s.st) + 1]; act = 'propre'; actT = performance.now() + 2500; setTimeout(() => { draw(); fx('⭐', 7); }, 30); say('✨ ' + s.name + ' a grandi : il est ' + TA_STN[s.st] + ' !', 3.5); try { sfx.star(); } catch (e) {} } };
@@ -1786,7 +1786,7 @@ function taOpen(kind) {
   o.addEventListener('pointerdown', e => { const b = e.target.closest('[data-a]'); if (!b) { if (e.target === o) { e.preventDefault(); o.remove(); } return; } e.preventDefault(); e.stopPropagation(); try { audio(); } catch (er) {} const a = b.dataset.a;
     if (a === 'close') { o.remove(); return; }
     if (a === 'bg') { s.bg = ((s.bg | 0) + 1) % TA_BG.length; save(); draw(); return; }
-    if (a === 'reset') { taAsk('Recommencer à zéro avec un nouvel œuf ?' + (s.name ? '<br><small>' + s.name + ' redeviendra un œuf.</small>' : ''), [['Oui'], ['Non', 1]], i => { if (i) return; taAll()[kind] = Object.assign(taNew(), { bg: s.bg }); save(); taOpen(kind); }); return; }
+    if (a === 'reset') { taAsk('Es-tu sûr de vouloir un nouvel œuf ?' + (s.name ? '<br><small>' + s.name + ' redeviendra un œuf.</small>' : ''), [['Oui'], ['Non', 1]], i => { if (i) return; taAll()[kind] = Object.assign(taNew(), { bg: s.bg }); save(); taOpen(kind); }); return; }
     if (a === 'warm') { s.warm = (s.warm | 0) + 1; fx('💗', 3); try { blip(600 + s.warm * 120, .1, 'sine', .07); } catch (er) {} if (s.warm >= 3) { act = 'hatch'; actT = performance.now() + 1800; draw(); fx('✨', 6); setTimeout(() => { s.st = 'bebe'; s.t = Date.now(); act = 'content'; actT = performance.now() + 2000; save(); draw(); fx('💜', 6); askName(); }, 1800); } else { save(); draw(); } return; }
     if (a === 'feed') care('faim', 30, 'content', TAP[kind].food);
     if (a === 'wash') care('prop', 100, 'propre', '🫧');
