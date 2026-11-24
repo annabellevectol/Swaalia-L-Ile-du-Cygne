@@ -4914,7 +4914,7 @@ function paintInit() {
   $('#pBrush').addEventListener('click', toolClick('brush')); $('#pFill').addEventListener('click', toolClick('fill'));
   {   // les outils sont des bulles posées sur la feuille : à droite les outils, à gauche les tailles
     const W = $('#pWrap'), col = (id) => { const d = document.createElement('div'); d.id = id; d.className = 'pBubs'; W.appendChild(d); return d; }, BR = col('pBubR'), BL = col('pBubL');
-    const ico = k => ({ pinceau: '🖌️', feutre: '🖊️', crayon: '✏️', seau: '🪣', gomme: '🧽' })[k];   // en attendant les icônes dessinées (assets/paint/)
+    const ico = k => '<img src="assets/paint/' + k + '.png?v=1" alt="">';   // en attendant les icônes dessinées (assets/paint/)
     const T = [['pinceau', 'pinceau'], ['feutre', 'feutre'], ['crayon', 'crayon'], ['seau', 'remplir'], ['gomme', 'gomme']];
     T.forEach(([k, n]) => { const b = document.createElement('button'); b.className = 'pBub'; b.dataset.k = k; b.title = n; b.setAttribute('aria-label', n); b.innerHTML = ico(k); BR.appendChild(b);
       b.addEventListener('pointerdown', e => e.stopPropagation());
@@ -4923,7 +4923,7 @@ function paintInit() {
         else if (k === 'gomme') { if (PNT.mode !== 'brush') $('#pBrush').click(); if (!PNT.erase) $('#pEr').click(); }
         else { const same = PNT.mode === 'brush' && !PNT.erase && PNT.kind === k; PNT.kind = k; if (PNT.erase) $('#pEr').click(); if (PNT.mode !== 'brush' || same) $('#pBrush').click(); }
         sync(); }); });
-    const pf = $('#pPipeF'); if (pf) BR.appendChild(pf);
+    const pf = $('#pPipeF'); if (pf) { pf.innerHTML = ico('pipette'); BR.appendChild(pf); }
     [['#pS1', 'fin', 7], ['#pS2', 'moyen', 12], ['#pS3', 'gros', 19]].forEach(([q, n, d]) => { const b = document.createElement('button'); b.className = 'pBub pSz'; b.dataset.q = q; b.title = n; b.setAttribute('aria-label', 'taille ' + n); b.innerHTML = '<i style="width:' + d + 'px;height:' + d + 'px"></i>'; BL.appendChild(b); b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); $(q).click(); sync(); }); });
     const sync = () => { BR.querySelectorAll('.pBub').forEach(b => { const k = b.dataset.k; b.classList.toggle('on', k === 'seau' ? PNT.mode === 'fill' : k === 'gomme' ? PNT.mode === 'brush' && PNT.erase : PNT.mode === 'brush' && !PNT.erase && PNT.kind === k); }); BL.querySelectorAll('.pBub').forEach(b => b.classList.toggle('on', $(b.dataset.q).classList.contains('on'))); BL.querySelectorAll('i').forEach(i => i.style.background = PNT.erase ? '#fff' : PNT.col); };
     PNT.sync = sync; new MutationObserver(sync).observe($('#paint .pTools'), { subtree: true, attributes: true, attributeFilter: ['class', 'style'] }); sync();
